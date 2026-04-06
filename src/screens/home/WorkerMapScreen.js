@@ -107,6 +107,7 @@ export default function WorkerMapScreen({ navigation }) {
       case 'plumber': return 'pipe-wrench';
       case 'carpenter': return 'hammer-screwdriver';
       case 'cleaner': return 'broom';
+      case 'ac repair': return 'air-conditioner';
       default: return 'tools';
     }
   };

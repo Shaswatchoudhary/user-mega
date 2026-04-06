@@ -6,37 +6,59 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [firebaseUser, setFirebaseUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Handle user state changes
-  function onAuthStateChanged(user) {
-    setUser(user);
-    if (loading) setLoading(false);
-    
-    // Store user session in AsyncStorage for persistence if needed
-    if (user) {
-      AsyncStorage.setItem('user', JSON.stringify(user));
-    } else {
-      AsyncStorage.removeItem('user');
-    }
-  }
-
+  // Load user from AsyncStorage on mount
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    return subscriber; // Unsubscribe on unmount
+    const loadUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error('[AuthContext] Failed to load user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUser();
   }, []);
 
-  const login = (userData) => {
+  // Handle Firebase user state changes
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged((fbUser) => {
+      setFirebaseUser(fbUser);
+      
+      // If Firebase user is gone, clear MongoDB user as well (logout sync)
+      if (!fbUser) {
+        setUser(null);
+        AsyncStorage.removeItem('user');
+      }
+      
+      if (loading) setLoading(false);
+    });
+    return subscriber; // Unsubscribe on unmount
+  }, [loading]);
+
+  const login = async (userData) => {
     setUser(userData);
+    await AsyncStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = async () => {
-    await auth().signOut();
-    setUser(null);
+    try {
+      await auth().signOut();
+      setUser(null);
+      await AsyncStorage.removeItem('user');
+    } catch (error) {
+      console.error('[AuthContext] Logout Error:', error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, firebaseUser, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -321,12 +321,11 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleAcRepairPress = (ac) => {
-    navigation.navigate('AcRepair');  // Must match the name in Stack.Screen
+    navigation.navigate('AcRepair');
   };
 
   const handleSelfCareSubcategoryPress = (subcategory) => {
     setShowSelfCareModal(false);
-    // Navigate to the appropriate screen based on the selected subcategory
     if (subcategory === 'men') {
       navigation.navigate('Menscare');
     } else if (subcategory === 'women') {
@@ -335,24 +334,37 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleBannerPress = (banner) => {
-    navigation.navigate(banner.screen);
+    if (banner.screen === 'SelfCare') {
+      setShowSelfCareModal(true);
+    } else {
+      navigation.navigate(banner.screen);
+    }
   };
 
   const handlePromoPress = (promo) => {
-    // Ensuring exact screen names as per navigation stack
     const screenMap = {
       'Electrician': 'Electrician',
       'Plumber': 'Plumber',
       'Carpenter': 'Carpenter',
-      'AcRepair': 'AcRepair', // Fixed mapping
+      'AcRepair': 'AcRepair',
+      'ACRepair': 'AcRepair',
       'Appliance': 'Appliance',
       'SelfCare': 'SelfCare'
     };
-    navigation.navigate(screenMap[promo.screen] || promo.screen);
+    const target = screenMap[promo.screen] || promo.screen;
+    if (target === 'SelfCare') {
+      setShowSelfCareModal(true);
+    } else {
+      navigation.navigate(target);
+    }
   };
 
   const handleSeeAllPress = (screenName) => {
-    navigation.navigate(screenName);
+    if (screenName === 'SelfCare') {
+      setShowSelfCareModal(true);
+    } else {
+      navigation.navigate(screenName);
+    }
   };
 
   return (
@@ -475,7 +487,7 @@ export default function HomeScreen({ navigation }) {
                 key={worker.id}
                 style={styles.mostBookedCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('WorkerProfile', { worker })}
+                onPress={() => navigation.navigate('WorkerProfile', { worker: { ...worker, name: worker.subtitle.split(' • ')[0] } })}
               >
                 <Image source={{ uri: worker.image }} style={styles.mostBookedImage} />
                 <View style={styles.mostBookedInfo}>
@@ -673,7 +685,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Self-care workers</Text>
-            <TouchableOpacity onPress={() => setShowSelfCareModal(true)}>
+            <TouchableOpacity onPress={() => handleSeeAllPress('SelfCare')}>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
           </View>
@@ -688,7 +700,7 @@ export default function HomeScreen({ navigation }) {
                 key={service.id}
                 style={styles.categoryCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('SelfCare', { category: 'SelfCare' })}
+                onPress={() => handleSeeAllPress('SelfCare')}
               >
                 <Image source={{ uri: service.image }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>

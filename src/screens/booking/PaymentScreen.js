@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -178,18 +179,18 @@ export default function PaymentScreen({ navigation, route }) {
           <Text style={styles.sectionTitle}>Price Breakdown</Text>
           <Card style={styles.whiteCard}>
             <View style={styles.priceRow}>
-              <Text>Service Total</Text>
-              <Text>₹{initialAmount}</Text>
+              <Text style={styles.priceLabel}>Service Total</Text>
+              <Text style={styles.priceValue}>₹{initialAmount}</Text>
             </View>
             {discount > 0 && (
               <View style={styles.priceRow}>
-                <Text style={{ color: colors.success }}>Discount</Text>
-                <Text style={{ color: colors.success }}>- ₹{discount}</Text>
+                <Text style={[styles.priceLabel, { color: colors.success }]}>Discount</Text>
+                <Text style={[styles.priceValue, { color: colors.success }]}>- ₹{discount}</Text>
               </View>
             )}
             <View style={[styles.priceRow, styles.totalRow]}>
-              <Text style={{ fontWeight: '700' }}>Total</Text>
-              <Text style={{ fontWeight: '800', color: colors.accent, fontSize: 18 }}>₹{finalAmount}</Text>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>₹{finalAmount}</Text>
             </View>
           </Card>
         </View>
@@ -227,79 +228,201 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: spacing.md,
+    padding: 16,
     backgroundColor: "#FFF",
     borderBottomWidth: 1,
     borderBottomColor: "#EFEFEF"
   },
-  headerTitle: { ...typography.h3, color: "#1A1A1A" },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: "#1A1A1A", fontFamily: 'Poppins-Bold' },
   backButton: { width: 40, height: 40, justifyContent: "center" },
   scrollView: { flex: 1 },
-  scrollContent: { padding: spacing.lg },
+  scrollContent: { padding: 20 },
   amountCard: {
-    padding: spacing.xl,
-    borderRadius: borderRadius.lg,
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    borderRadius: 20,
     alignItems: "center",
-    marginBottom: spacing.lg,
-    // Soft shadow
+    justifyContent: "center",
+    marginBottom: 24,
     shadowColor: '#E84545',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 8,
   },
-  amountLabel: { ...typography.caption, color: "rgba(255,255,255,0.9)" },
-  amountValue: { ...typography.display, color: "#FFF" },
-  savedText: { ...typography.caption, color: "#FFF", backgroundColor: "rgba(0,0,0,0.1)", padding: 4, borderRadius: 10, marginTop: 8 },
-  section: { marginBottom: spacing.lg },
-  sectionTitle: { ...typography.body, fontWeight: "700", color: "#1A1A1A", marginBottom: spacing.sm },
-  promoInputRow: { flexDirection: "row", gap: 10 },
-  promoInput: { flex: 1, backgroundColor: "#FFF", padding: 12, borderRadius: 8, borderWidth: 1, borderColor: "#DDD" },
-  applyBtn: { backgroundColor: colors.accent, paddingHorizontal: 20, justifyContent: "center", borderRadius: 8 },
+  amountLabel: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
+    fontFamily: 'Poppins-Medium',
+    marginBottom: 4,
+  },
+  amountValue: {
+    fontSize: 42,
+    fontWeight: "800",
+    color: "#FFF",
+    fontFamily: 'Poppins-Bold',
+  },
+  savedText: {
+    fontSize: 12,
+    color: "#FFF",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginTop: 12,
+    overflow: 'hidden',
+    fontFamily: 'Poppins-Medium',
+  },
+  section: { 
+    marginBottom: 24,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: { 
+    fontSize: 16,
+    fontWeight: "700", 
+    color: "#1A1A1A", 
+    marginBottom: 12,
+    fontFamily: 'Poppins-SemiBold',
+  },
+  promoInputRow: { 
+    flexDirection: "row", 
+    alignItems: 'center',
+    gap: 12 
+  },
+  promoInput: { 
+    flex: 1, 
+    backgroundColor: "#FFF", 
+    padding: 14, 
+    borderRadius: 12, 
+    borderWidth: 1.5, 
+    borderColor: "#EEE",
+    fontSize: 15,
+    color: '#000',
+    fontFamily: 'Poppins-Regular',
+  },
+  applyBtn: { 
+    backgroundColor: colors.accent, 
+    paddingHorizontal: 24, 
+    height: 54,
+    justifyContent: "center", 
+    borderRadius: 12,
+  },
   applyBtnDisabled: { opacity: 0.5 },
-  applyBtnText: { color: "#FFF", fontWeight: "700" },
+  applyBtnText: { 
+    color: "#FFF", 
+    fontWeight: "700",
+    fontSize: 14,
+    fontFamily: 'Poppins-Bold',
+  },
   methodRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFF",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#EEE",
-    gap: 12,
-    // Soft shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  methodSelected: { borderColor: colors.accent, backgroundColor: "#FFF5F5" },
-  methodText: { ...typography.bodySmall, fontWeight: "600", flex: 1, color: "#1A1A1A" },
-  whiteCard: {
-    backgroundColor: "#FFF",
+    padding: 18,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#EFEFEF',
-    // Soft shadow
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: "#F0F0F0",
+    gap: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
     elevation: 2,
   },
-  priceRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 },
-  totalRow: { borderTopWidth: 1, borderTopColor: "#EEE", marginTop: 8, paddingTop: 8 },
+  methodSelected: { 
+    borderColor: colors.accent, 
+    backgroundColor: "#FFF9F9",
+  },
+  methodText: { 
+    fontSize: 15,
+    fontWeight: "600", 
+    flex: 1, 
+    color: "#1A1A1A",
+    fontFamily: 'Poppins-Medium',
+  },
+  whiteCard: {
+    backgroundColor: "#FFF",
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  priceRow: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  priceLabel: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'Poppins-Regular',
+  },
+  priceValue: {
+    fontSize: 14,
+    color: '#1A1A1A',
+    fontWeight: '600',
+    fontFamily: 'Poppins-SemiBold',
+  },
+  totalRow: { 
+    borderTopWidth: 1, 
+    borderTopColor: "#F0F0F0", 
+    marginTop: 12, 
+    paddingTop: 16,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    fontFamily: 'Poppins-Bold',
+  },
+  totalValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.accent,
+    fontFamily: 'Poppins-Bold',
+  },
   bottomBar: {
-    padding: spacing.lg,
+    padding: 24,
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
-    borderTopColor: "#EEE"
+    borderTopColor: "#F0F0F0",
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
   },
-  confirmingView: { alignItems: "center" },
-  confirmingText: { ...typography.h3, color: colors.accent },
-  cancelLink: { color: "#666", marginTop: 8, textDecorationLine: "underline" },
-  errorText: { color: colors.error, fontSize: 12, marginTop: 4 },
-  successText: { color: colors.success, fontSize: 12, marginTop: 4 },
+  confirmingView: { 
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  confirmingText: { 
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.accent,
+    fontFamily: 'Poppins-Bold',
+  },
+  cancelLink: { 
+    color: "#666", 
+    marginTop: 8, 
+    textDecorationLine: "underline",
+    fontFamily: 'Poppins-Medium',
+  },
+  errorText: { 
+    color: colors.error, 
+    fontSize: 12, 
+    marginTop: 6,
+    marginLeft: 4,
+    fontFamily: 'Poppins-Regular',
+  },
+  successText: { 
+    color: colors.success, 
+    fontSize: 12, 
+    marginTop: 6,
+    marginLeft: 4,
+    fontFamily: 'Poppins-Regular',
+  },
 });

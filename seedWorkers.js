@@ -11,18 +11,29 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// Kolhapur central point: 16.7050, 74.2433
+// Real Kolhapur coordinates provided by User:
+// 1. Mahadwar Road: 16.7015, 74.2311 (Electrician)
+// 2. Tarabai Park: 16.7139, 74.2473 (Plumber)
+// 3. Rajarampuri: 16.7067, 74.2234 (Electrician)
+// 4. Shahupuri: 16.7089, 74.2356 (AC Repair)
+// 5. Kasaba Bawada: 16.6934, 74.2198 (Carpenter)
+// 6. Rankala Lake: 16.7023, 74.2189 (Electrician)
+// 7. Shivaji University: 16.6854, 74.2367 (Plumber)
+// 8. Ujlaiwadi: 16.7201, 74.2289 (AC Repair)
+// 9. Gandhinagar: 16.7156, 74.2534 (Carpenter)
+// 10. Laxmipuri: 16.7034, 74.2423 (Cleaner)
+
 const workers = [
-  { name: "Rahul Patil", service: "Electrician", lat: 16.7020, lng: 74.2410, address: "Mahadwar Road" },
-  { name: "Suresh Deshmukh", service: "Plumber", lat: 16.7120, lng: 74.2480, address: "Tarabai Park" },
-  { name: "Amit Kulkarni", service: "Carpenter", lat: 16.6980, lng: 74.2350, address: "Rajarampuri" },
-  { name: "Vikram Pawar", service: "Cleaner", lat: 16.7080, lng: 74.2520, address: "Shahupuri" },
-  { name: "Ganesh Mane", service: "Electrician", lat: 16.7220, lng: 74.2650, address: "Kasaba Bawada" },
-  { name: "Prasad Shinde", service: "Plumber", lat: 16.7040, lng: 74.2300, address: "Rankala Lake area" },
-  { name: "Sachin More", service: "Carpenter", lat: 16.6920, lng: 74.2450, address: "Sane Guruji Vasahat" },
-  { name: "Sunil Gaikwad", service: "Electrician", lat: 16.7150, lng: 74.2550, address: "Nagala Park" },
-  { name: "Amol Jadhav", service: "Cleaner", lat: 16.7000, lng: 74.2480, address: "Dasara Chowk" },
-  { name: "Nitin Kamble", service: "Plumber", lat: 16.7100, lng: 74.2380, address: "Shahu Market" }
+  { name: "Rahul Patil", service: "electrician", lat: 16.7015, lng: 74.2311, address: "Mahadwar Road" },
+  { name: "Suresh Deshmukh", service: "plumber", lat: 16.7139, lng: 74.2473, address: "Tarabai Park" },
+  { name: "Amit Kulkarni", service: "electrician", lat: 16.7067, lng: 74.2234, address: "Rajarampuri" },
+  { name: "Vikram Pawar", service: "ac_repair", lat: 16.7089, lng: 74.2356, address: "Shahupuri" },
+  { name: "Ganesh Mane", service: "carpenter", lat: 16.6934, lng: 74.2198, address: "Kasaba Bawada" },
+  { name: "Prasad Shinde", service: "electrician", lat: 16.7023, lng: 74.2189, address: "Rankala Lake" },
+  { name: "Sachin More", service: "plumber", lat: 16.6854, lng: 74.2367, address: "Shivaji University" },
+  { name: "Sunil Gaikwad", service: "ac_repair", lat: 16.7201, lng: 74.2289, address: "Ujlaiwadi" },
+  { name: "Amol Jadhav", service: "carpenter", lat: 16.7156, lng: 74.2534, address: "Gandhinagar" },
+  { name: "Nitin Kamble", service: "cleaner", lat: 16.7034, lng: 74.2423, address: "Laxmipuri" }
 ];
 
 async function seedData() {
