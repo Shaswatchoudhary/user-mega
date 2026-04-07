@@ -23,6 +23,9 @@ import ManageAddressScreen from '../screens/profile/ManageAddressScreen';
 import ManagePaymentMethodsScreen from '../screens/profile/ManagePaymentMethodsScreen';
 import WorkerProfileScreen from '../screens/booking/WorkerProfileScreen';
 import BookingSummaryScreen from '../screens/booking/BookingSummaryScreen';
+import NotificationScreen from '../screens/notifications/NotificationScreen';
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
@@ -37,6 +40,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="OtpLogin" component={OtpLoginScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+      <Stack.Screen name="Notifications" component={NotificationScreen} />
       <Stack.Screen name="Electrician" component={ElectricianScreen} />
       <Stack.Screen name="Plumber" component={PlumberScreen} />
       <Stack.Screen name="Carpenter" component={CarpenterScreen} />
@@ -57,6 +61,7 @@ export default function AppNavigator() {
       <Stack.Screen name="ManagePaymentMethods" component={ManagePaymentMethodsScreen} />
       <Stack.Screen name="WorkerProfile" component={WorkerProfileScreen} />
       <Stack.Screen name="BookingSummary" component={BookingSummaryScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
     </Stack.Navigator>
   );
 }

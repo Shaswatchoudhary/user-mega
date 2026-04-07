@@ -39,7 +39,7 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const menuItems = [
-    { id: 1, icon: 'person-outline', label: 'Edit Profile', route: null },
+    { id: 1, icon: 'person-outline', label: 'Edit Profile', route: 'EditProfile' },
     { id: 2, icon: 'headset-outline', label: 'My Support', route: 'MySupport' },
     { id: 3, icon: 'help-circle-outline', label: 'Help & Support', route: 'HelpSupport' },
     { id: 4, icon: 'location-outline', label: 'Manage Address', route: 'LocationSelection' },
@@ -49,10 +49,6 @@ const ProfileScreen = ({ navigation }) => {
   ];
 
   const handleMenuPress = (item) => {
-    if (item.label === 'Edit Profile') {
-      Alert.alert('Coming Soon', 'Profile editing will be available soon');
-      return;
-    }
     if (item.route) {
       navigation.navigate(item.route);
     }

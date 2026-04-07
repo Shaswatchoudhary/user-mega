@@ -1,23 +1,50 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { LocationProvider } from './src/context/LocationContext';
 import AppNavigator from './src/navigation/AppNavigator';
-import { registerForPushNotificationsAsync } from './src/utils/notificationHelper';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import notificationService from './src/services/notificationService';
+import permissionService from './src/services/permissionService';
 
-export default function App() {
+const navigationRef = createNavigationContainerRef();
+
+function AppContent() {
+  const { user } = useAuth();
+
   React.useEffect(() => {
-    registerForPushNotificationsAsync();
+    notificationService.setNavigation(navigationRef);
+    
+    let unsubscribe;
+    if (user?._id) {
+      notificationService.setupNotifications(user._id).then(unsub => {
+        unsubscribe = unsub;
+      });
+    }
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [user?._id]);
+
+  React.useEffect(() => {
+    // Request Initial Permissions (Notification & Location)
+    permissionService.requestInitialPermissions();
   }, []);
 
+  return (
+    <NavigationContainer ref={navigationRef}>
+      <AppNavigator />
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
         <LocationProvider>
-          <NavigationContainer>
-            <AppNavigator />
-          </NavigationContainer>
+          <AppContent />
         </LocationProvider>
       </AuthProvider>
     </SafeAreaProvider>

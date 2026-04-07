@@ -75,4 +75,5 @@ android/app/build/
 android/build/
 WORKER/android/app/build/
 WORKER/android/build/
-ios/build/
+ios/build/serviceAccountKey.js
+serviceAccountKey.js

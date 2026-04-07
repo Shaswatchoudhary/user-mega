@@ -163,9 +163,25 @@ export default function PaymentScreen({ navigation, route }) {
             style={[styles.methodRow, selectedMethod === '1' && styles.methodSelected]}
             onPress={() => setSelectedMethod('1')}
           >
-            <Ionicons name="cash-outline" size={24} color={colors.accent} />
-            <Text style={styles.methodText}>Cash on Service</Text>
-            {selectedMethod === '1' && <Ionicons name="checkmark-circle" size={24} color={colors.accent} />}
+            <View style={styles.methodIconContainer}>
+              <Ionicons name="cash-outline" size={24} color={colors.accent} />
+            </View>
+            <View style={styles.methodInfo}>
+              <View style={styles.methodTitleRow}>
+                <Text style={styles.methodText}>Cash on Service</Text>
+                <View style={styles.defaultBadge}>
+                  <Text style={styles.defaultBadgeText}>Default</Text>
+                </View>
+              </View>
+              <Text style={styles.methodDescription}>Pay directly to the professional after service</Text>
+            </View>
+            <View style={styles.methodRadio}>
+              <Ionicons 
+                name={selectedMethod === '1' ? "radio-button-on" : "radio-button-off"} 
+                size={22} 
+                color={selectedMethod === '1' ? colors.accent : "#DDD"} 
+              />
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.methodRow} disabled={true}>
@@ -316,14 +332,13 @@ const styles = StyleSheet.create({
   },
   methodRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     backgroundColor: "#FFF",
-    padding: 18,
+    padding: 16,
     borderRadius: 16,
     marginBottom: 12,
     borderWidth: 1.5,
     borderColor: "#F0F0F0",
-    gap: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -334,12 +349,52 @@ const styles = StyleSheet.create({
     borderColor: colors.accent, 
     backgroundColor: "#FFF9F9",
   },
+  methodIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F9F9F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  methodInfo: { 
+    flex: 1, 
+    marginTop: 2,
+  },
+  methodTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
   methodText: { 
     fontSize: 15,
-    fontWeight: "600", 
-    flex: 1, 
+    fontWeight: "700", 
     color: "#1A1A1A",
-    fontFamily: 'Poppins-Medium',
+    fontFamily: 'Poppins-Bold',
+  },
+  defaultBadge: {
+    backgroundColor: '#FFF0F0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  defaultBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.accent,
+    textTransform: 'uppercase',
+  },
+  methodDescription: {
+    fontSize: 12,
+    color: '#666',
+    fontFamily: 'Poppins-Regular',
+    marginTop: 4,
+  },
+  methodRadio: {
+    marginLeft: 12,
+    marginTop: 10,
   },
   whiteCard: {
     backgroundColor: "#FFF",

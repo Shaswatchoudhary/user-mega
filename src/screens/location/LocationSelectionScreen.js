@@ -16,6 +16,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Feather from 'react-native-vector-icons/Feather';
 import Geolocation from 'react-native-geolocation-service';
 import { useLocation } from '../../context/LocationContext';
+import permissionService from '../../services/permissionService';
 
 
 // Simple Fetch-based Geocoding bridge (React Native CLI version)
@@ -43,26 +44,33 @@ const reverseGeocode = async (latitude, longitude) => {
   }
 };
 
+// Mock data for saved addresses
+const MOCK_LOCATIONS = [
+  {
+    id: '1',
+    name: 'Home',
+    address: 'Ruikar Colony, Kolhapur, Maharashtra',
+    type: 'home',
+    coords: { latitude: 16.7050, longitude: 74.2433 }
+  },
+  {
+    id: '2',
+    name: 'Office',
+    address: 'Cybercity, Magarpatta, Pune',
+    type: 'work',
+    coords: { latitude: 18.5246, longitude: 73.9259 }
+  }
+];
+
 export default function LocationSelectionScreen({ navigation }) {
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const { saveLocation } = useLocation();
 
+  // Handled by permissionService
   const requestPermission = async () => {
-    if (Platform.OS === 'ios') {
-      const auth = await Geolocation.requestAuthorization('whenInUse');
-      return auth === 'granted';
-    }
-
-    if (Platform.OS === 'android') {
-      const { PermissionsAndroid } = require('react-native');
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
-    }
-    return false;
+    return await permissionService.requestLocationPermission();
   };
 
   const handleUseCurrentLocation = async () => {

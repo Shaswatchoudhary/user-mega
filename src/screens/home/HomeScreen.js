@@ -171,8 +171,9 @@ const searchPlaceholders = [
 ];
 
 import { API_BASE_URL } from '../../constants/config';
-
 import { useLocation } from '../../context/LocationContext';
+import { useAuth } from '../../context/AuthContext';
+import firestore from '@react-native-firebase/firestore';
 
 export default function HomeScreen({ navigation }) {
   const [placeholder, setPlaceholder] = useState(searchPlaceholders[0]);
@@ -185,6 +186,8 @@ export default function HomeScreen({ navigation }) {
     hasActiveBooking,
     bookingStatus
   } = useLocation();
+  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const mostBookedRef = useRef(null);
   const electricianRef = useRef(null);
@@ -311,6 +314,23 @@ export default function HomeScreen({ navigation }) {
     setPlaceholder(searchPlaceholders[placeholderIndex]);
   }, [placeholderIndex]);
 
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const unsubscribe = firestore()
+      .collection('users')
+      .doc(user._id)
+      .collection('notifications')
+      .where('isRead', '==', false)
+      .onSnapshot(querySnapshot => {
+        setUnreadCount(querySnapshot?.size || 0);
+      }, error => {
+        console.error('[HomeScreen] Error listening to notifications:', error);
+      });
+
+    return () => unsubscribe();
+  }, [user?._id]);
+
   const handleServicePress = (service) => {
     console.log('Navigating to screen:', service.screen, 'with params:', { category: service.name });
     if (service.hasSubcategories) {
@@ -386,13 +406,19 @@ export default function HomeScreen({ navigation }) {
                 <Ionicons name="chevron-down" size={16} color="#333" />
               </View>
               <Text style={styles.locationSubtext} numberOfLines={1}>{locationSubtitle}</Text>
+              <Text style={{ fontSize: 9, color: '#E84545', fontWeight: 'bold' }}>Build v1.2</Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.cartButton}
-            onPress={() => alert('Notifications coming soon!')}
+            onPress={() => navigation.navigate('Notifications')}
           >
             <Ionicons name="notifications-outline" size={24} color="#333" />
+            {unreadCount > 0 && (
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -1148,5 +1174,25 @@ const styles = StyleSheet.create({
   },
   arrivedIconContainer: {
     backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  badgeContainer: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#E84545',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  badgeText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '700',
+    fontFamily: 'Poppins-Bold',
   },
 });

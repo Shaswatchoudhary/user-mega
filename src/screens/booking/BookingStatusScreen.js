@@ -56,12 +56,12 @@ export default function BookingStatusScreen({ navigation, route }) {
         {/* Status Text */}
         <Text style={styles.statusTitle}>
           {status === 'searching'
-            ? 'Searching for a worker...'
+            ? (worker?.name ? `Waiting for ${worker.name} to accept...` : 'Searching for a worker...')
             : 'Worker accepted your request!'}
         </Text>
         <Text style={styles.statusSubtitle}>
           {status === 'searching'
-            ? 'We are looking for nearby professionals.'
+            ? (worker?.name ? `Sending your request to ${worker.name}.` : 'We are looking for nearby professionals.')
             : `${worker?.name || 'Your worker'} is ${distance > 0.1 ? distance.toFixed(1) + ' km away' : 'arriving now'}.`}
         </Text>
 

@@ -8,6 +8,8 @@ import {
   Alert,
   Linking,
   Dimensions,
+  Platform,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,579 +17,295 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useLocation } from "../../context/LocationContext";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import { colors, spacing, borderRadius, typography } from "../../theme";
 
 const { width, height } = Dimensions.get("window");
 const ASPECT_RATIO = width / height;
 const LATITUDE_DELTA = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-// MANDATORY STATIC DEMO DATA
-const DEMO_REGION = {
-  latitude: 16.7050,
-  longitude: 74.2433,
-  latitudeDelta: LATITUDE_DELTA,
-  longitudeDelta: LONGITUDE_DELTA,
-};
-
-const DEMO_USER_COORDS = {
-  latitude: 16.7050,
-  longitude: 74.2433,
-};
-
-const DEMO_WORKER_COORDS = {
-  latitude: 16.7065,
-  longitude: 74.2450,
-};
-
 export default function TrackingScreen({ navigation }) {
   const mapRef = useRef(null);
-  const { selectedLocation, distance } = useLocation();
+  const { selectedLocation, workerLocation, distance, bookingStatus } = useLocation();
+  const [eta, setEta] = useState(12);
+
+  // Animated pulse for worker marker
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  // Update ETA based on distance
+  useEffect(() => {
+    if (distance) {
+      const estimatedMins = Math.max(1, Math.round(distance * 4)); // approx 4 mins per km
+      setEta(estimatedMins);
+    }
+  }, [distance]);
 
   const workerData = {
     name: "Vaibhav Jain",
     rating: "4.9",
     reviews: "125",
     vehicle: "Honda Civic - ABC 123",
-    image: "https://plus.unsplash.com/premium_photo-1738592736106-a17b897c0ab1?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8cHJvZmlsZSUyMGltYWdlJTIwZGVsaXZlcnl8ZW58MHx8MHx8fDA%3D",
-    eta: `12 Mins`,
-    progress: 30,
-    address: selectedLocation?.address || "Ruikar Colony, Kolhapur"
+    image: "https://avatar.iran.liara.run/public/job/operator/male", // Generic placeholder
+    status: bookingStatus === 'arrived' ? "Reached location" : "On the way",
+    address: selectedLocation?.addressText || "Ruikar Colony, Kolhapur"
   };
 
-  const serviceType = "Plumbing Repair";
-
   const handleCallPress = () => {
-    Alert.alert(
-      "Call Worker",
-      `Do you want to call ${workerData.name}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Call",
-          onPress: () => {
-            Linking.openURL(`tel:+919876543210`);
-          },
-        },
-      ]
-    );
+    Linking.openURL(`tel:+919876543210`);
   };
 
   const handleMessagePress = () => {
-    Alert.alert(
-      "Message Worker",
-      `Do you want to send a message to ${workerData.name}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Message",
-          onPress: () => {
-            Alert.alert("Opening Chat...", "Connecting to messaging");
-          },
-        },
-      ]
-    );
+    Alert.alert("Opening Chat", "Connecting to your professional...");
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.innerContainer}>
-        {/* Static Map View - FIXED REGION TO PREVENT CRASH */}
-        <View style={styles.mapContainer}>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            initialRegion={DEMO_REGION}
-            showsUserLocation={false}
-            showsMyLocationButton={false}
-            showsCompass={true}
-            zoomEnabled={true}
-            rotateEnabled={true}
-            scrollEnabled={true}
-          >
-            {/* Demo User Marker */}
-            <Marker
-              coordinate={DEMO_USER_COORDS}
-              title="Your Location"
-              description="Booking Destination"
-              pinColor="#4F46E5"
-            >
-              <View style={styles.userMarker}>
-                <View style={styles.userMarkerInner}>
-                  <Ionicons name="home" size={20} color="#FFFFFF" />
-                </View>
-              </View>
-            </Marker>
+    <View style={styles.container}>
+      {/* 📍 Map Layer */}
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        provider={PROVIDER_GOOGLE}
+        initialRegion={{
+          latitude: selectedLocation?.latitude || 16.7050,
+          longitude: selectedLocation?.longitude || 74.2433,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        }}
+        region={{
+          latitude: (workerLocation.latitude + (selectedLocation?.latitude || 16.7050)) / 2,
+          longitude: (workerLocation.longitude + (selectedLocation?.longitude || 74.2433)) / 2,
+          latitudeDelta: Math.abs(workerLocation.latitude - (selectedLocation?.latitude || 16.7050)) * 2,
+          longitudeDelta: Math.abs(workerLocation.longitude - (selectedLocation?.longitude || 74.2433)) * 2,
+        }}
+      >
+        {/* User Marker */}
+        <Marker coordinate={{
+          latitude: selectedLocation?.latitude || 16.7050,
+          longitude: selectedLocation?.longitude || 74.2433
+        }}>
+          <View style={styles.userMarkerContainer}>
+            <View style={styles.userMarker}>
+              <Ionicons name="home" size={16} color="#FFF" />
+            </View>
+            <View style={styles.markerPointer} />
+          </View>
+        </Marker>
 
-            {/* Demo Worker Marker */}
-            <Marker
-              coordinate={DEMO_WORKER_COORDS}
-              title={workerData.name}
-              description="Service Professional"
-            >
-              <View style={styles.workerMarker}>
-                <View style={styles.workerMarkerInner}>
-                  <MaterialCommunityIcons name="tools" size={20} color="#FFFFFF" />
-                </View>
-              </View>
-            </Marker>
-          </MapView>
-        </View>
+        {/* Worker Marker */}
+        <Marker coordinate={workerLocation}>
+          <View style={styles.workerMarkerContainer}>
+            <Animated.View style={[styles.workerPulse, { transform: [{ scale: pulseAnim }] }]} />
+            <View style={styles.workerMarker}>
+              <MaterialCommunityIcons name="tools" size={20} color="#FFF" />
+            </View>
+          </View>
+        </Marker>
 
-        {/* Content Overlay */}
-        <View style={styles.contentOverlay}>
-          {/* Top App Bar */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack?.()}
-              style={styles.backButton}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="arrow-back" size={24} color="#1F2937" />
-            </TouchableOpacity>
+        {/* Route Line */}
+        <Polyline
+          coordinates={[
+            workerLocation,
+            { latitude: selectedLocation?.latitude || 16.7050, longitude: selectedLocation?.longitude || 74.2433 }
+          ]}
+          strokeColor={colors.accent}
+          strokeWidth={3}
+          lineDashPattern={[5, 5]}
+        />
+      </MapView>
+
+      {/* 🔝 Floating Header */}
+      <SafeAreaView style={styles.headerOverlay} pointerEvents="box-none">
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color="#000" />
+          </TouchableOpacity>
+          <View style={styles.headerInfo}>
             <Text style={styles.headerTitle}>Live Tracking</Text>
-            <View style={styles.headerRight} />
+            <Text style={styles.headerStatus}>{workerData.status}</Text>
           </View>
+          <View style={{ width: 44 }} />
+        </View>
+      </SafeAreaView>
 
-          {/* Location Indicator */}
-          <View style={styles.locationIndicator}>
-            <Text style={styles.locationText}>
-              📍 Serving {selectedLocation?.name || "Kolhapur"}
-            </Text>
+      {/* 📦 Swiggy/Zomato Style Tracking Card */}
+      <View style={styles.bottomSheet}>
+        {/* Progress Timeline */}
+        <View style={styles.timelineRow}>
+          <View style={styles.timelineStep}>
+            <View style={[styles.timelineDot, styles.timelineDotActive]} />
+            <Text style={styles.timelineLabel}>Accepted</Text>
           </View>
-
-          {/* ETA and Map Controls */}
-          <View style={styles.middleContent}>
-            {/* ETA Card */}
-            <View style={styles.etaCard}>
-              <Text style={styles.etaTitle}>Your Pro is on the way!</Text>
-              <View style={styles.progressBarContainer}>
-                <View style={[styles.progressBar, { width: `30%` }]} />
-              </View>
-              <Text style={styles.etaText}>
-                Arriving in <Text style={styles.etaBold}>12 Mins</Text>
-              </Text>
-              <Text style={styles.addressText}>
-                📍 {workerData.address}
-              </Text>
-
-              {/* UX Fallback Text */}
-              <View style={styles.fallbackContainer}>
-                <Ionicons name="information-circle-outline" size={16} color="#6B7280" />
-                <Text style={styles.fallbackText}>Live tracking will be enabled soon</Text>
-              </View>
-            </View>
-
-            {/* Map Controls - STUBBED FOR STABILITY */}
-            <View style={styles.mapControls}>
-              <View style={styles.zoomControls}>
-                <TouchableOpacity
-                  style={styles.zoomButtonTop}
-                  onPress={() => { }} // No-op
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="add" size={24} color="#D1D5DB" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.zoomButtonBottom}
-                  onPress={() => { }} // No-op
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="remove" size={24} color="#D1D5DB" />
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                style={styles.locationButton}
-                onPress={() => { }} // No-op
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#D1D5DB" />
-              </TouchableOpacity>
-            </View>
+          <View style={[styles.timelineLine, bookingStatus === 'on_the_way' || bookingStatus === 'arrived' ? styles.timelineLineActive : null]} />
+          <View style={styles.timelineStep}>
+            <View style={[styles.timelineDot, bookingStatus === 'on_the_way' || bookingStatus === 'arrived' ? styles.timelineDotActive : null]} />
+            <Text style={styles.timelineLabel}>On the way</Text>
           </View>
-
-          {/* Bottom Sheet Worker Info */}
-          <View style={styles.bottomSheet}>
-            {/* Handle */}
-            <View style={styles.handleContainer}>
-              <View style={styles.handle} />
-            </View>
-
-            {/* Worker Details */}
-            <View style={styles.workerDetailsContainer}>
-              <Image
-                source={{ uri: workerData.image }}
-                style={styles.workerImage}
-              />
-              <View style={styles.workerInfo}>
-                <Text style={styles.workerName}>{workerData.name}</Text>
-                <View style={styles.ratingRow}>
-                  <Ionicons name="star" size={16} color="#F59E0B" />
-                  <Text style={styles.ratingText}>
-                    {workerData.rating}{" "}
-                    <Text style={styles.reviewsText}>({workerData.reviews} reviews)</Text>
-                  </Text>
-                </View>
-                <Text style={styles.vehicleText}>{workerData.vehicle}</Text>
-                <Text style={styles.workerLocationText}>📍 Serving Kolhapur Area</Text>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.messageButton}
-                onPress={handleMessagePress}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="chatbubble" size={20} color="#4F46E5" />
-                <Text style={styles.messageButtonText}>Message</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.callButton}
-                onPress={handleCallPress}
-                activeOpacity={0.9}
-              >
-                <LinearGradient
-                  colors={["#4F46E5", "#4338CA"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.callButtonGradient}
-                >
-                  <Ionicons name="call" size={20} color="#FFFFFF" />
-                  <Text style={styles.callButtonText}>Call</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
+          <View style={[styles.timelineLine, bookingStatus === 'arrived' ? styles.timelineLineActive : null]} />
+          <View style={styles.timelineStep}>
+            <View style={[styles.timelineDot, bookingStatus === 'arrived' ? styles.timelineDotActive : null]} />
+            <Text style={styles.timelineLabel}>Arrived</Text>
           </View>
         </View>
+
+        <View style={styles.etaContainer}>
+          <View style={styles.etaIconBg}>
+            <MaterialCommunityIcons name="clock-time-three" size={24} color={colors.accent} />
+          </View>
+          <View style={styles.etaInfo}>
+            <Text style={styles.etaTimeText}>{eta} mins away</Text>
+            <Text style={styles.etaSubText}>Arriving at {workerData.address}</Text>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Worker Details Row */}
+        <View style={styles.workerRow}>
+          <Image source={{ uri: workerData.image }} style={styles.workerAvatar} />
+          <View style={styles.workerInfo}>
+            <Text style={styles.workerName}>{workerData.name}</Text>
+            <View style={styles.ratingRow}>
+              <Ionicons name="star" size={14} color="#FFD700" />
+              <Text style={styles.ratingText}>{workerData.rating} ({workerData.reviews} reviews)</Text>
+            </View>
+            <Text style={styles.vehicleText}>{workerData.vehicle}</Text>
+          </View>
+          <View style={styles.contactRow}>
+            <TouchableOpacity onPress={handleMessagePress} style={styles.iconCircle}>
+              <Ionicons name="chatbubble-ellipses" size={20} color={colors.accent} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleCallPress} style={[styles.iconCircle, styles.callIcon]}>
+              <Ionicons name="call" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.safetyButton}
+          onPress={() => Alert.alert("24/7 Support", "Connecting to safety helpline...")}
+        >
+          <Ionicons name="shield-checkmark" size={18} color="#10B981" />
+          <Text style={styles.safetyText}>Project Safety Policy Active</Text>
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-  },
-  innerContainer: {
-    flex: 1,
-    position: "relative",
-  },
-  mapContainer: {
-    position: "absolute",
+  container: { flex: 1, backgroundColor: '#FFF' },
+  map: { flex: 1 },
+  headerOverlay: {
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-  },
-  map: {
-    width: "100%",
-    height: "100%",
-  },
-  userMarker: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  userMarkerInner: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#4F46E5",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  workerMarker: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  workerMarkerInner: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#10B981",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  landmarkMarker: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  contentOverlay: {
-    flex: 1,
-    justifyContent: "space-between",
+    zIndex: 10,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "rgba(249, 250, 251, 0.9)",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(229, 231, 235, 0.7)",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 10,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    flex: 1,
-    textAlign: "center",
+  headerInfo: { alignItems: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', fontFamily: 'Poppins-Bold' },
+  headerStatus: { fontSize: 12, color: colors.accent, fontWeight: '600' },
+  
+  // Custom Markers
+  userMarkerContainer: { alignItems: 'center', justifyContent: 'center' },
+  userMarker: {
+    width: 34, height: 34, borderRadius: 17, backgroundColor: '#4F46E5',
+    alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF'
   },
-  locationButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+  markerPointer: {
+    width: 0, height: 0, borderLeftWidth: 6, borderRightWidth: 6,
+    borderTopWidth: 8, borderLeftColor: 'transparent',
+    borderRightColor: 'transparent', borderTopColor: '#4F46E5', marginTop: -2
   },
-  locationIndicator: {
-    alignItems: "center",
-    paddingVertical: 6,
-    backgroundColor: "rgba(249, 250, 251, 0.8)",
+  workerMarkerContainer: { alignItems: 'center', justifyContent: 'center' },
+  workerMarker: {
+    width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#FFF', elevation: 5
   },
-  locationText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
+  workerPulse: {
+    position: 'absolute', width: 60, height: 60, borderRadius: 30,
+    backgroundColor: 'rgba(232, 69, 69, 0.2)'
   },
-  middleContent: {
-    flex: 1,
-    justifyContent: "space-between",
-    padding: 16,
-  },
-  etaCard: {
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  etaTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#4F46E5",
-    marginBottom: 8,
-  },
-  addressText: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 6,
-  },
-  progressBarContainer: {
-    height: 8,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 4,
-    marginVertical: 12,
-    overflow: "hidden",
-  },
-  progressBar: {
-    height: "100%",
-    backgroundColor: "#4F46E5",
-    borderRadius: 4,
-  },
-  etaText: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-  etaBold: {
-    fontWeight: "700",
-    color: "#1F2937",
-  },
-  mapControls: {
-    alignItems: "flex-end",
-    gap: 12,
-  },
-  zoomControls: {
-    borderRadius: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  zoomButtonTop: {
-    width: 44,
-    height: 44,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-  },
-  zoomButtonBottom: {
-    width: 44,
-    height: 44,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    borderTopWidth: 0.5,
-    borderTopColor: "#E5E7EB",
-  },
+
+  // Bottom Sheet
   bottomSheet: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 44 : 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowRadius: 20,
+    elevation: 20,
   },
-  handleContainer: {
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 12,
+  timelineRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24, justifyContent: 'center' },
+  timelineStep: { alignItems: 'center' },
+  timelineDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#DDD', marginBottom: 6 },
+  timelineDotActive: { backgroundColor: colors.accent },
+  timelineLabel: { fontSize: 10, color: '#666', fontFamily: 'Poppins-Medium' },
+  timelineLine: { width: width * 0.2, height: 2, backgroundColor: '#EEE', marginTop: -15, marginHorizontal: 4 },
+  timelineLineActive: { backgroundColor: colors.accent },
+
+  etaContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  etaIconBg: {
+    width: 48, height: 48, borderRadius: 12, backgroundColor: '#FFF0F0',
+    alignItems: 'center', justifyContent: 'center', marginRight: 16
   },
-  handle: {
-    width: 40,
-    height: 6,
-    backgroundColor: "#D1D5DB",
-    borderRadius: 3,
+  etaInfo: { flex: 1 },
+  etaTimeText: { fontSize: 20, fontWeight: '800', color: '#1A1A1A', fontFamily: 'Poppins-Bold' },
+  etaSubText: { fontSize: 13, color: '#666', fontFamily: 'Poppins-Regular' },
+
+  divider: { height: 1, backgroundColor: '#F0F0F0', marginBottom: 20 },
+
+  workerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  workerAvatar: { width: 56, height: 56, borderRadius: 28, marginRight: 16 },
+  workerInfo: { flex: 1 },
+  workerName: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', fontFamily: 'Poppins-Bold' },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
+  ratingText: { fontSize: 12, color: '#666', marginLeft: 4 },
+  vehicleText: { fontSize: 11, color: '#999', marginTop: 2 },
+
+  contactRow: { flexDirection: 'row', gap: 12 },
+  iconCircle: {
+    width: 44, height: 44, borderRadius: 22, backgroundColor: '#F5F5F5',
+    alignItems: 'center', justifyContent: 'center'
   },
-  workerDetailsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-    gap: 16,
+  callIcon: { backgroundColor: '#10B981' },
+
+  safetyButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#F0FDF4', paddingVertical: 10, borderRadius: 12, gap: 8
   },
-  workerImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: "#4F46E5",
-  },
-  workerInfo: {
-    flex: 1,
-  },
-  workerName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 4,
-  },
-  ratingText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1F2937",
-  },
-  reviewsText: {
-    fontWeight: "400",
-    color: "#6B7280",
-  },
-  vehicleText: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 4,
-  },
-  workerLocationText: {
-    fontSize: 12,
-    color: "#4F46E5",
-    fontWeight: "500",
-  },
-  actionButtons: {
-    flexDirection: "row",
-    gap: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    paddingTop: 16,
-  },
-  messageButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    height: 48,
-    backgroundColor: "rgba(79, 70, 229, 0.1)",
-    borderRadius: 12,
-  },
-  messageButtonText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#4F46E5",
-  },
-  callButton: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  callButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    height: 48,
-  },
-  callButtonText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  fallbackContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 12,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderStyle: "dashed",
-  },
-  fallbackText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
+  safetyText: { fontSize: 12, fontWeight: '600', color: '#10B981', fontFamily: 'Poppins-Medium' },
 });
