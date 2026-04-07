@@ -76,73 +76,115 @@ export default function LocationSelectionScreen({ navigation }) {
   const handleUseCurrentLocation = async () => {
     setIsLoading(true);
     try {
-      // 1. Permission check
+      // 1. Permission check (Runtime)
       const hasPermission = await requestPermission();
+      
       if (!hasPermission) {
         Alert.alert(
-          'Permission Denied',
-          'We need location access to show you services nearby. Please enable it in settings.'
+          'Location Permission Required',
+          'To fetch your current location, please enable location permissions for WorkEase in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Open Settings', 
+              onPress: () => {
+                if (Platform.OS === 'android') {
+                  const { Linking } = require('react-native');
+                  Linking.openSettings();
+                }
+              } 
+            }
+          ]
         );
         setIsLoading(false);
         return;
       }
 
-      // 2. Fetch current position
+      // 2. Fetch current position with robust logic
+      const getLocationOptions = {
+        enableHighAccuracy: true, 
+        timeout: 20000, 
+        maximumAge: 10000 
+      };
+
       Geolocation.getCurrentPosition(
         async (position) => {
-          const { latitude, longitude } = position.coords;
-
-          // 3. Reverse Geocode for readable address
-          const addressResults = await reverseGeocode(latitude, longitude);
-
-          if (addressResults && addressResults.length > 0) {
-            const addr = addressResults[0];
-            const mainName = addr.name || addr.street || addr.subregion || 'Current Location';
-            const locality = addr.district || addr.city || '';
-            const city = addr.city || addr.subregion || '';
-            const state = addr.region || '';
-
-            const addressText = [mainName, locality, city].filter(Boolean).join(', ');
-            const subtitle = [city, state].filter(Boolean).join(', ');
-
-            const standardizedLocation = {
-              name: mainName,
-              addressText: addressText,
-              subtitle: subtitle,
-              latitude,
-              longitude
-            };
-
-            saveAndNavigate(standardizedLocation);
-          } else {
-            console.log('No geocode results');
-            const standardizedLocation = {
-              name: 'Current Location',
-              addressText: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-              subtitle: 'Precision Location',
-              latitude,
-              longitude
-            };
-            saveAndNavigate(standardizedLocation);
-          }
-          setIsLoading(false);
+          await processLocation(position);
         },
         (error) => {
-          console.log('Location Error:', error);
-          Alert.alert('Location Error', 'Unable to fetch current location.');
-          setIsLoading(false);
+          console.log('[Location] High Accuracy Error:', error);
+          
+          // Retry with low accuracy if high accuracy fails
+          Geolocation.getCurrentPosition(
+            async (position) => {
+              await processLocation(position);
+            },
+            (retryError) => {
+              console.log('[Location] Final Error:', retryError);
+              Alert.alert(
+                'Location Unavailable',
+                'We could not determine your current location. Please check if your GPS is on or search for your address manually.'
+              );
+              setIsLoading(false);
+            },
+            { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
+          );
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        getLocationOptions
       );
     } catch (error) {
-      console.log('Execution Error:', error);
+      console.error('[Location] Execution Error:', error);
+      setIsLoading(false);
+    }
+  };
+
+  const processLocation = async (position) => {
+    try {
+      const { latitude, longitude } = position.coords;
+      console.log('[Location] Fetched position:', { latitude, longitude });
+
+      // 3. Reverse Geocode for readable address
+      const addressResults = await reverseGeocode(latitude, longitude);
+
+      if (addressResults && addressResults.length > 0) {
+        const addr = addressResults[0];
+        const mainName = addr.name || addr.street || addr.subregion || 'Current Location';
+        const locality = addr.district || addr.city || '';
+        const city = addr.city || addr.subregion || '';
+        const state = addr.region || '';
+
+        const addressText = [mainName, locality, city].filter(Boolean).join(', ');
+        const subtitle = [city, state].filter(Boolean).join(', ');
+
+        const standardizedLocation = {
+          name: mainName,
+          addressText: addressText,
+          subtitle: subtitle,
+          latitude,
+          longitude
+        };
+
+        saveAndNavigate(standardizedLocation);
+      } else {
+        const standardizedLocation = {
+          name: 'Current Location',
+          addressText: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+          subtitle: 'Precision Location',
+          latitude,
+          longitude
+        };
+        saveAndNavigate(standardizedLocation);
+      }
+    } catch (err) {
+      console.error('[Location] Processing Error:', err);
+      Alert.alert('Processing Error', 'Failed to read location data.');
+    } finally {
       setIsLoading(false);
     }
   };
 
   const saveAndNavigate = async (locationData) => {
     try {
-      await saveLocation(locationData);
       await saveLocation(locationData);
       navigation.goBack();
     } catch (e) {

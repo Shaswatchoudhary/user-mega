@@ -31,6 +31,7 @@ const OtpLoginScreen = ({ navigation }) => {
   const [canResend, setCanResend] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const phoneInputRef = useRef(null);
 
   const otpInputs = useRef([]);
@@ -156,6 +157,7 @@ const OtpLoginScreen = ({ navigation }) => {
       // Auto-focus next input
       if (cleaned && index < 5) {
         otpInputs.current[index + 1]?.focus();
+        setFocusedIndex(index + 1);
       }
 
       // Auto-submit when all 6 digits are filled
@@ -171,6 +173,7 @@ const OtpLoginScreen = ({ navigation }) => {
   const handleOtpKeyPress = (e, index) => {
     if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
       otpInputs.current[index - 1]?.focus();
+      setFocusedIndex(index - 1);
     }
   };
 
@@ -199,16 +202,17 @@ const OtpLoginScreen = ({ navigation }) => {
             const mongoUser = syncResponse.data.user;
             await AsyncStorage.setItem('user', JSON.stringify(mongoUser));
             login(mongoUser);
-            setIsLoading(false);
-            navigation.replace('MainTabs');
+            // Navigate immediately
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'MainTabs' }],
+            });
           } else {
             setIsLoading(false);
             Alert.alert('Sync Error', 'Failed to sync with backend.');
           }
         } catch (syncError) {
           console.error('[Auth] Backend Sync Error:', syncError);
-          // Even if sync fails, we have the Firebase user. 
-          // But for this app, we need the MongoDB _id.
           setIsLoading(false);
           Alert.alert('Backend Error', 'Could not connect to the server.');
         }
@@ -315,9 +319,11 @@ const OtpLoginScreen = ({ navigation }) => {
                     style={[
                       styles.otpBox,
                       digit ? styles.otpBoxFilled : null,
+                      focusedIndex === index ? styles.otpBoxFocused : null,
                       isLoading && styles.otpBoxDisabled
                     ]}
                     value={digit}
+                    onFocus={() => setFocusedIndex(index)}
                     onChangeText={(text) => handleOtpChange(text, index)}
                     onKeyPress={(e) => handleOtpKeyPress(e, index)}
                     keyboardType="number-pad"
@@ -494,17 +500,33 @@ const styles = StyleSheet.create({
   },
   otpContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
+    width: '100%',
     marginTop: 24,
+    paddingHorizontal: 5,
   },
   otpBox: {
+    width: 45,
+    height: 55,
+    borderWidth: 1.5,
     borderColor: '#EAEAEA',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
     textAlign: 'center',
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1A1A1A',
     fontFamily: 'Poppins-SemiBold',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  otpBoxFocused: {
+    borderColor: '#E84545',
+    borderWidth: 2,
+    backgroundColor: '#FFF8F8',
   },
   otpBoxFilled: {
     borderColor: '#E84545',
