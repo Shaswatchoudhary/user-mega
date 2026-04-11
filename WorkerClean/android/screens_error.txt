@@ -1,0 +1,617 @@
+Initialized native services in: /Users/shaswat/.gradle/native
+Initialized jansi services in: /Users/shaswat/.gradle/native
+Removing 0 daemon stop events from registry
+Previous Daemon (57057) stopped at Sun Apr 12 00:32:05 IST 2026 other compatible daemons were started and after being idle for 0 minutes and not recently used
+Starting a Gradle Daemon, 2 busy and 1 stopped Daemons could not be reused, use --status for details
+Starting process 'Gradle build daemon'. Working directory: /Users/shaswat/.gradle/daemon/8.14.3 Command: /opt/homebrew/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED -XX:MaxMetaspaceSize=512m -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=IN -Duser.language=en -Duser.variant -cp /Users/shaswat/.gradle/wrapper/dists/gradle-8.14.3-bin/cv11ve7ro1n3o1j4so8xd9n66/gradle-8.14.3/lib/gradle-daemon-main-8.14.3.jar -javaagent:/Users/shaswat/.gradle/wrapper/dists/gradle-8.14.3-bin/cv11ve7ro1n3o1j4so8xd9n66/gradle-8.14.3/lib/agents/gradle-instrumentation-agent-8.14.3.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.14.3
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 3.085 secs.
+The client will now receive all logging from the daemon (pid: 62961). The daemon log file: /Users/shaswat/.gradle/daemon/8.14.3/daemon-62961.out.log
+Starting build in new daemon [memory: 2 GiB]
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Using 8 worker leases.
+Received JVM installation metadata from '/opt/homebrew/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home': {JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.18/libexec/openjdk.jdk/Contents/Home, JAVA_VERSION=17.0.18, JAVA_VENDOR=Homebrew, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.18+0, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.18+0, VM_VENDOR=Homebrew, OS_ARCH=aarch64}
+Watching the file system is configured to be enabled if available
+Now considering [/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android] as hierarchies to watch
+File system watching is active
+Starting Build
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Now considering [/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android] as hierarchies to watch
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Resolved plugin [id: 'org.gradle.toolchains.foojay-resolver-convention', version: '0.5.0']
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+
+> Configure project :gradle-plugin
+Evaluating project ':gradle-plugin' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/build.gradle.kts'.
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20', apply: false]
+
+> Configure project :gradle-plugin:react-native-gradle-plugin
+Evaluating project ':gradle-plugin:react-native-gradle-plugin' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20']
+Resolved plugin [id: 'java-gradle-plugin']
+Build 51c351b2-a2be-447c-8167-0d7c7e9a7b71 is started
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+
+> Configure project :gradle-plugin:settings-plugin
+Evaluating project ':gradle-plugin:settings-plugin' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/settings-plugin/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20']
+Resolved plugin [id: 'java-gradle-plugin']
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :gradle-plugin:shared
+Evaluating project ':gradle-plugin:shared' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/shared/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20']
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :gradle-plugin:shared-testutil
+Evaluating project ':gradle-plugin:shared-testutil' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/shared-testutil/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20']
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+Resolved plugin [id: 'com.facebook.react.settings']
+Starting process 'command '/usr/libexec/java_home''. Working directory: /Users/shaswat/.gradle/daemon/8.14.3 Command: /usr/libexec/java_home -V
+Successfully started process 'command '/usr/libexec/java_home''
+Starting process 'command '/Users/shaswat/.gradle/jdks/eclipse_adoptium-17-aarch64-os_x.2/jdk-17.0.17+10/Contents/Home/bin/java''. Working directory: /Users/shaswat/.gradle/.tmp/tmp-jvm12449203078509673917probe Command: /Users/shaswat/.gradle/jdks/eclipse_adoptium-17-aarch64-os_x.2/jdk-17.0.17+10/Contents/Home/bin/java -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command '/Users/shaswat/.gradle/jdks/eclipse_adoptium-17-aarch64-os_x.2/jdk-17.0.17+10/Contents/Home/bin/java''
+Received JVM installation metadata from '/Users/shaswat/.gradle/jdks/eclipse_adoptium-17-aarch64-os_x.2/jdk-17.0.17+10/Contents/Home': {JAVA_HOME=/Users/shaswat/.gradle/jdks/eclipse_adoptium-17-aarch64-os_x.2/jdk-17.0.17+10/Contents/Home, JAVA_VERSION=17.0.17, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.17+10, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.17+10, VM_VENDOR=Eclipse Adoptium, OS_ARCH=aarch64}
+Starting process 'command '/opt/homebrew/Cellar/openjdk@11/11.0.28/libexec/openjdk.jdk/Contents/Home/bin/java''. Working directory: /Users/shaswat/.gradle/.tmp/tmp-jvm14382808676695575293probe Command: /opt/homebrew/Cellar/openjdk@11/11.0.28/libexec/openjdk.jdk/Contents/Home/bin/java -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command '/opt/homebrew/Cellar/openjdk@11/11.0.28/libexec/openjdk.jdk/Contents/Home/bin/java''
+Received JVM installation metadata from '/opt/homebrew/Cellar/openjdk@11/11.0.28/libexec/openjdk.jdk/Contents/Home': {JAVA_HOME=/opt/homebrew/Cellar/openjdk@11/11.0.28/libexec/openjdk.jdk/Contents/Home, JAVA_VERSION=11.0.28, JAVA_VENDOR=Homebrew, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=11.0.28+0, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=11.0.28+0, VM_VENDOR=Homebrew, OS_ARCH=aarch64}
+Starting process 'command '/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/bin/java''. Working directory: /Users/shaswat/.gradle/.tmp/tmp-jvm2118718364576796509probe Command: /Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/bin/java -Xmx32m -Xms32m -cp . JavaProbe
+Successfully started process 'command '/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/bin/java''
+Received JVM installation metadata from '/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home': {JAVA_HOME=/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home, JAVA_VERSION=1.8.0_451, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=1.8.0_451-b10, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=25.451-b10, VM_VENDOR=Oracle Corporation, OS_ARCH=aarch64}
+Resolve mutations for :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :gradle-plugin:shared:compileKotlin (Thread[Execution worker,5,main]) started.
+:gradle-plugin:shared:compileKotlin (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Caching disabled for task ':gradle-plugin:shared:compileKotlin' because:
+  Build cache is disabled
+Skipping task ':gradle-plugin:shared:compileKotlin' as it is up-to-date.
+Resolve mutations for :gradle-plugin:shared:compileJava (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:shared:compileJava (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+Skipping task ':gradle-plugin:shared:compileJava' as it has no source files and no previous output files.
+Resolve mutations for :gradle-plugin:shared:processResources (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:shared:processResources (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+Skipping task ':gradle-plugin:shared:processResources' as it has no source files and no previous output files.
+Resolve mutations for :gradle-plugin:shared:classes (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:shared:classes (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+Skipping task ':gradle-plugin:shared:classes' as it has no actions.
+Resolve mutations for :gradle-plugin:shared:jar (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:shared:jar (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+Caching disabled for task ':gradle-plugin:shared:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:shared:jar' as it is up-to-date.
+work action resolve shared.jar (project :gradle-plugin:shared) (Thread[Execution worker Thread 4,5,main]) started.
+Resolve mutations for :gradle-plugin:settings-plugin:compileKotlin (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:settings-plugin:compileKotlin (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+Caching disabled for task ':gradle-plugin:settings-plugin:compileKotlin' because:
+  Build cache is disabled
+Skipping task ':gradle-plugin:settings-plugin:compileKotlin' as it is up-to-date.
+Resolve mutations for :gradle-plugin:settings-plugin:compileJava (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:settings-plugin:compileJava (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+Skipping task ':gradle-plugin:settings-plugin:compileJava' as it has no source files and no previous output files.
+Resolve mutations for :gradle-plugin:settings-plugin:pluginDescriptors (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:settings-plugin:pluginDescriptors (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+Caching disabled for task ':gradle-plugin:settings-plugin:pluginDescriptors' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:settings-plugin:pluginDescriptors' as it is up-to-date.
+Resolve mutations for :gradle-plugin:settings-plugin:processResources (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:settings-plugin:processResources (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+Caching disabled for task ':gradle-plugin:settings-plugin:processResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:settings-plugin:processResources' as it is up-to-date.
+Resolve mutations for :gradle-plugin:settings-plugin:classes (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:settings-plugin:classes (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+Skipping task ':gradle-plugin:settings-plugin:classes' as it has no actions.
+Resolve mutations for :gradle-plugin:settings-plugin:jar (Thread[Execution worker Thread 4,5,main]) started.
+:gradle-plugin:settings-plugin:jar (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+Caching disabled for task ':gradle-plugin:settings-plugin:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:settings-plugin:jar' as it is up-to-date.
+Settings evaluated using settings file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/settings.gradle'.
+Projects loaded. Root project using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/build.gradle'.
+Included projects: [root project 'WorkerClean', project ':app', project ':notifee_react-native', project ':react-native-async-storage_async-storage', project ':react-native-community_datetimepicker', project ':react-native-device-info', project ':react-native-firebase_app', project ':react-native-firebase_app-check', project ':react-native-firebase_auth', project ':react-native-firebase_firestore', project ':react-native-firebase_messaging', project ':react-native-geolocation-service', project ':react-native-linear-gradient', project ':react-native-maps', project ':react-native-safe-area-context', project ':react-native-screens', project ':react-native-svg', project ':react-native-vector-icons']
+Registering project ':gradle-plugin' in composite build. Will substitute for module ':gradle-plugin-root'.
+Registering project ':gradle-plugin:react-native-gradle-plugin' in composite build. Will substitute for module 'com.facebook.react:react-native-gradle-plugin'.
+Registering project ':gradle-plugin:settings-plugin' in composite build. Will substitute for module 'com.facebook.react:settings-plugin'.
+Registering project ':gradle-plugin:shared' in composite build. Will substitute for module 'com.facebook.react:shared'.
+Registering project ':gradle-plugin:shared-testutil' in composite build. Will substitute for module 'com.facebook.react:shared-testutil'.
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Caching disabled for task ':gradle-plugin:react-native-gradle-plugin:compileKotlin' because:
+  Build cache is disabled
+Skipping task ':gradle-plugin:react-native-gradle-plugin:compileKotlin' as it is up-to-date.
+
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+Skipping task ':gradle-plugin:react-native-gradle-plugin:compileJava' as it has no source files and no previous output files.
+
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+Caching disabled for task ':gradle-plugin:react-native-gradle-plugin:pluginDescriptors' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:react-native-gradle-plugin:pluginDescriptors' as it is up-to-date.
+
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+Caching disabled for task ':gradle-plugin:react-native-gradle-plugin:processResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:react-native-gradle-plugin:processResources' as it is up-to-date.
+
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+Skipping task ':gradle-plugin:react-native-gradle-plugin:classes' as it has no actions.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:jar (Thread[Execution worker Thread 2,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:jar (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+Caching disabled for task ':gradle-plugin:react-native-gradle-plugin:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:react-native-gradle-plugin:jar' as it is up-to-date.
+
+> Configure project :
+Evaluating root project 'WorkerClean' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/build.gradle'.
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Found project 'project :gradle-plugin:react-native-gradle-plugin' as substitute for module 'com.facebook.react:react-native-gradle-plugin'.
+Ignoring listeners of task graph ready event, as this build (:gradle-plugin) has already executed work.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors (Thread[included builds,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors (Thread[included builds,5,main]) started.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:compileKotlin (Thread[included builds,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:compileKotlin (Thread[included builds,5,main]) started.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:compileJava (Thread[included builds,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:compileJava (Thread[included builds,5,main]) started.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:pluginDescriptors (Thread[included builds,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:pluginDescriptors (Thread[included builds,5,main]) started.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:processResources (Thread[included builds,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:processResources (Thread[included builds,5,main]) started.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:classes (Thread[included builds,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:classes (Thread[included builds,5,main]) started.
+
+> Configure project :app
+Evaluating project ':app' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/app/build.gradle'.
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Using default execution profile
+Build df223923-5189-4f66-ad81-213b6804ff8a is started
+Using Kotlin Gradle Plugin gradle85 variant
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+
+> Configure project :notifee_react-native
+Evaluating project ':notifee_react-native' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@notifee/react-native/android/build.gradle'.
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/shaswat/.gradle/caches/8.14.3/fileHashes/resourceHashesCache.bin
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:notifee_react-native @notifee/react-native found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@notifee/react-native
+:notifee_react-native package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@notifee/react-native/package.json
+:notifee_react-native:version set from package.json: 9.1.8 (9,1,8 - 9001008)
+:notifee_react-native:android.compileSdk using custom value: 35
+:notifee_react-native:android.targetSdk using custom value: 34
+:notifee_react-native:android.minSdk using custom value: 24
+:notifee_react-native:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-async-storage_async-storage
+Evaluating project ':react-native-async-storage_async-storage' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-async-storage/async-storage/android/build.gradle'.
+[AsyncStorage] Using kotlin version: 2.1.20
+[AsyncStorage] Using ksp version: 2.1.20-1.0.31
+[AsyncStorage] Using kotlin version: 2.1.20
+[AsyncStorage] Using ksp version: 2.1.20-1.0.31
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :react-native-community_datetimepicker
+Evaluating project ':react-native-community_datetimepicker' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-community/datetimepicker/android/build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :react-native-device-info
+Evaluating project ':react-native-device-info' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-device-info/android/build.gradle'.
+Using default execution profile
+
+> Configure project :react-native-firebase_app
+Evaluating project ':react-native-firebase_app' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app no firebase.json found, skipping
+:react-native-firebase_app:firebase.bom using default value: 34.10.0
+:react-native-firebase_app:play.play-services-auth using default value: 21.5.0
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_app:android.compileSdk using custom value: 35
+:react-native-firebase_app:android.targetSdk using custom value: 34
+:react-native-firebase_app:android.minSdk using custom value: 24
+:react-native-firebase_app:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+[33m [react-native-firebase] Legacy Architecture support is deprecated for all modules
+[33m [react-native-firebase] New Architecture support is already required for some modules
+[33m [react-native-firebase] all modules will require it in the future.
+[33m [react-native-firebase] Suppress this with environment variable RNFB_SUPPRESS_NEW_ARCHITECTURE_WARNING=1[0m
+
+> Configure project :react-native-firebase_app-check
+Evaluating project ':react-native-firebase_app-check' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app-check/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_app-check package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app-check/package.json
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app-check:firebase.bom using default value: 34.10.0
+:react-native-firebase_app-check package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app-check/package.json
+:react-native-firebase_app-check:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_app-check:android.compileSdk using custom value: 35
+:react-native-firebase_app-check:android.targetSdk using custom value: 34
+:react-native-firebase_app-check:android.minSdk using custom value: 24
+:react-native-firebase_app-check:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-firebase_auth
+Evaluating project ':react-native-firebase_auth' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/auth/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_auth package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/auth/package.json
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_auth:firebase.bom using default value: 34.10.0
+:react-native-firebase_auth package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/auth/package.json
+:react-native-firebase_auth:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_auth:android.compileSdk using custom value: 35
+:react-native-firebase_auth:android.targetSdk using custom value: 34
+:react-native-firebase_auth:android.minSdk using custom value: 24
+:react-native-firebase_auth:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-firebase_firestore
+Evaluating project ':react-native-firebase_firestore' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/firestore/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_firestore package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/firestore/package.json
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_firestore:firebase.bom using default value: 34.10.0
+:react-native-firebase_firestore package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/firestore/package.json
+:react-native-firebase_firestore:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_firestore:android.compileSdk using custom value: 35
+:react-native-firebase_firestore:android.targetSdk using custom value: 34
+:react-native-firebase_firestore:android.minSdk using custom value: 24
+:react-native-firebase_firestore:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-firebase_messaging
+Evaluating project ':react-native-firebase_messaging' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/messaging/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_messaging package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/messaging/package.json
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_messaging no firebase.json found, skipping
+:react-native-firebase_messaging:firebase.bom using default value: 34.10.0
+:react-native-firebase_messaging package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/messaging/package.json
+:react-native-firebase_messaging:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_messaging:android.compileSdk using custom value: 35
+:react-native-firebase_messaging:android.targetSdk using custom value: 34
+:react-native-firebase_messaging:android.minSdk using custom value: 24
+:react-native-firebase_messaging:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-geolocation-service
+Evaluating project ':react-native-geolocation-service' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-geolocation-service/android/build.gradle'.
+Using default execution profile
+
+> Configure project :react-native-linear-gradient
+Evaluating project ':react-native-linear-gradient' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-linear-gradient/android/build.gradle'.
+Using default execution profile
+
+> Configure project :react-native-maps
+Evaluating project ':react-native-maps' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-maps/android/build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :react-native-safe-area-context
+Evaluating project ':react-native-safe-area-context' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-safe-area-context/android/build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :react-native-screens
+Evaluating project ':react-native-screens' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+
+> Configure project :react-native-svg
+Evaluating project ':react-native-svg' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-svg/android/build.gradle'.
+Using default execution profile
+Starting process 'command 'node''. Working directory: /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android Command: node --print require.resolve('react-native/package.json')
+Successfully started process 'command 'node''
+Starting process 'command 'node''. Working directory: /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android Command: node --print require.resolve('react-native/package.json')
+Successfully started process 'command 'node''
+
+> Configure project :react-native-vector-icons
+Evaluating project ':react-native-vector-icons' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-vector-icons/android/build.gradle'.
+Using default execution profile
+All projects evaluated.
+Task path ':react-native-screens:compileDebugKotlin' matched project ':react-native-screens'
+Task name matched 'compileDebugKotlin'
+Selected primary task 'compileDebugKotlin' from project :react-native-screens
+Starting process 'command '/usr/libexec/java_home''. Working directory: /Users/shaswat/.gradle/daemon/8.14.3 Command: /usr/libexec/java_home -V
+Successfully started process 'command '/usr/libexec/java_home''
+Tasks to be executed: [task ':react-native-screens:checkKotlinGradlePluginConfigurationErrors', task ':react-native-screens:preBuild', task ':react-native-screens:preDebugBuild', task ':react-native-screens:generateDebugBuildConfig', task ':react-native-screens:generateDebugResValues', task ':react-native-screens:generateDebugResources', task ':react-native-screens:packageDebugResources', task ':react-native-screens:parseDebugLocalResources', task ':react-native-screens:generateDebugRFile', task ':react-native-screens:compileDebugKotlin']
+Tasks that were excluded: []
+Resolve mutations for :react-native-screens:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':react-native-screens:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :react-native-screens:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:preBuild UP-TO-DATE
+Skipping task ':react-native-screens:preBuild' as it has no actions.
+Resolve mutations for :react-native-screens:preDebugBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:preDebugBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-screens:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-screens:generateDebugBuildConfig (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:generateDebugBuildConfig (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:generateDebugBuildConfig UP-TO-DATE
+Invalidating in-memory cache of /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/.gradle/buildOutputCleanup/outputFiles.bin
+Invalidating in-memory cache of /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/.gradle/8.14.3/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/.gradle/8.14.3/fileHashes/resourceHashesCache.bin
+Caching disabled for task ':react-native-screens:generateDebugBuildConfig' because:
+  Build cache is disabled
+Skipping task ':react-native-screens:generateDebugBuildConfig' as it is up-to-date.
+Resolve mutations for :react-native-screens:generateDebugResValues (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:generateDebugResValues (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:generateDebugResValues UP-TO-DATE
+Caching disabled for task ':react-native-screens:generateDebugResValues' because:
+  Build cache is disabled
+Skipping task ':react-native-screens:generateDebugResValues' as it is up-to-date.
+Resolve mutations for :react-native-screens:generateDebugResources (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:generateDebugResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:generateDebugResources UP-TO-DATE
+Caching disabled for task ':react-native-screens:generateDebugResources' because:
+  Build cache is disabled
+Skipping task ':react-native-screens:generateDebugResources' as it is up-to-date.
+Resolve mutations for :react-native-screens:packageDebugResources (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:packageDebugResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:packageDebugResources UP-TO-DATE
+Caching disabled for task ':react-native-screens:packageDebugResources' because:
+  Build cache is disabled
+Skipping task ':react-native-screens:packageDebugResources' as it is up-to-date.
+Resolve mutations for :react-native-screens:parseDebugLocalResources (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:parseDebugLocalResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:parseDebugLocalResources UP-TO-DATE
+Caching disabled for task ':react-native-screens:parseDebugLocalResources' because:
+  Build cache is disabled
+Skipping task ':react-native-screens:parseDebugLocalResources' as it is up-to-date.
+Resolve mutations for :react-native-screens:generateDebugRFile (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:generateDebugRFile (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:generateDebugRFile UP-TO-DATE
+Caching disabled for task ':react-native-screens:generateDebugRFile' because:
+  Build cache is disabled
+Skipping task ':react-native-screens:generateDebugRFile' as it is up-to-date.
+Resolve mutations for :react-native-screens:compileDebugKotlin (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:compileDebugKotlin (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:compileDebugKotlin
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :react-native-screens:compileDebugAndroidTestKotlin
+Caching disabled for task ':react-native-screens:compileDebugKotlin' because:
+  Build cache is disabled
+Task ':react-native-screens:compileDebugKotlin' is not up-to-date because:
+  Task has failed previously.
+The input changes require a full rebuild for incremental task ':react-native-screens:compileDebugKotlin'.
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/kotlin', not found
+file or directory '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/debug/java', not found
+Kotlin source files: /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragment.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainer.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStack.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/CustomToolbar.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/FragmentHolder.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackFragmentWrapper.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenWindowTraits.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ext/ViewExt.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensShadowNode.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/utils/DeviceUtils.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/utils/ScreenDummyLayoutHelper.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragment.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/FragmentBackPressOverrider.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/Screen.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenEventDispatcher.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/CustomSearchView.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchViewFormatter.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenFragmentWrapper.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarView.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/ScreenDisappearEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/HeaderAttachedEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/ScreenWillDisappearEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/HeaderBackButtonClickedEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/ScreenWillAppearEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/SearchBarCloseEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/SearchBarChangeTextEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/HeaderDetachedEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/StackFinishTransitioningEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/SearchBarOpenEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/ScreenDismissedEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/SearchBarSearchButtonPressEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/SearchBarFocusEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/ScreenTransitionProgressEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/ScreenAppearEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/SearchBarBlurEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/events/HeaderHeightChangeEvent.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/RNScreensPackage.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubview.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ModalScreenViewManager.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfig.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/swmansion/rnscreens/FabricEnabledViewGroup.kt, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/swmansion/rnscreens/NativeProxy.kt
+Java source files: /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/swmansion/rnscreens/NativeScreensModuleSpec.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSSearchBarManagerDelegate.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenStackHeaderConfigManagerDelegate.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenStackHeaderSubviewManagerInterface.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenStackManagerDelegate.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenManagerDelegate.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenContainerManagerInterface.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenStackHeaderConfigManagerInterface.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenStackHeaderSubviewManagerDelegate.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenContainerManagerDelegate.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenStackManagerInterface.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSSearchBarManagerInterface.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/paper/java/com/facebook/react/viewmanagers/RNSScreenManagerInterface.java, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/build/generated/source/buildConfig/debug/com/swmansion/rnscreens/BuildConfig.java
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: null
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), sourceChanges=org.jetbrains.kotlin.buildtools.api.SourcesChanges$Unknown@5dd171f1, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/build/kotlin/compileDebugKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/build/kotlin/compileDebugKotlin/local-state/build-history.bin, useModuleDetection=true), usePreciseJavaTracking=true, icFeatures=IncrementalCompilationFeatures(withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false, enableMonotonousIncrementalCompileSetExpansion=true), outputFiles=[/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/build/tmp/kotlin-classes/debug, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/build/kotlin/compileDebugKotlin/cacheable, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/build/kotlin/compileDebugKotlin/local-state])
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainer.kt:15:40 Unresolved reference 'ChoreographerCompat'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainer.kt:33:33 Unresolved reference 'ChoreographerCompat'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainer.kt:34:18 Unresolved reference 'ChoreographerCompat'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainer.kt:35:13 'doFrame' overrides nothing.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainer.kt:86:21 Argument type mismatch: actual type is 'Any', but 'Choreographer.FrameCallback' was expected.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:20:71 Type argument is not within its bounds: must be subtype of 'BaseViewManagerInterface! & RNSScreenContainerManagerInterface<ScreenContainer!>!'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenContainerViewManager.kt:20:99 Argument type mismatch: actual type is 'ScreenContainerViewManager', but 'ScreenContainerViewManager!' was expected.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:25:87 Type argument is not within its bounds: must be subtype of 'BaseViewManagerInterface! & RNSScreenStackHeaderConfigManagerInterface<ScreenStackHeaderConfig!>!'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderConfigViewManager.kt:25:123 Argument type mismatch: actual type is 'ScreenStackHeaderConfigViewManager', but 'ScreenStackHeaderConfigViewManager!' was expected.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:19:89 Type argument is not within its bounds: must be subtype of 'BaseViewManagerInterface! & RNSScreenStackHeaderSubviewManagerInterface<ScreenStackHeaderSubview!>!'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackHeaderSubviewManager.kt:19:122 Argument type mismatch: actual type is 'ScreenStackHeaderSubviewManager', but 'ScreenStackHeaderSubviewManager!' was expected.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:21:63 Type argument is not within its bounds: must be subtype of 'BaseViewManagerInterface! & RNSScreenStackManagerInterface<ScreenStack!>!'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenStackViewManager.kt:21:87 Argument type mismatch: actual type is 'ScreenStackViewManager', but 'ScreenStackViewManager!' was expected.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:31:53 Type argument is not within its bounds: must be subtype of 'BaseViewManagerInterface! & RNSScreenManagerInterface<Screen!>!'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreenViewManager.kt:31:72 Argument type mismatch: actual type is 'ScreenViewManager', but 'ScreenViewManager!' was expected.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:27:63 Type argument is not within its bounds: must be subtype of 'BaseViewManagerInterface! & RNSSearchBarManagerInterface<SearchBarView!>!'.
+e: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/SearchBarManager.kt:27:81 Argument type mismatch: actual type is 'SearchBarManager', but 'SearchBarManager!' was expected.
+Finished executing kotlin compiler using DAEMON strategy
+
+> Task :react-native-screens:compileDebugKotlin FAILED
+Build 51c351b2-a2be-447c-8167-0d7c7e9a7b71 is closed
+Build df223923-5189-4f66-ad81-213b6804ff8a is closed
+
+[Incubating] Problems report is available at: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':react-native-screens:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m 11s
+17 actionable tasks: 1 executed, 16 up-to-date
+Watched directory hierarchies: [/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin]

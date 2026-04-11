@@ -1,0 +1,903 @@
+Initialized native services in: /Users/shaswat/.gradle/native
+Initialized jansi services in: /Users/shaswat/.gradle/native
+The client will now receive all logging from the daemon (pid: 57289). The daemon log file: /Users/shaswat/.gradle/daemon/8.14.3/daemon-57289.out.log
+Starting 9th build in daemon [uptime: 27 mins 56.106 secs, performance: 99%, GC rate: 0.00/s, heap usage: 0% of 2 GiB, non-heap usage: 28% of 512 MiB]
+Using 8 worker leases.
+Now considering [/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Now considering [/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android] as hierarchies to watch
+Resolved plugin [id: 'org.gradle.toolchains.foojay-resolver-convention', version: '0.5.0']
+
+> Configure project :gradle-plugin
+Evaluating project ':gradle-plugin' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20', apply: false]
+
+> Configure project :gradle-plugin:react-native-gradle-plugin
+Evaluating project ':gradle-plugin:react-native-gradle-plugin' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/react-native-gradle-plugin/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20']
+Resolved plugin [id: 'java-gradle-plugin']
+Build d6aab9c0-87dd-4d66-93dd-60e630880c31 is started
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :gradle-plugin:settings-plugin
+Evaluating project ':gradle-plugin:settings-plugin' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/settings-plugin/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20']
+Resolved plugin [id: 'java-gradle-plugin']
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :gradle-plugin:shared
+Evaluating project ':gradle-plugin:shared' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/shared/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20']
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+
+> Configure project :gradle-plugin:shared-testutil
+Evaluating project ':gradle-plugin:shared-testutil' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin/shared-testutil/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20']
+Using Kotlin Gradle Plugin gradle85 variant
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+Resolved plugin [id: 'com.facebook.react.settings']
+Starting process 'command '/usr/libexec/java_home''. Working directory: /Users/shaswat/.gradle/daemon/8.14.3 Command: /usr/libexec/java_home -V
+Successfully started process 'command '/usr/libexec/java_home''
+Resolve mutations for :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :gradle-plugin:shared:compileKotlin (Thread[Execution worker,5,main]) started.
+:gradle-plugin:shared:compileKotlin (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+Caching disabled for task ':gradle-plugin:shared:compileKotlin' because:
+  Build cache is disabled
+Skipping task ':gradle-plugin:shared:compileKotlin' as it is up-to-date.
+Resolve mutations for :gradle-plugin:shared:compileJava (Thread[Execution worker,5,main]) started.
+:gradle-plugin:shared:compileJava (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+Skipping task ':gradle-plugin:shared:compileJava' as it has no source files and no previous output files.
+Resolve mutations for :gradle-plugin:shared:processResources (Thread[Execution worker,5,main]) started.
+:gradle-plugin:shared:processResources (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+Skipping task ':gradle-plugin:shared:processResources' as it has no source files and no previous output files.
+Resolve mutations for :gradle-plugin:shared:classes (Thread[Execution worker,5,main]) started.
+:gradle-plugin:shared:classes (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+Skipping task ':gradle-plugin:shared:classes' as it has no actions.
+Resolve mutations for :gradle-plugin:shared:jar (Thread[Execution worker,5,main]) started.
+:gradle-plugin:shared:jar (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+Caching disabled for task ':gradle-plugin:shared:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:shared:jar' as it is up-to-date.
+work action resolve shared.jar (project :gradle-plugin:shared) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :gradle-plugin:settings-plugin:compileKotlin (Thread[Execution worker,5,main]) started.
+:gradle-plugin:settings-plugin:compileKotlin (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+Caching disabled for task ':gradle-plugin:settings-plugin:compileKotlin' because:
+  Build cache is disabled
+Skipping task ':gradle-plugin:settings-plugin:compileKotlin' as it is up-to-date.
+Resolve mutations for :gradle-plugin:settings-plugin:compileJava (Thread[Execution worker,5,main]) started.
+:gradle-plugin:settings-plugin:compileJava (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+Skipping task ':gradle-plugin:settings-plugin:compileJava' as it has no source files and no previous output files.
+Resolve mutations for :gradle-plugin:settings-plugin:pluginDescriptors (Thread[Execution worker,5,main]) started.
+:gradle-plugin:settings-plugin:pluginDescriptors (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+Caching disabled for task ':gradle-plugin:settings-plugin:pluginDescriptors' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:settings-plugin:pluginDescriptors' as it is up-to-date.
+Resolve mutations for :gradle-plugin:settings-plugin:processResources (Thread[Execution worker,5,main]) started.
+:gradle-plugin:settings-plugin:processResources (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+Caching disabled for task ':gradle-plugin:settings-plugin:processResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:settings-plugin:processResources' as it is up-to-date.
+Resolve mutations for :gradle-plugin:settings-plugin:classes (Thread[Execution worker,5,main]) started.
+:gradle-plugin:settings-plugin:classes (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+Skipping task ':gradle-plugin:settings-plugin:classes' as it has no actions.
+Resolve mutations for :gradle-plugin:settings-plugin:jar (Thread[Execution worker,5,main]) started.
+:gradle-plugin:settings-plugin:jar (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+Caching disabled for task ':gradle-plugin:settings-plugin:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:settings-plugin:jar' as it is up-to-date.
+Settings evaluated using settings file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/settings.gradle'.
+Projects loaded. Root project using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/build.gradle'.
+Included projects: [root project 'WorkerClean', project ':app', project ':notifee_react-native', project ':react-native-async-storage_async-storage', project ':react-native-community_datetimepicker', project ':react-native-device-info', project ':react-native-firebase_app', project ':react-native-firebase_app-check', project ':react-native-firebase_auth', project ':react-native-firebase_firestore', project ':react-native-firebase_messaging', project ':react-native-geolocation-service', project ':react-native-linear-gradient', project ':react-native-maps', project ':react-native-safe-area-context', project ':react-native-screens', project ':react-native-svg', project ':react-native-vector-icons']
+Registering project ':gradle-plugin' in composite build. Will substitute for module ':gradle-plugin-root'.
+Registering project ':gradle-plugin:react-native-gradle-plugin' in composite build. Will substitute for module 'com.facebook.react:react-native-gradle-plugin'.
+Registering project ':gradle-plugin:settings-plugin' in composite build. Will substitute for module 'com.facebook.react:settings-plugin'.
+Registering project ':gradle-plugin:shared' in composite build. Will substitute for module 'com.facebook.react:shared'.
+Registering project ':gradle-plugin:shared-testutil' in composite build. Will substitute for module 'com.facebook.react:shared-testutil'.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:compileKotlin (Thread[Execution worker,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:compileKotlin (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+Caching disabled for task ':gradle-plugin:react-native-gradle-plugin:compileKotlin' because:
+  Build cache is disabled
+Skipping task ':gradle-plugin:react-native-gradle-plugin:compileKotlin' as it is up-to-date.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:compileJava (Thread[Execution worker,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:compileJava (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+Skipping task ':gradle-plugin:react-native-gradle-plugin:compileJava' as it has no source files and no previous output files.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:pluginDescriptors (Thread[Execution worker,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:pluginDescriptors (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+Caching disabled for task ':gradle-plugin:react-native-gradle-plugin:pluginDescriptors' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:react-native-gradle-plugin:pluginDescriptors' as it is up-to-date.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:processResources (Thread[Execution worker,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:processResources (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+Caching disabled for task ':gradle-plugin:react-native-gradle-plugin:processResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:react-native-gradle-plugin:processResources' as it is up-to-date.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:classes (Thread[Execution worker,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:classes (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+Skipping task ':gradle-plugin:react-native-gradle-plugin:classes' as it has no actions.
+Resolve mutations for :gradle-plugin:react-native-gradle-plugin:jar (Thread[Execution worker,5,main]) started.
+:gradle-plugin:react-native-gradle-plugin:jar (Thread[Execution worker,5,main]) started.
+
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+Caching disabled for task ':gradle-plugin:react-native-gradle-plugin:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':gradle-plugin:react-native-gradle-plugin:jar' as it is up-to-date.
+
+> Configure project :app
+Evaluating project ':app' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/app/build.gradle'.
+Using default execution profile
+Build 2233fec0-e69a-445d-90a1-52a2e661547b is started
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :
+Evaluating root project 'WorkerClean' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/build.gradle'.
+Found project 'project :gradle-plugin:react-native-gradle-plugin' as substitute for module 'com.facebook.react:react-native-gradle-plugin'.
+Ignoring listeners of task graph ready event, as this build (:gradle-plugin) has already executed work.
+
+> Configure project :notifee_react-native
+Evaluating project ':notifee_react-native' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@notifee/react-native/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:notifee_react-native @notifee/react-native found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@notifee/react-native
+:notifee_react-native package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@notifee/react-native/package.json
+:notifee_react-native:version set from package.json: 9.1.8 (9,1,8 - 9001008)
+:notifee_react-native:android.compileSdk using custom value: 34
+:notifee_react-native:android.targetSdk using custom value: 34
+:notifee_react-native:android.minSdk using custom value: 24
+:notifee_react-native:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-async-storage_async-storage
+Evaluating project ':react-native-async-storage_async-storage' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-async-storage/async-storage/android/build.gradle'.
+[AsyncStorage] Using kotlin version: 2.1.20
+[AsyncStorage] Using ksp version: 2.1.20-1.0.31
+[AsyncStorage] Using kotlin version: 2.1.20
+[AsyncStorage] Using ksp version: 2.1.20-1.0.31
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :react-native-community_datetimepicker
+Evaluating project ':react-native-community_datetimepicker' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-community/datetimepicker/android/build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :react-native-device-info
+Evaluating project ':react-native-device-info' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-device-info/android/build.gradle'.
+Using default execution profile
+
+> Configure project :react-native-firebase_app
+Evaluating project ':react-native-firebase_app' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app no firebase.json found, skipping
+:react-native-firebase_app:firebase.bom using default value: 34.10.0
+:react-native-firebase_app:play.play-services-auth using default value: 21.5.0
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_app:android.compileSdk using custom value: 34
+:react-native-firebase_app:android.targetSdk using custom value: 34
+:react-native-firebase_app:android.minSdk using custom value: 24
+:react-native-firebase_app:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+[33m [react-native-firebase] Legacy Architecture support is deprecated for all modules
+[33m [react-native-firebase] New Architecture support is already required for some modules
+[33m [react-native-firebase] all modules will require it in the future.
+[33m [react-native-firebase] Suppress this with environment variable RNFB_SUPPRESS_NEW_ARCHITECTURE_WARNING=1[0m
+
+> Configure project :react-native-firebase_app-check
+Evaluating project ':react-native-firebase_app-check' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app-check/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_app-check package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app-check/package.json
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_app-check:firebase.bom using default value: 34.10.0
+:react-native-firebase_app-check package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app-check/package.json
+:react-native-firebase_app-check:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_app-check:android.compileSdk using custom value: 34
+:react-native-firebase_app-check:android.targetSdk using custom value: 34
+:react-native-firebase_app-check:android.minSdk using custom value: 24
+:react-native-firebase_app-check:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-firebase_auth
+Evaluating project ':react-native-firebase_auth' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/auth/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_auth package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/auth/package.json
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_auth:firebase.bom using default value: 34.10.0
+:react-native-firebase_auth package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/auth/package.json
+:react-native-firebase_auth:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_auth:android.compileSdk using custom value: 34
+:react-native-firebase_auth:android.targetSdk using custom value: 34
+:react-native-firebase_auth:android.minSdk using custom value: 24
+:react-native-firebase_auth:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-firebase_firestore
+Evaluating project ':react-native-firebase_firestore' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/firestore/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_firestore package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/firestore/package.json
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_firestore:firebase.bom using default value: 34.10.0
+:react-native-firebase_firestore package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/firestore/package.json
+:react-native-firebase_firestore:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_firestore:android.compileSdk using custom value: 34
+:react-native-firebase_firestore:android.targetSdk using custom value: 34
+:react-native-firebase_firestore:android.minSdk using custom value: 24
+:react-native-firebase_firestore:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-firebase_messaging
+Evaluating project ':react-native-firebase_messaging' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/messaging/android/build.gradle'.
+Resolved plugin [id: 'io.invertase.gradle.build', version: '1.5']
+Using default execution profile
+:react-native-firebase_messaging package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/messaging/package.json
+:react-native-firebase_app package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/app/package.json
+:react-native-firebase_messaging no firebase.json found, skipping
+:react-native-firebase_messaging:firebase.bom using default value: 34.10.0
+:react-native-firebase_messaging package.json found at /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-firebase/messaging/package.json
+:react-native-firebase_messaging:version set from package.json: 24.0.0 (24,0,0 - 24000000)
+:react-native-firebase_messaging:android.compileSdk using custom value: 34
+:react-native-firebase_messaging:android.targetSdk using custom value: 34
+:react-native-firebase_messaging:android.minSdk using custom value: 24
+:react-native-firebase_messaging:reactNativeAndroidDir /Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native
+
+> Configure project :react-native-geolocation-service
+Evaluating project ':react-native-geolocation-service' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-geolocation-service/android/build.gradle'.
+Using default execution profile
+
+> Configure project :react-native-linear-gradient
+Evaluating project ':react-native-linear-gradient' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-linear-gradient/android/build.gradle'.
+Using default execution profile
+
+> Configure project :react-native-maps
+Evaluating project ':react-native-maps' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-maps/android/build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :react-native-safe-area-context
+Evaluating project ':react-native-safe-area-context' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-safe-area-context/android/build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+
+> Configure project :react-native-screens
+Evaluating project ':react-native-screens' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-screens/android/build.gradle'.
+Using default execution profile
+Using Kotlin Gradle Plugin gradle85 variant
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+C/C++: android.ndkVersion from module build.gradle is [26.1.10909125]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/shaswat/Library/Android/sdk
+
+> Configure project :react-native-svg
+Evaluating project ':react-native-svg' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-svg/android/build.gradle'.
+Using default execution profile
+Starting process 'command 'node''. Working directory: /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android Command: node --print require.resolve('react-native/package.json')
+Successfully started process 'command 'node''
+Starting process 'command 'node''. Working directory: /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android Command: node --print require.resolve('react-native/package.json')
+Successfully started process 'command 'node''
+
+> Configure project :react-native-vector-icons
+Evaluating project ':react-native-vector-icons' using build file '/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/react-native-vector-icons/android/build.gradle'.
+Using default execution profile
+All projects evaluated.
+Task path 'app:installDebug' matched project ':app'
+Task name matched 'installDebug'
+Selected primary task 'installDebug' from project :app
+Starting process 'command '/usr/libexec/java_home''. Working directory: /Users/shaswat/.gradle/daemon/8.14.3 Command: /usr/libexec/java_home -V
+Successfully started process 'command '/usr/libexec/java_home''
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugKotlin
+Registered task dependencies: app:debugCompileClasspath
+Skipping misunderstood TO dep string: project :notifee_react-native
+Skipping misunderstood TO dep string: org.jetbrains.kotlin:kotlin-stdlib
+Skipping misunderstood TO dep string: org.jetbrains.kotlin:kotlin-stdlib
+Skipping misunderstood TO dep string: project :react-native-async-storage_async-storage
+Skipping misunderstood TO dep string: project :react-native-community_datetimepicker
+Skipping misunderstood TO dep string: project :react-native-firebase_app
+Skipping misunderstood TO dep string: project :react-native-firebase_app-check
+Skipping misunderstood TO dep string: project :react-native-firebase_app
+Skipping misunderstood TO dep string: project :react-native-firebase_auth
+Skipping misunderstood TO dep string: project :react-native-firebase_app
+Skipping misunderstood TO dep string: project :react-native-firebase_firestore
+Skipping misunderstood TO dep string: project :react-native-firebase_app
+Skipping misunderstood TO dep string: project :react-native-firebase_messaging
+Skipping misunderstood TO dep string: project :react-native-firebase_app
+Skipping misunderstood TO dep string: project :react-native-device-info
+Skipping misunderstood TO dep string: project :react-native-geolocation-service
+Skipping misunderstood TO dep string: project :react-native-linear-gradient
+Skipping misunderstood TO dep string: project :react-native-maps
+Skipping misunderstood TO dep string: project :react-native-safe-area-context
+Skipping misunderstood TO dep string: project :react-native-screens
+Skipping misunderstood TO dep string: project :react-native-svg
+Skipping misunderstood TO dep string: project :react-native-vector-icons
+Skipping misunderstood TO dep string: com.facebook.react:react-android
+Skipping misunderstood TO dep string: com.facebook.react:hermes-android
+Starting dependency analysis
+Registered task dependencies: app:kotlinCompilerPluginClasspathDebug
+Starting dependency analysis
+Registered task dependencies: app:kotlinCompilerClasspath
+Starting dependency analysis
+Tasks to be executed: [task ':app:checkKotlinGradlePluginConfigurationErrors', task ':app:generateAutolinkingPackageList', task ':app:generateCodegenSchemaFromJavaScript', task ':app:generateCodegenArtifactsFromSchema', task ':app:generateReactNativeEntryPoint', task ':notifee_react-native:preBuild', task ':react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript', task ':react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema', task ':react-native-async-storage_async-storage:preBuild', task ':react-native-community_datetimepicker:preBuild', task ':react-native-device-info:preBuild', task ':react-native-firebase_app:preBuild', task ':react-native-firebase_app-check:preBuild', task ':react-native-firebase_auth:preBuild', task ':react-native-firebase_firestore:preBuild', task ':react-native-firebase_messaging:preBuild', task ':react-native-geolocation-service:preBuild', task ':react-native-linear-gradient:preBuild', task ':react-native-maps:preBuild', task ':react-native-safe-area-context:preBuild', task ':react-native-screens:preBuild', task ':react-native-svg:preBuild', task ':react-native-vector-icons:preBuild', task ':app:preBuild', task ':app:preDebugBuild', task ':app:generateDebugBuildConfig', task ':notifee_react-native:preDebugBuild', task ':notifee_react-native:writeDebugAarMetadata', task ':react-native-async-storage_async-storage:preDebugBuild', task ':react-native-async-storage_async-storage:writeDebugAarMetadata', task ':react-native-community_datetimepicker:preDebugBuild', task ':react-native-community_datetimepicker:writeDebugAarMetadata', task ':react-native-device-info:preDebugBuild', task ':react-native-device-info:writeDebugAarMetadata', task ':react-native-firebase_app:preDebugBuild', task ':react-native-firebase_app:writeDebugAarMetadata', task ':react-native-firebase_app-check:preDebugBuild', task ':react-native-firebase_app-check:writeDebugAarMetadata', task ':react-native-firebase_auth:preDebugBuild', task ':react-native-firebase_auth:writeDebugAarMetadata', task ':react-native-firebase_firestore:preDebugBuild', task ':react-native-firebase_firestore:writeDebugAarMetadata', task ':react-native-firebase_messaging:preDebugBuild', task ':react-native-firebase_messaging:writeDebugAarMetadata', task ':react-native-geolocation-service:preDebugBuild', task ':react-native-geolocation-service:writeDebugAarMetadata', task ':react-native-linear-gradient:preDebugBuild', task ':react-native-linear-gradient:writeDebugAarMetadata', task ':react-native-maps:preDebugBuild', task ':react-native-maps:writeDebugAarMetadata', task ':react-native-safe-area-context:preDebugBuild', task ':react-native-safe-area-context:writeDebugAarMetadata', task ':react-native-screens:preDebugBuild', task ':react-native-screens:writeDebugAarMetadata', task ':react-native-svg:preDebugBuild', task ':react-native-svg:writeDebugAarMetadata', task ':react-native-vector-icons:preDebugBuild', task ':react-native-vector-icons:writeDebugAarMetadata', task ':app:checkDebugAarMetadata', task ':app:generateDebugResValues', task ':app:processDebugGoogleServices', task ':notifee_react-native:generateDebugResValues', task ':notifee_react-native:generateDebugResources', task ':notifee_react-native:packageDebugResources', task ':react-native-async-storage_async-storage:generateDebugResValues', task ':react-native-async-storage_async-storage:generateDebugResources', task ':react-native-async-storage_async-storage:packageDebugResources', task ':react-native-community_datetimepicker:generateDebugResValues', task ':react-native-community_datetimepicker:generateDebugResources', task ':react-native-community_datetimepicker:packageDebugResources', task ':react-native-device-info:generateDebugResValues', task ':react-native-device-info:generateDebugResources', task ':react-native-device-info:packageDebugResources', task ':react-native-firebase_app:generateDebugResValues', task ':react-native-firebase_app:generateDebugResources', task ':react-native-firebase_app:packageDebugResources', task ':react-native-firebase_app-check:generateDebugResValues', task ':react-native-firebase_app-check:generateDebugResources', task ':react-native-firebase_app-check:packageDebugResources', task ':react-native-firebase_auth:generateDebugResValues', task ':react-native-firebase_auth:generateDebugResources', task ':react-native-firebase_auth:packageDebugResources', task ':react-native-firebase_firestore:generateDebugResValues', task ':react-native-firebase_firestore:generateDebugResources', task ':react-native-firebase_firestore:packageDebugResources', task ':react-native-firebase_messaging:generateDebugResValues', task ':react-native-firebase_messaging:generateDebugResources', task ':react-native-firebase_messaging:packageDebugResources', task ':react-native-geolocation-service:generateDebugResValues', task ':react-native-geolocation-service:generateDebugResources', task ':react-native-geolocation-service:packageDebugResources', task ':react-native-linear-gradient:generateDebugResValues', task ':react-native-linear-gradient:generateDebugResources', task ':react-native-linear-gradient:packageDebugResources', task ':react-native-maps:generateDebugResValues', task ':react-native-maps:generateDebugResources', task ':react-native-maps:packageDebugResources', task ':react-native-safe-area-context:generateDebugResValues', task ':react-native-safe-area-context:generateDebugResources', task ':react-native-safe-area-context:packageDebugResources', task ':react-native-screens:generateDebugResValues', task ':react-native-screens:generateDebugResources', task ':react-native-screens:packageDebugResources', task ':react-native-svg:generateDebugResValues', task ':react-native-svg:generateDebugResources', task ':react-native-svg:packageDebugResources', task ':react-native-vector-icons:generateDebugResValues', task ':react-native-vector-icons:generateDebugResources', task ':react-native-vector-icons:packageDebugResources', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':notifee_react-native:extractDeepLinksDebug', task ':notifee_react-native:processDebugManifest', task ':react-native-async-storage_async-storage:extractDeepLinksDebug', task ':react-native-async-storage_async-storage:processDebugManifest', task ':react-native-community_datetimepicker:extractDeepLinksDebug', task ':react-native-community_datetimepicker:processDebugManifest', task ':react-native-device-info:extractDeepLinksDebug', task ':react-native-device-info:processDebugManifest', task ':react-native-firebase_app:extractDeepLinksDebug', task ':react-native-firebase_app:processDebugManifest', task ':react-native-firebase_app-check:extractDeepLinksDebug', task ':react-native-firebase_app-check:processDebugManifest', task ':react-native-firebase_auth:extractDeepLinksDebug', task ':react-native-firebase_auth:processDebugManifest', task ':react-native-firebase_firestore:extractDeepLinksDebug', task ':react-native-firebase_firestore:processDebugManifest', task ':react-native-firebase_messaging:extractDeepLinksDebug', task ':react-native-firebase_messaging:processDebugManifest', task ':react-native-geolocation-service:extractDeepLinksDebug', task ':react-native-geolocation-service:processDebugManifest', task ':react-native-linear-gradient:extractDeepLinksDebug', task ':react-native-linear-gradient:processDebugManifest', task ':react-native-maps:extractDeepLinksDebug', task ':react-native-maps:processDebugManifest', task ':react-native-safe-area-context:extractDeepLinksDebug', task ':react-native-safe-area-context:processDebugManifest', task ':react-native-screens:extractDeepLinksDebug', task ':react-native-screens:processDebugManifest', task ':react-native-svg:extractDeepLinksDebug', task ':react-native-svg:processDebugManifest', task ':react-native-vector-icons:extractDeepLinksDebug', task ':react-native-vector-icons:processDebugManifest', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':notifee_react-native:compileDebugLibraryResources', task ':notifee_react-native:parseDebugLocalResources', task ':notifee_react-native:generateDebugRFile', task ':react-native-async-storage_async-storage:compileDebugLibraryResources', task ':react-native-async-storage_async-storage:parseDebugLocalResources', task ':react-native-async-storage_async-storage:generateDebugRFile', task ':react-native-community_datetimepicker:compileDebugLibraryResources', task ':react-native-community_datetimepicker:parseDebugLocalResources', task ':react-native-community_datetimepicker:generateDebugRFile', task ':react-native-device-info:compileDebugLibraryResources', task ':react-native-device-info:parseDebugLocalResources', task ':react-native-device-info:generateDebugRFile', task ':react-native-firebase_app:compileDebugLibraryResources', task ':react-native-firebase_app:parseDebugLocalResources', task ':react-native-firebase_app:generateDebugRFile', task ':react-native-firebase_app-check:compileDebugLibraryResources', task ':react-native-firebase_app-check:parseDebugLocalResources', task ':react-native-firebase_app-check:generateDebugRFile', task ':react-native-firebase_auth:compileDebugLibraryResources', task ':react-native-firebase_auth:parseDebugLocalResources', task ':react-native-firebase_auth:generateDebugRFile', task ':react-native-firebase_firestore:compileDebugLibraryResources', task ':react-native-firebase_firestore:parseDebugLocalResources', task ':react-native-firebase_firestore:generateDebugRFile', task ':react-native-firebase_messaging:compileDebugLibraryResources', task ':react-native-firebase_messaging:parseDebugLocalResources', task ':react-native-firebase_messaging:generateDebugRFile', task ':react-native-geolocation-service:compileDebugLibraryResources', task ':react-native-geolocation-service:parseDebugLocalResources', task ':react-native-geolocation-service:generateDebugRFile', task ':react-native-linear-gradient:compileDebugLibraryResources', task ':react-native-linear-gradient:parseDebugLocalResources', task ':react-native-linear-gradient:generateDebugRFile', task ':react-native-maps:compileDebugLibraryResources', task ':react-native-maps:parseDebugLocalResources', task ':react-native-maps:generateDebugRFile', task ':react-native-safe-area-context:compileDebugLibraryResources', task ':react-native-safe-area-context:parseDebugLocalResources', task ':react-native-safe-area-context:generateDebugRFile', task ':react-native-screens:compileDebugLibraryResources', task ':react-native-screens:parseDebugLocalResources', task ':react-native-screens:generateDebugRFile', task ':react-native-svg:compileDebugLibraryResources', task ':react-native-svg:parseDebugLocalResources', task ':react-native-svg:generateDebugRFile', task ':react-native-vector-icons:compileDebugLibraryResources', task ':react-native-vector-icons:parseDebugLocalResources', task ':react-native-vector-icons:generateDebugRFile', task ':app:processDebugResources', task ':notifee_react-native:generateDebugBuildConfig', task ':notifee_react-native:javaPreCompileDebug', task ':notifee_react-native:compileDebugJavaWithJavac', task ':notifee_react-native:bundleLibCompileToJarDebug', task ':react-native-async-storage_async-storage:checkKotlinGradlePluginConfigurationErrors', task ':react-native-async-storage_async-storage:generateDebugBuildConfig', task ':react-native-async-storage_async-storage:kspDebugKotlin', task ':react-native-async-storage_async-storage:compileDebugKotlin', task ':react-native-async-storage_async-storage:javaPreCompileDebug', task ':react-native-async-storage_async-storage:compileDebugJavaWithJavac', task ':react-native-async-storage_async-storage:bundleLibCompileToJarDebug', task ':react-native-community_datetimepicker:checkKotlinGradlePluginConfigurationErrors', task ':react-native-community_datetimepicker:generateDebugBuildConfig', task ':react-native-community_datetimepicker:compileDebugKotlin', task ':react-native-community_datetimepicker:javaPreCompileDebug', task ':react-native-community_datetimepicker:compileDebugJavaWithJavac', task ':react-native-community_datetimepicker:bundleLibCompileToJarDebug', task ':react-native-device-info:generateDebugBuildConfig', task ':react-native-device-info:javaPreCompileDebug', task ':react-native-device-info:compileDebugJavaWithJavac', task ':react-native-device-info:bundleLibCompileToJarDebug', task ':react-native-firebase_app:generateDebugBuildConfig', task ':react-native-firebase_app:javaPreCompileDebug', task ':react-native-firebase_app:compileDebugJavaWithJavac', task ':react-native-firebase_app:bundleLibCompileToJarDebug', task ':react-native-firebase_app-check:generateDebugBuildConfig', task ':react-native-firebase_app-check:javaPreCompileDebug', task ':react-native-firebase_app-check:compileDebugJavaWithJavac', task ':react-native-firebase_app-check:bundleLibCompileToJarDebug', task ':react-native-firebase_auth:generateDebugBuildConfig', task ':react-native-firebase_auth:javaPreCompileDebug', task ':react-native-firebase_auth:compileDebugJavaWithJavac', task ':react-native-firebase_auth:bundleLibCompileToJarDebug', task ':react-native-firebase_firestore:generateDebugBuildConfig', task ':react-native-firebase_firestore:javaPreCompileDebug', task ':react-native-firebase_firestore:compileDebugJavaWithJavac', task ':react-native-firebase_firestore:bundleLibCompileToJarDebug', task ':react-native-firebase_messaging:generateDebugBuildConfig', task ':react-native-firebase_messaging:javaPreCompileDebug', task ':react-native-firebase_messaging:compileDebugJavaWithJavac', task ':react-native-firebase_messaging:bundleLibCompileToJarDebug', task ':react-native-geolocation-service:generateDebugBuildConfig', task ':react-native-geolocation-service:javaPreCompileDebug', task ':react-native-geolocation-service:compileDebugJavaWithJavac', task ':react-native-geolocation-service:bundleLibCompileToJarDebug', task ':react-native-linear-gradient:generateDebugBuildConfig', task ':react-native-linear-gradient:javaPreCompileDebug', task ':react-native-linear-gradient:compileDebugJavaWithJavac', task ':react-native-linear-gradient:bundleLibCompileToJarDebug', task ':react-native-maps:checkKotlinGradlePluginConfigurationErrors', task ':react-native-maps:generateDebugBuildConfig', task ':react-native-maps:compileDebugKotlin', task ':react-native-maps:javaPreCompileDebug', task ':react-native-maps:compileDebugJavaWithJavac', task ':react-native-maps:bundleLibCompileToJarDebug', task ':react-native-safe-area-context:checkKotlinGradlePluginConfigurationErrors', task ':react-native-safe-area-context:generateDebugBuildConfig', task ':react-native-safe-area-context:compileDebugKotlin', task ':react-native-safe-area-context:javaPreCompileDebug', task ':react-native-safe-area-context:compileDebugJavaWithJavac', task ':react-native-safe-area-context:bundleLibCompileToJarDebug', task ':react-native-screens:checkKotlinGradlePluginConfigurationErrors', task ':react-native-screens:generateDebugBuildConfig', task ':react-native-screens:compileDebugKotlin', task ':react-native-screens:javaPreCompileDebug', task ':react-native-screens:compileDebugJavaWithJavac', task ':react-native-screens:bundleLibCompileToJarDebug', task ':react-native-svg:generateDebugBuildConfig', task ':react-native-svg:javaPreCompileDebug', task ':react-native-svg:compileDebugJavaWithJavac', task ':react-native-svg:bundleLibCompileToJarDebug', task ':react-native-vector-icons:generateDebugBuildConfig', task ':react-native-vector-icons:javaPreCompileDebug', task ':react-native-vector-icons:compileDebugJavaWithJavac', task ':react-native-vector-icons:bundleLibCompileToJarDebug', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:mergeDebugShaders', task ':app:compileDebugShaders', task ':app:copyReactNativeVectorIconFonts', task ':app:generateDebugAssets', task ':notifee_react-native:mergeDebugShaders', task ':notifee_react-native:compileDebugShaders', task ':notifee_react-native:generateDebugAssets', task ':notifee_react-native:mergeDebugAssets', task ':react-native-async-storage_async-storage:mergeDebugShaders', task ':react-native-async-storage_async-storage:compileDebugShaders', task ':react-native-async-storage_async-storage:generateDebugAssets', task ':react-native-async-storage_async-storage:mergeDebugAssets', task ':react-native-community_datetimepicker:mergeDebugShaders', task ':react-native-community_datetimepicker:compileDebugShaders', task ':react-native-community_datetimepicker:generateDebugAssets', task ':react-native-community_datetimepicker:mergeDebugAssets', task ':react-native-device-info:mergeDebugShaders', task ':react-native-device-info:compileDebugShaders', task ':react-native-device-info:generateDebugAssets', task ':react-native-device-info:mergeDebugAssets', task ':react-native-firebase_app:mergeDebugShaders', task ':react-native-firebase_app:compileDebugShaders', task ':react-native-firebase_app:generateDebugAssets', task ':react-native-firebase_app:mergeDebugAssets', task ':react-native-firebase_app-check:mergeDebugShaders', task ':react-native-firebase_app-check:compileDebugShaders', task ':react-native-firebase_app-check:generateDebugAssets', task ':react-native-firebase_app-check:mergeDebugAssets', task ':react-native-firebase_auth:mergeDebugShaders', task ':react-native-firebase_auth:compileDebugShaders', task ':react-native-firebase_auth:generateDebugAssets', task ':react-native-firebase_auth:mergeDebugAssets', task ':react-native-firebase_firestore:mergeDebugShaders', task ':react-native-firebase_firestore:compileDebugShaders', task ':react-native-firebase_firestore:generateDebugAssets', task ':react-native-firebase_firestore:mergeDebugAssets', task ':react-native-firebase_messaging:mergeDebugShaders', task ':react-native-firebase_messaging:compileDebugShaders', task ':react-native-firebase_messaging:generateDebugAssets', task ':react-native-firebase_messaging:mergeDebugAssets', task ':react-native-geolocation-service:mergeDebugShaders', task ':react-native-geolocation-service:compileDebugShaders', task ':react-native-geolocation-service:generateDebugAssets', task ':react-native-geolocation-service:mergeDebugAssets', task ':react-native-linear-gradient:mergeDebugShaders', task ':react-native-linear-gradient:compileDebugShaders', task ':react-native-linear-gradient:generateDebugAssets', task ':react-native-linear-gradient:mergeDebugAssets', task ':react-native-maps:mergeDebugShaders', task ':react-native-maps:compileDebugShaders', task ':react-native-maps:generateDebugAssets', task ':react-native-maps:mergeDebugAssets', task ':react-native-safe-area-context:mergeDebugShaders', task ':react-native-safe-area-context:compileDebugShaders', task ':react-native-safe-area-context:generateDebugAssets', task ':react-native-safe-area-context:mergeDebugAssets', task ':react-native-screens:mergeDebugShaders', task ':react-native-screens:compileDebugShaders', task ':react-native-screens:generateDebugAssets', task ':react-native-screens:mergeDebugAssets', task ':react-native-svg:mergeDebugShaders', task ':react-native-svg:compileDebugShaders', task ':react-native-svg:generateDebugAssets', task ':react-native-svg:mergeDebugAssets', task ':react-native-vector-icons:mergeDebugShaders', task ':react-native-vector-icons:compileDebugShaders', task ':react-native-vector-icons:generateDebugAssets', task ':react-native-vector-icons:mergeDebugAssets', task ':app:mergeDebugAssets', task ':app:compressDebugAssets', task ':react-native-async-storage_async-storage:bundleLibRuntimeToJarDebug', task ':react-native-community_datetimepicker:bundleLibRuntimeToJarDebug', task ':react-native-maps:bundleLibRuntimeToJarDebug', task ':react-native-safe-area-context:bundleLibRuntimeToJarDebug', task ':react-native-screens:bundleLibRuntimeToJarDebug', task ':notifee_react-native:bundleLibRuntimeToJarDebug', task ':react-native-firebase_app-check:bundleLibRuntimeToJarDebug', task ':react-native-firebase_auth:bundleLibRuntimeToJarDebug', task ':react-native-firebase_firestore:bundleLibRuntimeToJarDebug', task ':react-native-firebase_messaging:bundleLibRuntimeToJarDebug', task ':react-native-firebase_app:bundleLibRuntimeToJarDebug', task ':react-native-device-info:bundleLibRuntimeToJarDebug', task ':react-native-geolocation-service:bundleLibRuntimeToJarDebug', task ':react-native-linear-gradient:bundleLibRuntimeToJarDebug', task ':react-native-svg:bundleLibRuntimeToJarDebug', task ':react-native-vector-icons:bundleLibRuntimeToJarDebug', task ':app:desugarDebugFileDependencies', task ':app:dexBuilderDebug', task ':app:mergeDebugGlobalSynthetics', task ':app:processDebugJavaRes', task ':notifee_react-native:processDebugJavaRes', task ':react-native-async-storage_async-storage:processDebugJavaRes', task ':react-native-community_datetimepicker:processDebugJavaRes', task ':react-native-device-info:processDebugJavaRes', task ':react-native-firebase_app:processDebugJavaRes', task ':react-native-firebase_app-check:processDebugJavaRes', task ':react-native-firebase_auth:processDebugJavaRes', task ':react-native-firebase_firestore:processDebugJavaRes', task ':react-native-firebase_messaging:processDebugJavaRes', task ':react-native-geolocation-service:processDebugJavaRes', task ':react-native-linear-gradient:processDebugJavaRes', task ':react-native-maps:processDebugJavaRes', task ':react-native-safe-area-context:processDebugJavaRes', task ':react-native-screens:processDebugJavaRes', task ':react-native-svg:processDebugJavaRes', task ':react-native-vector-icons:processDebugJavaRes', task ':app:mergeDebugJavaResource', task ':app:checkDebugDuplicateClasses', task ':app:mergeExtDexDebug', task ':react-native-async-storage_async-storage:bundleLibRuntimeToDirDebug', task ':react-native-community_datetimepicker:bundleLibRuntimeToDirDebug', task ':react-native-maps:bundleLibRuntimeToDirDebug', task ':react-native-safe-area-context:bundleLibRuntimeToDirDebug', task ':react-native-screens:bundleLibRuntimeToDirDebug', task ':notifee_react-native:bundleLibRuntimeToDirDebug', task ':react-native-firebase_app-check:bundleLibRuntimeToDirDebug', task ':react-native-firebase_auth:bundleLibRuntimeToDirDebug', task ':react-native-firebase_firestore:bundleLibRuntimeToDirDebug', task ':react-native-firebase_messaging:bundleLibRuntimeToDirDebug', task ':react-native-firebase_app:bundleLibRuntimeToDirDebug', task ':react-native-device-info:bundleLibRuntimeToDirDebug', task ':react-native-geolocation-service:bundleLibRuntimeToDirDebug', task ':react-native-linear-gradient:bundleLibRuntimeToDirDebug', task ':react-native-svg:bundleLibRuntimeToDirDebug', task ':react-native-vector-icons:bundleLibRuntimeToDirDebug', task ':app:mergeLibDexDebug', task ':app:mergeProjectDexDebug', task ':app:mergeDebugJniLibFolders', task ':notifee_react-native:mergeDebugJniLibFolders', task ':notifee_react-native:mergeDebugNativeLibs', task ':notifee_react-native:copyDebugJniLibsProjectOnly', task ':react-native-async-storage_async-storage:mergeDebugJniLibFolders', task ':react-native-async-storage_async-storage:mergeDebugNativeLibs', task ':react-native-async-storage_async-storage:copyDebugJniLibsProjectOnly', task ':react-native-community_datetimepicker:mergeDebugJniLibFolders', task ':react-native-community_datetimepicker:mergeDebugNativeLibs', task ':react-native-community_datetimepicker:copyDebugJniLibsProjectOnly', task ':react-native-device-info:mergeDebugJniLibFolders', task ':react-native-device-info:mergeDebugNativeLibs', task ':react-native-device-info:copyDebugJniLibsProjectOnly', task ':react-native-firebase_app:mergeDebugJniLibFolders', task ':react-native-firebase_app:mergeDebugNativeLibs', task ':react-native-firebase_app:copyDebugJniLibsProjectOnly', task ':react-native-firebase_app-check:mergeDebugJniLibFolders', task ':react-native-firebase_app-check:mergeDebugNativeLibs', task ':react-native-firebase_app-check:copyDebugJniLibsProjectOnly', task ':react-native-firebase_auth:mergeDebugJniLibFolders', task ':react-native-firebase_auth:mergeDebugNativeLibs', task ':react-native-firebase_auth:copyDebugJniLibsProjectOnly', task ':react-native-firebase_firestore:mergeDebugJniLibFolders', task ':react-native-firebase_firestore:mergeDebugNativeLibs', task ':react-native-firebase_firestore:copyDebugJniLibsProjectOnly', task ':react-native-firebase_messaging:mergeDebugJniLibFolders', task ':react-native-firebase_messaging:mergeDebugNativeLibs', task ':react-native-firebase_messaging:copyDebugJniLibsProjectOnly', task ':react-native-geolocation-service:mergeDebugJniLibFolders', task ':react-native-geolocation-service:mergeDebugNativeLibs', task ':react-native-geolocation-service:copyDebugJniLibsProjectOnly', task ':react-native-linear-gradient:mergeDebugJniLibFolders', task ':react-native-linear-gradient:mergeDebugNativeLibs', task ':react-native-linear-gradient:copyDebugJniLibsProjectOnly', task ':react-native-maps:mergeDebugJniLibFolders', task ':react-native-maps:mergeDebugNativeLibs', task ':react-native-maps:copyDebugJniLibsProjectOnly', task ':react-native-safe-area-context:mergeDebugJniLibFolders', task ':react-native-safe-area-context:mergeDebugNativeLibs', task ':react-native-safe-area-context:copyDebugJniLibsProjectOnly', task ':react-native-screens:configureCMakeDebug[arm64-v8a]', task ':react-native-screens:buildCMakeDebug[arm64-v8a]', task ':react-native-screens:configureCMakeDebug[armeabi-v7a]', task ':react-native-screens:buildCMakeDebug[armeabi-v7a]', task ':react-native-screens:configureCMakeDebug[x86]', task ':react-native-screens:buildCMakeDebug[x86]', task ':react-native-screens:configureCMakeDebug[x86_64]', task ':react-native-screens:buildCMakeDebug[x86_64]', task ':react-native-screens:mergeDebugJniLibFolders', task ':react-native-screens:mergeDebugNativeLibs', task ':react-native-screens:copyDebugJniLibsProjectOnly', task ':react-native-svg:mergeDebugJniLibFolders', task ':react-native-svg:mergeDebugNativeLibs', task ':react-native-svg:copyDebugJniLibsProjectOnly', task ':react-native-vector-icons:mergeDebugJniLibFolders', task ':react-native-vector-icons:mergeDebugNativeLibs', task ':react-native-vector-icons:copyDebugJniLibsProjectOnly', task ':app:mergeDebugNativeLibs', task ':app:stripDebugDebugSymbols', task ':app:validateSigningDebug', task ':app:writeDebugAppMetadata', task ':app:writeDebugSigningConfigVersions', task ':app:packageDebug', task ':app:createDebugApkListingFileRedirect', task ':app:installDebug']
+Tasks that were excluded: []
+work action Parameters of IdentityTransform (Thread[Execution worker Thread 7,5,main]) started.
+work action Parameters of DexingNoClasspathTransform (Thread[Execution worker Thread 7,5,main]) started.
+work action Parameters of DexingOutputSplitTransform (Thread[Execution worker Thread 7,5,main]) started.
+work action Parameters of ClassesDirToClassesTransform (Thread[Execution worker Thread 7,5,main]) started.
+work action Parameters of DexingOutputSplitTransform (Thread[Execution worker Thread 7,5,main]) started.
+Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 7,5,main]) started.
+:app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :app:generateAutolinkingPackageList (Thread[Execution worker Thread 7,5,main]) started.
+:app:generateAutolinkingPackageList (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:generateAutolinkingPackageList UP-TO-DATE
+Caching disabled for task ':app:generateAutolinkingPackageList' because:
+  Build cache is disabled
+  Caching has not been enabled for the task
+Skipping task ':app:generateAutolinkingPackageList' as it is up-to-date.
+Resolve mutations for :app:generateCodegenSchemaFromJavaScript (Thread[Execution worker Thread 7,5,main]) started.
+:app:generateCodegenSchemaFromJavaScript (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+Skipping task ':app:generateCodegenSchemaFromJavaScript' as task onlyIf 'Task satisfies onlyIf spec' is false.
+Resolve mutations for :app:generateCodegenArtifactsFromSchema (Thread[Execution worker Thread 7,5,main]) started.
+:app:generateCodegenArtifactsFromSchema (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+Skipping task ':app:generateCodegenArtifactsFromSchema' as task onlyIf 'Task satisfies onlyIf spec' is false.
+Resolve mutations for :app:generateReactNativeEntryPoint (Thread[Execution worker Thread 7,5,main]) started.
+:app:generateReactNativeEntryPoint (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:generateReactNativeEntryPoint UP-TO-DATE
+Caching disabled for task ':app:generateReactNativeEntryPoint' because:
+  Build cache is disabled
+  Caching has not been enabled for the task
+Skipping task ':app:generateReactNativeEntryPoint' as it is up-to-date.
+Resolve mutations for :notifee_react-native:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:notifee_react-native:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :notifee_react-native:preBuild UP-TO-DATE
+Skipping task ':notifee_react-native:preBuild' as it has no actions.
+Resolve mutations for :react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript UP-TO-DATE
+Caching disabled for task ':react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript' because:
+  Build cache is disabled
+  Caching has not been enabled for the task
+Skipping task ':react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript' as it is up-to-date.
+Resolve mutations for :react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema UP-TO-DATE
+Caching disabled for task ':react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema' because:
+  Build cache is disabled
+  Caching has not been enabled for the task
+Skipping task ':react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema' as it is up-to-date.
+Resolve mutations for :react-native-async-storage_async-storage:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-async-storage_async-storage:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-async-storage_async-storage:preBuild UP-TO-DATE
+Skipping task ':react-native-async-storage_async-storage:preBuild' as it has no actions.
+Resolve mutations for :react-native-community_datetimepicker:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-community_datetimepicker:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-community_datetimepicker:preBuild UP-TO-DATE
+Skipping task ':react-native-community_datetimepicker:preBuild' as it has no actions.
+Resolve mutations for :react-native-device-info:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-device-info:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-device-info:preBuild UP-TO-DATE
+Skipping task ':react-native-device-info:preBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_app:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-firebase_app:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-firebase_app:preBuild UP-TO-DATE
+Skipping task ':react-native-firebase_app:preBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_app-check:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-firebase_app-check:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-firebase_app-check:preBuild UP-TO-DATE
+Skipping task ':react-native-firebase_app-check:preBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_auth:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-firebase_auth:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-firebase_auth:preBuild UP-TO-DATE
+Skipping task ':react-native-firebase_auth:preBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_firestore:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-firebase_firestore:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-firebase_firestore:preBuild UP-TO-DATE
+Skipping task ':react-native-firebase_firestore:preBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_messaging:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-firebase_messaging:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-firebase_messaging:preBuild UP-TO-DATE
+Skipping task ':react-native-firebase_messaging:preBuild' as it has no actions.
+Resolve mutations for :react-native-geolocation-service:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-geolocation-service:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-geolocation-service:preBuild UP-TO-DATE
+Skipping task ':react-native-geolocation-service:preBuild' as it has no actions.
+Resolve mutations for :react-native-linear-gradient:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-linear-gradient:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-linear-gradient:preBuild UP-TO-DATE
+Skipping task ':react-native-linear-gradient:preBuild' as it has no actions.
+Resolve mutations for :react-native-maps:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-maps:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-maps:preBuild UP-TO-DATE
+Skipping task ':react-native-maps:preBuild' as it has no actions.
+Resolve mutations for :react-native-safe-area-context:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-safe-area-context:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-safe-area-context:preBuild UP-TO-DATE
+Skipping task ':react-native-safe-area-context:preBuild' as it has no actions.
+Resolve mutations for :react-native-screens:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-screens:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-screens:preBuild UP-TO-DATE
+Skipping task ':react-native-screens:preBuild' as it has no actions.
+Resolve mutations for :react-native-svg:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-svg:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-svg:preBuild UP-TO-DATE
+Skipping task ':react-native-svg:preBuild' as it has no actions.
+Resolve mutations for :react-native-vector-icons:preBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-vector-icons:preBuild (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :react-native-vector-icons:preBuild UP-TO-DATE
+Skipping task ':react-native-vector-icons:preBuild' as it has no actions.
+Resolve mutations for :app:preBuild (Thread[Execution worker Thread 7,5,main]) started.
+:app:preBuild (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[Execution worker,5,main]) started.
+:app:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:generateDebugBuildConfig (Thread[Execution worker,5,main]) started.
+:app:generateDebugBuildConfig (Thread[Execution worker,5,main]) started.
+
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+Caching disabled for task ':app:generateDebugBuildConfig' because:
+  Build cache is disabled
+Skipping task ':app:generateDebugBuildConfig' as it is up-to-date.
+Resolve mutations for :notifee_react-native:preDebugBuild (Thread[Execution worker,5,main]) started.
+:notifee_react-native:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :notifee_react-native:preDebugBuild UP-TO-DATE
+Skipping task ':notifee_react-native:preDebugBuild' as it has no actions.
+Resolve mutations for :notifee_react-native:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:notifee_react-native:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :notifee_react-native:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':notifee_react-native:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':notifee_react-native:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :notifee_react-native) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-async-storage_async-storage:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-async-storage_async-storage:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-async-storage_async-storage:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-async-storage_async-storage:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-async-storage_async-storage:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-async-storage_async-storage:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-async-storage_async-storage:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-async-storage_async-storage:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-async-storage_async-storage:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-async-storage_async-storage) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-community_datetimepicker:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-community_datetimepicker:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-community_datetimepicker:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-community_datetimepicker:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-community_datetimepicker:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-community_datetimepicker:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-community_datetimepicker:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-community_datetimepicker:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-community_datetimepicker:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-community_datetimepicker) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-device-info:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-device-info:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-device-info:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-device-info:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-device-info:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-device-info:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-device-info:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-device-info:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-device-info:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-device-info) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-firebase_app:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-firebase_app:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_app:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-firebase_app:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_app:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-firebase_app:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_app:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-firebase_app:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-firebase_app:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-firebase_app) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-firebase_app-check:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-firebase_app-check:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_app-check:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-firebase_app-check:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_app-check:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-firebase_app-check:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_app-check:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-firebase_app-check:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-firebase_app-check:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-firebase_app-check) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-firebase_auth:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-firebase_auth:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_auth:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-firebase_auth:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_auth:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-firebase_auth:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_auth:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-firebase_auth:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-firebase_auth:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-firebase_auth) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-firebase_firestore:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-firebase_firestore:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_firestore:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-firebase_firestore:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_firestore:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-firebase_firestore:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_firestore:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-firebase_firestore:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-firebase_firestore:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-firebase_firestore) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-firebase_messaging:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-firebase_messaging:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_messaging:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-firebase_messaging:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-firebase_messaging:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-firebase_messaging:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-firebase_messaging:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-firebase_messaging:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-firebase_messaging:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-firebase_messaging) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-geolocation-service:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-geolocation-service:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-geolocation-service:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-geolocation-service:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-geolocation-service:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-geolocation-service:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-geolocation-service:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-geolocation-service:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-geolocation-service:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-geolocation-service) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-linear-gradient:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-linear-gradient:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-linear-gradient:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-linear-gradient:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-linear-gradient:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-linear-gradient:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-linear-gradient:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-linear-gradient:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-linear-gradient:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-linear-gradient) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-maps:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-maps:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-maps:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-maps:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-maps:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-maps:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-maps:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-maps:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-maps:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-maps) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-safe-area-context:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-safe-area-context:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-safe-area-context:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-safe-area-context:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-safe-area-context:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-safe-area-context:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-safe-area-context:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-safe-area-context:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-safe-area-context:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-safe-area-context) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-screens:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-screens:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-screens:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-screens:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-screens:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-screens:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-screens:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-screens:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-screens:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-screens) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :react-native-svg:preDebugBuild (Thread[Execution worker,5,main]) started.
+:react-native-svg:preDebugBuild (Thread[Execution worker,5,main]) started.
+
+> Task :react-native-svg:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-svg:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-svg:writeDebugAarMetadata (Thread[Execution worker,5,main]) started.
+:react-native-svg:writeDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-svg:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-svg:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-svg:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-svg) (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :react-native-vector-icons:preDebugBuild (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-vector-icons:preDebugBuild (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-vector-icons:preDebugBuild UP-TO-DATE
+Skipping task ':react-native-vector-icons:preDebugBuild' as it has no actions.
+Resolve mutations for :react-native-vector-icons:writeDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+:react-native-vector-icons:writeDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :react-native-vector-icons:writeDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':react-native-vector-icons:writeDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':react-native-vector-icons:writeDebugAarMetadata' as it is up-to-date.
+work action resolve aar-metadata.properties (project :react-native-vector-icons) (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:checkDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+:app:checkDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:generateDebugResValues (Thread[Execution worker Thread 2,5,main]) started.
+:app:generateDebugResValues (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:generateDebugResValues UP-TO-DATE
+Caching disabled for task ':app:generateDebugResValues' because:
+  Build cache is disabled
+Skipping task ':app:generateDebugResValues' as it is up-to-date.
+Resolve mutations for :app:processDebugGoogleServices (Thread[Execution worker Thread 2,5,main]) started.
+:app:processDebugGoogleServices (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:processDebugGoogleServices FAILED
+Caching disabled for task ':app:processDebugGoogleServices' because:
+  Build cache is disabled
+Task ':app:processDebugGoogleServices' is not up-to-date because:
+  Task has failed previously.
+Parsing json file: /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/app/google-services.json
+
+> Task :app:checkDebugAarMetadata FAILED
+Cached resource file:/Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/node_modules/@react-native-async-storage/async-storage/android/local_repo/org/asyncstorage/shared_storage/storage-android/1.0.0/storage-android-1.0.0.aar is up-to-date (lastModified: Sun Apr 12 00:49:08 IST 2026).
+Caching disabled for task ':app:checkDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Task ':app:checkDebugAarMetadata' is not up-to-date because:
+  Task has failed previously.
+Build d6aab9c0-87dd-4d66-93dd-60e630880c31 is closed
+Build 2233fec0-e69a-445d-90a1-52a2e661547b is closed
+
+[Incubating] Problems report is available at: file:///Volumes/MAC%20SDD/mega/USERFinal/WorkerClean/android/build/reports/problems/problems-report.html
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:processDebugGoogleServices'.
+> No matching client found for package name 'com.workerclean' in /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android/app/google-services.json
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:checkDebugAarMetadata'.
+> A failure occurred while executing com.android.build.gradle.internal.tasks.CheckAarMetadataWorkAction
+   > 2 issues were found when checking AAR metadata:
+     
+       1.  Dependency 'androidx.core:core-ktx:1.15.0' requires libraries and applications that
+           depend on it to compile against version 35 or later of the
+           Android APIs.
+     
+           :app is currently compiled against android-34.
+     
+           Recommended action: Update this project to use a newer compileSdk
+           of at least 35, for example 36.
+     
+           Note that updating a library or application's compileSdk (which
+           allows newer APIs to be used) can be done separately from updating
+           targetSdk (which opts the app in to new runtime behavior) and
+           minSdk (which determines which devices the app can be installed
+           on).
+     
+       2.  Dependency 'androidx.core:core:1.15.0' requires libraries and applications that
+           depend on it to compile against version 35 or later of the
+           Android APIs.
+     
+           :app is currently compiled against android-34.
+     
+           Recommended action: Update this project to use a newer compileSdk
+           of at least 35, for example 36.
+     
+           Note that updating a library or application's compileSdk (which
+           allows newer APIs to be used) can be done separately from updating
+           targetSdk (which opts the app in to new runtime behavior) and
+           minSdk (which determines which devices the app can be installed
+           on).
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 4s
+34 actionable tasks: 2 executed, 32 up-to-date
+Watched directory hierarchies: [/Volumes/MAC SDD/mega/USERFinal/WorkerClean/node_modules/@react-native/gradle-plugin, /Volumes/MAC SDD/mega/USERFinal/WorkerClean/android]

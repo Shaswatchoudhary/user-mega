@@ -92,7 +92,10 @@ const CarpenterScreen = ({ navigation, route }) => {
   };
 
   const handleBookNow = (worker) => {
-    navigation.navigate('WorkerProfile', { worker: worker });
+    navigation.navigate('WorkerProfile', { 
+      worker: worker,
+      preSelectedProduct: route.params?.preSelectedProduct
+    });
   };
 
   const renderWorkerCard = (worker) => (
@@ -193,6 +196,19 @@ const CarpenterScreen = ({ navigation, route }) => {
         </Text>
         <Ionicons name="chevron-forward" size={14} color="#6B7280" />
       </TouchableOpacity>
+
+      {/* Product Selection Banner */}
+      {route.params?.preSelectedProduct && (
+        <View style={styles.productBanner}>
+          <MaterialCommunityIcons name="shopping-outline" size={18} color="#FFF" />
+          <Text style={styles.productBannerText}>
+            Booking for: <Text style={{ fontWeight: 'bold' }}>{route.params.preSelectedProduct}</Text>
+          </Text>
+          <TouchableOpacity onPress={() => navigation.setParams({ preSelectedProduct: null })}>
+            <Ionicons name="close-circle" size={18} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
@@ -317,7 +333,21 @@ const styles = StyleSheet.create({
   filterOptionSelected: { backgroundColor: '#FEF2F2' },
   filterOptionText: { fontSize: 15, color: '#374151' },
   filterOptionTextSelected: { fontWeight: '600', color: '#E84545' },
-  nameSection: { flexDirection: 'row', alignItems: 'center', gap: 6 }
+  nameSection: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  productBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#334155',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 10,
+  },
+  productBannerText: {
+    flex: 1,
+    color: '#FFF',
+    fontSize: 13,
+    fontFamily: 'Poppins-Medium',
+  },
 });
 
 export default CarpenterScreen;

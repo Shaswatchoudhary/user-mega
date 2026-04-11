@@ -26,6 +26,7 @@ import BookingSummaryScreen from '../screens/booking/BookingSummaryScreen';
 import NotificationScreen from '../screens/notifications/NotificationScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 
+
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
@@ -62,6 +63,7 @@ export default function AppNavigator() {
       <Stack.Screen name="WorkerProfile" component={WorkerProfileScreen} />
       <Stack.Screen name="BookingSummary" component={BookingSummaryScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+
     </Stack.Navigator>
   );
 }

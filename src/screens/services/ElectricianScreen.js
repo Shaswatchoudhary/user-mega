@@ -129,13 +129,10 @@ const ElectricianScreen = ({ navigation, route }) => {
         console.error('Worker object is null or undefined!');
         return;
       }
-      if (!navigation) {
-        console.error('Navigation object is undefined in ElectricianScreen!');
-        return;
-      }
-      console.log('Attempting navigation to Payment with worker ID:', worker.id || worker._id);
+      console.log('Attempting navigation to WorkerProfile with worker:', worker.name);
       navigation.navigate('WorkerProfile', {
-        worker: worker
+        worker: worker,
+        preSelectedProduct: route.params?.preSelectedProduct
       });
     } catch (err) {
       console.error('Error in handleBookNow:', err);
@@ -255,6 +252,19 @@ const ElectricianScreen = ({ navigation, route }) => {
         </Text>
         <Ionicons name="chevron-forward" size={14} color="#6B7280" />
       </TouchableOpacity>
+
+      {/* Product Selection Banner */}
+      {route.params?.preSelectedProduct && (
+        <View style={styles.productBanner}>
+          <MaterialCommunityIcons name="shopping-outline" size={18} color="#FFF" />
+          <Text style={styles.productBannerText}>
+            Booking for: <Text style={{ fontWeight: 'bold' }}>{route.params.preSelectedProduct}</Text>
+          </Text>
+          <TouchableOpacity onPress={() => navigation.setParams({ preSelectedProduct: null })}>
+            <Ionicons name="close-circle" size={18} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -686,6 +696,20 @@ const styles = StyleSheet.create({
   filterOptionTextSelected: {
     fontWeight: '600',
     color: '#E84545',
+  },
+  productBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#334155',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 10,
+  },
+  productBannerText: {
+    flex: 1,
+    color: '#FFF',
+    fontSize: 13,
+    fontFamily: 'Poppins-Medium',
   },
 });
 

@@ -40,7 +40,8 @@ const WorkerProfileScreen = () => {
     const finalServices = selectedServices.length > 0 ? selectedServices : [services[0]];
     navigation.navigate('BookingSummary', {
       worker: worker,
-      selectedServices: finalServices
+      selectedServices: finalServices,
+      preSelectedProduct: route.params?.preSelectedProduct
     });
   };
 

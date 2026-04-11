@@ -41,10 +41,11 @@ export default function MainTabNavigator() {
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="home-outline" size={28} color={color} />
+            <MaterialCommunityIcons name="home-outline" size={26} color={color} />
           ),
         }}
       />
+
       <Tab.Screen
         name="Bookings"
         component={BookingScreen}
@@ -52,7 +53,7 @@ export default function MainTabNavigator() {
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="calendar-check-outline"
-              size={28}
+              size={26}
               color={color}
             />
           ),
@@ -63,7 +64,7 @@ export default function MainTabNavigator() {
         component={ProfileScreen}
         options={{
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="account-outline" size={28} color={color} />
+            <MaterialCommunityIcons name="account-outline" size={26} color={color} />
           ),
         }}
       />
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   labelText: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'Poppins-SemiBold',
   },
 });

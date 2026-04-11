@@ -18,9 +18,17 @@ import { API_BASE_URL } from '../../constants/config';
 import { colors, typography, spacing, borderRadius } from '../../theme';
 import { Card, Button } from '../../components/common';
 import { useLocation } from '../../context/LocationContext';
+import firestore from '@react-native-firebase/firestore';
 
 export default function PaymentScreen({ navigation, route }) {
-  const { totalAmount: initialAmount, worker, selectedDate, selectedServices } = route.params;
+  const { 
+    totalAmount: initialAmount, 
+    worker, 
+    selectedDate, 
+    selectedServices,
+    bookingId, // Passed from TrackingScreen if ticket system used
+    workDuration: showWorkDuration 
+  } = route.params;
   const { selectedLocation } = useLocation();
 
   const [selectedMethod, setSelectedMethod] = useState('1'); // '1' = Cash
@@ -28,8 +36,10 @@ export default function PaymentScreen({ navigation, route }) {
   const [promoApplied, setPromoApplied] = useState(null);
   const [promoError, setPromoError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentUnlocked, setPaymentUnlocked] = useState(!bookingId); // Unlocked if no bookingId (standard flow)
+  const [workTimes, setWorkTimes] = useState(null);
 
-  // Countdown logic for cash booking as per original code behavior
+  // Countdown logic for cash booking
   const [countdown, setCountdown] = useState(10);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
   const [confirmMode, setConfirmMode] = useState(false);
@@ -38,6 +48,37 @@ export default function PaymentScreen({ navigation, route }) {
     { code: 'FIRST50', discount: 50, type: 'fixed' },
     { code: 'SAVE10', discount: 10, type: 'percentage' },
   ];
+
+  // Listen for Payment Unlock status if tracking a ticket
+  useEffect(() => {
+    if (!bookingId) return;
+
+    const unsubscribe = firestore()
+      .collection('bookings')
+      .doc(bookingId)
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          setPaymentUnlocked(data.paymentStatus === 'completed' ? true : data.paymentUnlocked || false);
+          if (data.workStartTime && data.workEndTime) {
+            setWorkTimes({
+              start: data.workStartTime.toDate(),
+              end: data.workEndTime.toDate()
+            });
+          }
+        }
+      });
+
+    return () => unsubscribe();
+  }, [bookingId]);
+
+  const calculateDuration = () => {
+    if (!workTimes) return null;
+    const diff = Math.floor((workTimes.end - workTimes.start) / 1000);
+    const hours = Math.floor(diff / 3600);
+    const minutes = Math.floor((diff % 3600) / 60);
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  };
 
   useEffect(() => {
     let interval = null;
@@ -82,33 +123,53 @@ export default function PaymentScreen({ navigation, route }) {
         userId = user._id;
       }
 
-      const payload = {
-        workerId: worker._id || worker.id,
-        userId: userId,
-        category: worker.specialization || worker.category,
-        serviceType: selectedServices?.[0]?.name || "Home Service",
-        address: selectedLocation?.address || "Refer to summary",
-        userLat: selectedLocation?.coords?.latitude || 16.7050,
-        userLng: selectedLocation?.coords?.longitude || 74.2433,
-        date: selectedDate
-      };
+      if (bookingId) {
+        // Update existing booking
+        await firestore().collection('bookings').doc(bookingId).update({
+          paymentStatus: 'completed',
+          status: 'completed'
+        });
+        
+        // Navigation to Rating
+        navigation.replace('BookingStatus', {
+          worker: worker,
+          service: selectedServices?.[0]?.name || "Home Service",
+          date: selectedDate,
+          isPaymentComplete: true
+        });
+      } else {
+        // Legacy flow: create new booking
+        const payload = {
+          workerId: worker._id || worker.id,
+          userId: userId,
+          category: worker.specialization || worker.category,
+          serviceType: selectedServices?.[0]?.name || "Home Service",
+          address: selectedLocation?.address || "Refer to summary",
+          userLat: selectedLocation?.coords?.latitude || 16.7050,
+          userLng: selectedLocation?.coords?.longitude || 74.2433,
+          date: selectedDate,
+          status: 'pending' // starts as pending
+        };
 
-      // Navigate to Status/Confirmation screen
-      navigation.replace('BookingStatus', {
-        worker: worker,
-        service: payload.serviceType,
-        date: selectedDate
-      });
+        // Navigate to Status
+        navigation.replace('BookingStatus', {
+          worker: worker,
+          service: payload.serviceType,
+          date: selectedDate
+        });
 
-      // Background API call
-      axios.post(`${API_BASE_URL}/booking`, payload).catch(console.error);
+        // Background API call
+        axios.post(`${API_BASE_URL}/booking`, payload).catch(console.error);
+      }
 
     } catch (error) {
-      Alert.alert("Error", "Booking failed");
+      Alert.alert("Error", "Action failed");
     } finally {
       setIsLoading(false);
     }
   };
+
+  const duration = calculateDuration();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -121,9 +182,17 @@ export default function PaymentScreen({ navigation, route }) {
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {/* Ticket Lock Notice */}
+        {!paymentUnlocked && (
+          <View style={styles.lockNotice}>
+            <Ionicons name="lock-closed" size={20} color="#854d0e" />
+            <Text style={styles.lockText}>Payment is locked until the service ticket is closed.</Text>
+          </View>
+        )}
+
         {/* Amount Card */}
         <LinearGradient
-          colors={[colors.accent, '#8B0D16']}
+          colors={paymentUnlocked ? [colors.accent, '#8B0D16'] : ['#94A3B8', '#64748B']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.amountCard}
@@ -132,6 +201,17 @@ export default function PaymentScreen({ navigation, route }) {
           <Text style={styles.amountValue}>₹{finalAmount}</Text>
           {discount > 0 && <Text style={styles.savedText}>You saved ₹{discount}!</Text>}
         </LinearGradient>
+
+        {/* Work Duration Info */}
+        {duration && (
+          <View style={styles.durationCard}>
+            <MaterialCommunityIcons name="clock-check-outline" size={24} color={colors.accent} />
+            <View style={styles.durationInfo}>
+              <Text style={styles.durationLabel}>Total Work Duration</Text>
+              <Text style={styles.durationValue}>{duration}</Text>
+            </View>
+          </View>
+        )}
 
         {/* Promo Code */}
         <View style={styles.section}>
@@ -143,11 +223,12 @@ export default function PaymentScreen({ navigation, route }) {
               value={promoCode}
               onChangeText={setPromoCode}
               autoCapitalize="characters"
+              editable={paymentUnlocked}
             />
             <TouchableOpacity
-              style={[styles.applyBtn, !promoCode && styles.applyBtnDisabled]}
+              style={[styles.applyBtn, (!promoCode || !paymentUnlocked) && styles.applyBtnDisabled]}
               onPress={handleApplyPromo}
-              disabled={!promoCode}
+              disabled={!promoCode || !paymentUnlocked}
             >
               <Text style={styles.applyBtnText}>Apply</Text>
             </TouchableOpacity>
@@ -160,8 +241,9 @@ export default function PaymentScreen({ navigation, route }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
           <TouchableOpacity
-            style={[styles.methodRow, selectedMethod === '1' && styles.methodSelected]}
-            onPress={() => setSelectedMethod('1')}
+            style={[styles.methodRow, selectedMethod === '1' && styles.methodSelected, !paymentUnlocked && { opacity: 0.6 }]}
+            onPress={() => paymentUnlocked && setSelectedMethod('1')}
+            disabled={!paymentUnlocked}
           >
             <View style={styles.methodIconContainer}>
               <Ionicons name="cash-outline" size={24} color={colors.accent} />
@@ -216,6 +298,7 @@ export default function PaymentScreen({ navigation, route }) {
         {!confirmMode ? (
           <Button
             title={selectedMethod === '1' ? "Confirm Booking" : `Pay ₹${finalAmount}`}
+            disabled={!paymentUnlocked || isLoading}
             onPress={() => {
               if (selectedMethod === '1') {
                 setConfirmMode(true);
@@ -253,6 +336,23 @@ const styles = StyleSheet.create({
   backButton: { width: 40, height: 40, justifyContent: "center" },
   scrollView: { flex: 1 },
   scrollContent: { padding: 20 },
+  lockNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fefce8',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#fef08a',
+    gap: 10,
+  },
+  lockText: {
+    fontSize: 13,
+    color: '#854d0e',
+    fontFamily: 'Poppins-Medium',
+    flex: 1,
+  },
   amountCard: {
     paddingVertical: 30,
     paddingHorizontal: 20,
@@ -288,6 +388,31 @@ const styles = StyleSheet.create({
     marginTop: 12,
     overflow: 'hidden',
     fontFamily: 'Poppins-Medium',
+  },
+  durationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    gap: 16,
+  },
+  durationInfo: {
+    flex: 1,
+  },
+  durationLabel: {
+    fontSize: 12,
+    color: '#666',
+    fontFamily: 'Poppins-Regular',
+  },
+  durationValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    fontFamily: 'Poppins-Bold',
   },
   section: { 
     marginBottom: 24,

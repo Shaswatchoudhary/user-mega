@@ -99,6 +99,21 @@ const BookingSummaryScreen = () => {
         </Card>
 
         {/* Service Details Section */}
+        {route.params?.preSelectedProduct && (
+          <View style={styles.section}>
+            <View style={styles.productNoteCard}>
+              <View style={styles.productNoteHeader}>
+                <Ionicons name="information-circle" size={18} color="#B91C1C" />
+                <Text style={styles.productNoteTitle}>Professional Note</Text>
+              </View>
+              <Text style={styles.productNoteText}>
+                Service requested for: <Text style={{ fontWeight: 'bold', color: '#111827' }}>{route.params.preSelectedProduct}</Text>
+              </Text>
+              <Text style={styles.productNoteSubtext}>Our professional will be informed of this specific requirement.</Text>
+            </View>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Service Details</Text>
           <Card style={styles.whiteCard}>
@@ -473,6 +488,38 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     width: '100%',
+  },
+  productNoteCard: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+  },
+  productNoteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  productNoteTitle: {
+    fontSize: 13,
+    fontFamily: 'Poppins-Bold',
+    color: '#B91C1C',
+    textTransform: 'uppercase',
+  },
+  productNoteText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#4B5563',
+    lineHeight: 20,
+  },
+  productNoteSubtext: {
+    fontSize: 11,
+    fontFamily: 'Poppins-Regular',
+    color: '#991B1B',
+    marginTop: 4,
+    opacity: 0.8,
   },
 });
 

@@ -18,6 +18,10 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useLocation } from "../../context/LocationContext";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { colors, spacing, borderRadius, typography } from "../../theme";
+import firestore from '@react-native-firebase/firestore';
+import { useAuth } from "../../context/AuthContext";
+import TicketStatusCard from "../../components/booking/TicketStatusCard";
+import WorkCompletionPopup from "../../components/booking/WorkCompletionPopup";
 
 const { width, height } = Dimensions.get("window");
 const ASPECT_RATIO = width / height;
@@ -26,8 +30,11 @@ const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 export default function TrackingScreen({ navigation }) {
   const mapRef = useRef(null);
-  const { selectedLocation, workerLocation, distance, bookingStatus } = useLocation();
+  const { selectedLocation, workerLocation, distance, bookingStatus: localStatus } = useLocation();
+  const { user } = useAuth();
   const [eta, setEta] = useState(12);
+  const [booking, setBooking] = useState(null);
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
 
   // Animated pulse for worker marker
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -41,6 +48,34 @@ export default function TrackingScreen({ navigation }) {
     ).start();
   }, []);
 
+  // Firestore Real-time Listener for Active Booking
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const unsubscribe = firestore()
+      .collection('bookings')
+      .where('userId', '==', user._id)
+      .orderBy('createdAt', 'desc')
+      .limit(1)
+      .onSnapshot(querySnapshot => {
+        if (!querySnapshot.empty) {
+          const bookingData = querySnapshot.docs[0].data();
+          const docId = querySnapshot.docs[0].id;
+          const currentBooking = { ...bookingData, id: docId };
+          setBooking(currentBooking);
+
+          // Check for work completion
+          if (currentBooking.status === 'work_completed' && currentBooking.ticketStatus === 'open') {
+            setShowCompletionPopup(true);
+          }
+        }
+      }, error => {
+        console.error("Firestore Tracking Error:", error);
+      });
+
+    return () => unsubscribe();
+  }, [user?._id]);
+
   // Update ETA based on distance
   useEffect(() => {
     if (distance) {
@@ -50,12 +85,13 @@ export default function TrackingScreen({ navigation }) {
   }, [distance]);
 
   const workerData = {
-    name: "Vaibhav Jain",
+    name: booking?.workerName || "Vaibhav Jain",
     rating: "4.9",
     reviews: "125",
     vehicle: "Honda Civic - ABC 123",
-    image: "https://avatar.iran.liara.run/public/job/operator/male", // Generic placeholder
-    status: bookingStatus === 'arrived' ? "Reached location" : "On the way",
+    image: booking?.workerImage || "https://avatar.iran.liara.run/public/job/operator/male",
+    status: booking?.status === 'arrived' ? "Reached location" : 
+            booking?.status === 'work_completed' ? "Work completed" : "On the way",
     address: selectedLocation?.addressText || "Ruikar Colony, Kolhapur"
   };
 
@@ -66,6 +102,59 @@ export default function TrackingScreen({ navigation }) {
   const handleMessagePress = () => {
     Alert.alert("Opening Chat", "Connecting to your professional...");
   };
+
+  const handleCloseTicket = async () => {
+    try {
+      if (!booking?.id) return;
+
+      await firestore().collection('bookings').doc(booking.id).update({
+        ticketStatus: 'closed',
+        workEndTime: firestore.FieldValue.serverTimestamp(),
+        paymentUnlocked: true,
+      });
+
+      setShowCompletionPopup(false);
+      
+      // Navigate to PaymentScreen with finalized data
+      navigation.replace('Payment', {
+        totalAmount: booking.totalAmount || 299,
+        worker: { 
+          name: booking.workerName, 
+          image: booking.workerImage,
+          _id: booking.workerId
+        },
+        bookingId: booking.id,
+        workDuration: true // flag to show duration
+      });
+    } catch (error) {
+      Alert.alert("Error", "Could not close ticket. Try again.");
+    }
+  };
+
+  const handleRaiseIssue = async (issue) => {
+    try {
+      if (!booking?.id) return;
+      await firestore().collection('bookings').doc(booking.id).update({
+        issue: issue,
+        issueReportedAt: firestore.FieldValue.serverTimestamp()
+      });
+      Alert.alert("Issue Reported", "Our team will contact you shortly.");
+    } catch (error) {
+      Alert.alert("Error", "Could not report issue.");
+    }
+  };
+
+  // Helper for timeline status
+  const getTimelineStatus = () => {
+    const status = booking?.status || localStatus;
+    return {
+      isAccepted: !!status,
+      isOnTheWay: status === 'on_the_way' || status === 'arrived' || status === 'work_completed',
+      isArrived: status === 'arrived' || status === 'work_completed',
+    };
+  };
+
+  const ts = getTimelineStatus();
 
   return (
     <View style={styles.container}>
@@ -141,20 +230,29 @@ export default function TrackingScreen({ navigation }) {
         {/* Progress Timeline */}
         <View style={styles.timelineRow}>
           <View style={styles.timelineStep}>
-            <View style={[styles.timelineDot, styles.timelineDotActive]} />
+            <View style={[styles.timelineDot, ts.isAccepted ? styles.timelineDotActive : null]} />
             <Text style={styles.timelineLabel}>Accepted</Text>
           </View>
-          <View style={[styles.timelineLine, bookingStatus === 'on_the_way' || bookingStatus === 'arrived' ? styles.timelineLineActive : null]} />
+          <View style={[styles.timelineLine, ts.isOnTheWay ? styles.timelineLineActive : null]} />
           <View style={styles.timelineStep}>
-            <View style={[styles.timelineDot, bookingStatus === 'on_the_way' || bookingStatus === 'arrived' ? styles.timelineDotActive : null]} />
+            <View style={[styles.timelineDot, ts.isOnTheWay ? styles.timelineDotActive : null]} />
             <Text style={styles.timelineLabel}>On the way</Text>
           </View>
-          <View style={[styles.timelineLine, bookingStatus === 'arrived' ? styles.timelineLineActive : null]} />
+          <View style={[styles.timelineLine, ts.isArrived ? styles.timelineLineActive : null]} />
           <View style={styles.timelineStep}>
-            <View style={[styles.timelineDot, bookingStatus === 'arrived' ? styles.timelineDotActive : null]} />
+            <View style={[styles.timelineDot, ts.isArrived ? styles.timelineDotActive : null]} />
             <Text style={styles.timelineLabel}>Arrived</Text>
           </View>
         </View>
+
+        {/* Dynamic Ticket Status Card */}
+        {booking?.ticketStatus && (
+          <TicketStatusCard 
+            ticketStatus={booking.ticketStatus}
+            workStartTime={booking.workStartTime}
+            ticketId={booking.ticketId || `#WE${booking.id?.substring(0, 6).toUpperCase()}`}
+          />
+        )}
 
         <View style={styles.etaContainer}>
           <View style={styles.etaIconBg}>
@@ -197,6 +295,13 @@ export default function TrackingScreen({ navigation }) {
           <Text style={styles.safetyText}>Project Safety Policy Active</Text>
         </TouchableOpacity>
       </View>
+
+      <WorkCompletionPopup 
+        visible={showCompletionPopup}
+        workerName={workerData.name}
+        onConfirm={handleCloseTicket}
+        onRaiseIssue={handleRaiseIssue}
+      />
     </View>
   );
 }
@@ -274,7 +379,7 @@ const styles = StyleSheet.create({
   timelineDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#DDD', marginBottom: 6 },
   timelineDotActive: { backgroundColor: colors.accent },
   timelineLabel: { fontSize: 10, color: '#666', fontFamily: 'Poppins-Medium' },
-  timelineLine: { width: width * 0.2, height: 2, backgroundColor: '#EEE', marginTop: -15, marginHorizontal: 4 },
+  timelineLine: { width: width * 0.15, height: 2, backgroundColor: '#EEE', marginTop: -15, marginHorizontal: 4 },
   timelineLineActive: { backgroundColor: colors.accent },
 
   etaContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
