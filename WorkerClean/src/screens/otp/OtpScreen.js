@@ -199,10 +199,13 @@ const OtpScreen = ({ navigation }) => {
 
           if (syncResponse.data.success) {
             const mongoUser = syncResponse.data.user;
-            login(mongoUser);
+            const mongoWorker = syncResponse.data.worker;
+            login(mongoUser, mongoWorker);
             setIsLoading(false);
             
-            if (syncResponse.data.isNewUser) {
+            // Navigate to WorkForm if they don't have a worker profile yet
+            // This ensures every worker registration process is properly managed
+            if (!syncResponse.data.isWorker || !syncResponse.data.worker?.fullName) {
               navigation.replace('WorkForm', { phone: phoneNumber });
             } else {
               navigation.replace('MainTabs');

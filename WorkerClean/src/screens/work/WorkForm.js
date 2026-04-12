@@ -10,11 +10,16 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
-  Linking
+  Linking,
+  PermissionsAndroid
 } from 'react-native';
 import { MapPin, Check, ChevronLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
 import Geolocation from 'react-native-geolocation-service';
+import config from '../../constants/config';
+import { useAuth } from '../../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CATEGORIES = {
   'AC Repair': ['Installation', 'Gas Refilling', 'Maintenance', 'Fault Diagnosis', 'Compressor Repair'],
@@ -32,6 +37,7 @@ const INDIAN_BANKS = [
 ];
 
 const WorkForm = ({ navigation, route }) => {
+  const { setWorkerData } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -129,42 +135,57 @@ const WorkForm = ({ navigation, route }) => {
   const handleLocationFetch = async () => {
     setIsLocating(true);
     try {
-      let status;
-      if (Platform.OS === 'ios') {
-        status = await Geolocation.requestAuthorization('whenInUse');
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Permission',
+            message: 'WorkEase needs access to your location to find nearby jobs and verify your address.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission Denied', 'Please allow location access to continue.');
+          setIsLocating(false);
+          return;
+        }
       } else {
-        const granted = await Geolocation.requestAuthorization('whenInUse');
-        status = granted;
-      }
-
-      if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Please allow location access to continue.');
-        setIsLocating(false);
-        return;
+        const status = await Geolocation.requestAuthorization('whenInUse');
+        if (status !== 'granted') {
+          Alert.alert('Permission Denied', 'Please allow location access to continue.');
+          setIsLocating(false);
+          return;
+        }
       }
 
       Geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+          console.log('[WorkForm] Location Found:', latitude, longitude);
           setLatitude(latitude);
           setLongitude(longitude);
           
-          // In pure RN CLI, reverse geocoding requires a dedicated API call (e.g. Google Geocoding API)
-          // For now, we'll use the coordinates as a placeholder address
           const addr = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
           setAddress(prev => prev ? `${prev} (GPS: ${addr})` : `Location: ${addr}`);
           setIsLocating(false);
         },
         (error) => {
-          console.error('[LocationError]', error);
-          Alert.alert('Error', 'Could not fetch location.');
+          console.error('[LocationError] getCurrentPosition error:', error);
+          let msg = 'Could not fetch location.';
+          if (error.code === 1) msg = 'Location permission denied.';
+          if (error.code === 2) msg = 'Location provider disabled (Check GPS settings).';
+          if (error.code === 3) msg = 'Location request timed out.';
+          
+          Alert.alert('Location Error', msg);
           setIsLocating(false);
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       );
     } catch (error) {
-      console.error('[LocationError]', error);
-      Alert.alert('Error', 'Could not fetch location.');
+      console.error('[LocationError] Catch block:', error);
+      Alert.alert('Error', 'An unexpected error occurred while fetching location.');
       setIsLocating(false);
     }
   };
@@ -177,11 +198,51 @@ const WorkForm = ({ navigation, route }) => {
 
     setIsLoading(true);
 
-    // DEMO MODE: Simulated delay instead of backend call
-    setTimeout(() => {
+    try {
+      const registrationData = {
+        fullName: fullName.trim(),
+        phone: mobile,
+        address: address,
+        lat: latitude || 0,
+        lng: longitude || 0,
+        aadhaar: aadhaar.replace(/\s/g, ''),
+        pan: pan.toUpperCase(),
+        category: category,
+        skills: selectedSkills,
+        experience: parseInt(experience) || 0,
+        summary: summary.trim(),
+        bankDetails: {
+          holderName: accountHolderName.trim(),
+          bankName: bankName,
+          accountNumber: accountNumber,
+          ifsc: ifsc.toUpperCase()
+        }
+      };
+
+      console.log('[WorkForm] Submitting Registration:', registrationData);
+
+      const response = await axios.post(`${config.WORKER_API_BASE_URL}/register`, registrationData);
+
+      if (response.data.success) {
+        // Update local context with the new worker profile
+        const newWorker = response.data.data;
+        if (setWorkerData) {
+            setWorkerData(newWorker);
+            await AsyncStorage.setItem('workerData', JSON.stringify(newWorker));
+        }
+        
+        setIsLoading(false);
+        navigation.replace('UnderReviewScreen');
+      } else {
+        setIsLoading(false);
+        Alert.alert('Registration Failed', response.data.message || 'An error occurred during registration.');
+      }
+    } catch (error) {
+      console.error('[WorkForm] Submission Error:', error);
       setIsLoading(false);
-      navigation.replace('UnderReviewScreen');
-    }, 2000);
+      const errorMessage = error.response?.data?.message || 'Failed to connect to the server. Please check your internet connection.';
+      Alert.alert('Error', errorMessage);
+    }
   };
 
   const toggleSkill = (skill) => {

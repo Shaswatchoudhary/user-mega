@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,80 +13,48 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios';
+import config from '../../constants/config';
 
 const JobScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [acceptModalVisible, setAcceptModalVisible] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const jobs = [
-    {
-      id: '1',
-      title: 'Electrical Wiring Installation',
-      customer: 'Ramesh Gupta',
-      location: 'Ruikar colony, Kolhapur',
-      category: 'Electrician',
-      budget: 2500,
-      distance: 1.2,
-      urgency: 'urgent',
-      description: 'Need complete electrical wiring for new 2BHK apartment',
-      posted: '2 hours ago',
-      requirements: ['Licensed electrician', 'Tools required', 'Same day completion'],
-    },
-    {
-      id: '2',
-      title: 'AC Repair & Servicing',
-      customer: 'Priya Sharma',
-      location: 'Ruikar colony, Kolhapur',
-      category: 'AC Technician',
-      budget: 800,
-      distance: 2.5,
-      urgency: 'normal',
-      description: 'Split AC not cooling properly, needs servicing',
-      posted: '5 hours ago',
-      requirements: ['Experience with split ACs', 'Gas refilling if needed'],
-    },
-    {
-      id: '3',
-      title: 'Plumbing - Bathroom Leakage',
-      customer: 'Suresh Patel',
-      location: 'Ruikar colony, Kolhapur',
-      category: 'Plumber',
-      budget: 1200,
-      distance: 3.8,
-      urgency: 'urgent',
-      description: 'Major water leakage in bathroom, immediate attention needed',
-      posted: '1 hour ago',
-      requirements: ['Emergency repair', 'Available today'],
-    },
-    {
-      id: '4',
-      title: 'Home Painting - 3BHK',
-      customer: 'Anjali Desai',
-      location: 'Ruikar colony, Kolhapur',
-      category: 'Painter',
-      budget: 1500,
-      distance: 5.2,
-      urgency: 'normal',
-      description: 'Complete interior painting for 3BHK flat',
-      posted: '1 day ago',
-      requirements: ['5+ years experience', 'Own painting equipment', '7-10 days work'],
-    },
-    {
-      id: '5',
-      title: 'Carpentry - Kitchen Cabinets',
-      customer: 'Vikram Singh',
-      location: 'Ruikar colony, Kolhapur',
-      category: 'Carpenter',
-      budget: 850,
-      distance: 4.5,
-      urgency: 'normal',
-      description: 'Custom kitchen cabinet installation and repair',
-      posted: '3 hours ago',
-      requirements: ['Modular kitchen experience', 'Quality finish required'],
-    },
-  ];
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${config.API_BASE_URL}/booking`);
+      if (response.data.success) {
+        // Filter jobs that are not yet accepted or relevant for the worker
+        // For now displaying all bookings as 'Available Jobs' for demo/test
+        setJobs(response.data.data);
+      }
+    } catch (error) {
+      console.error('[JobScreen] Fetch Jobs Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const handleAcceptJob = (job) => {
+    setSelectedJob(job);
+    setAcceptModalVisible(true);
+  };
+
+  const confirmAcceptance = () => {
+    setAcceptModalVisible(false);
+    navigation.navigate('DetailScreen', { job: selectedJob });
+  };
 
   const filterOptions = [
     { id: 'all', label: 'All Jobs', icon: 'grid-outline' },
@@ -123,12 +91,6 @@ const JobScreen = ({ navigation }) => {
     return sorted;
   };
 
-  const handleAcceptJob = (job) => {
-    console.log('Accepting job:', job.title);
-    // Navigate to job details or booking screen
-    navigation.navigate('DetailScreen', { job });
-  };
-
   const renderJobCard = (job) => (
     <View key={job.id} style={styles.card}>
       <View style={styles.cardContent}>
@@ -154,50 +116,31 @@ const JobScreen = ({ navigation }) => {
         </View>
 
         {/* Title */}
-        <Text style={styles.jobTitle}>{job.title}</Text>
+        <Text style={styles.jobTitle}>{job.serviceType || job.title}</Text>
 
         {/* Description */}
-        <Text style={styles.description} numberOfLines={2}>{job.description}</Text>
+        <Text style={styles.description} numberOfLines={2}>{job.description || 'Professional service requested.'}</Text>
 
         {/* Customer & Location */}
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Ionicons name="person-outline" size={16} color="#6B7280" />
-            <Text style={styles.infoText}>{job.customer}</Text>
+            <Text style={styles.infoText}>{job.customerName || job.customer}</Text>
           </View>
         </View>
 
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Ionicons name="location-outline" size={16} color="#6B7280" />
-            <Text style={styles.infoText}>{job.location} • {job.distance} km</Text>
+            <Text style={styles.infoText}>{job.address || job.location} • {job.distanceKm || job.distance || 0} km</Text>
           </View>
         </View>
-
-        {/* Requirements */}
-        {job.requirements && job.requirements.length > 0 && (
-          <View style={styles.requirementsContainer}>
-            <Text style={styles.requirementsLabel}>Requirements:</Text>
-            <View style={styles.requirementsList}>
-              {job.requirements.slice(0, 2).map((req, index) => (
-                <View key={index} style={styles.requirementChip}>
-                  <Text style={styles.requirementText}>{req}</Text>
-                </View>
-              ))}
-              {job.requirements.length > 2 && (
-                <View style={styles.requirementChip}>
-                  <Text style={styles.requirementText}>+{job.requirements.length - 2} more</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
 
         {/* Bottom Row */}
         <View style={styles.bottomRow}>
           <View style={styles.budgetSection}>
             <Text style={styles.budgetLabel}>Budget</Text>
-            <Text style={styles.budget}>₹{job.budget}</Text>
+            <Text style={styles.budget}>₹{job.totalPrice || job.budget}</Text>
           </View>
 
           <TouchableOpacity
@@ -300,6 +243,74 @@ const JobScreen = ({ navigation }) => {
       >
         {getSortedJobs().map((job) => renderJobCard(job))}
       </ScrollView>
+
+      {/* Job Acceptance Modal */}
+      <Modal
+        visible={acceptModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAcceptModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.acceptModalContent}>
+            <View style={styles.acceptModalHeader}>
+              <View style={styles.headerIconContainer}>
+                <Ionicons name="briefcase" size={30} color="#E84545" />
+              </View>
+              <Text style={styles.acceptModalTitle}>Accept Job Request?</Text>
+              <Text style={styles.acceptModalSubtitle}>Please confirm the details before proceeding.</Text>
+            </View>
+
+            <View style={styles.acceptJobDetails}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailCardLabel}>Job Title</Text>
+                <Text style={styles.detailCardValue}>{selectedJob?.title}</Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailCardLabel}>Customer</Text>
+                <Text style={styles.detailCardValue}>{selectedJob?.customer}</Text>
+              </View>
+
+              <View style={styles.detailSplitRow}>
+                <View style={styles.detailSplitItem}>
+                  <Text style={styles.detailCardLabel}>Budget</Text>
+                  <Text style={styles.detailCardBudget}>₹{selectedJob?.budget}</Text>
+                </View>
+                <View style={styles.detailSplitItem}>
+                  <Text style={styles.detailCardLabel}>Distance</Text>
+                  <Text style={styles.detailCardValue}>{selectedJob?.distance} km</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.acceptModalFooter}>
+              <TouchableOpacity 
+                style={styles.cancelModalBtn}
+                onPress={() => setAcceptModalVisible(false)}
+              >
+                <Text style={styles.cancelModalBtnText}>Go Back</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={confirmAcceptance}
+                activeOpacity={0.8}
+                style={{ flex: 1.5 }}
+              >
+                <LinearGradient
+                  colors={['#E84545', '#1A1A1A']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.confirmModalBtn}
+                >
+                  <Text style={styles.confirmModalBtnText}>Confirm Acceptance</Text>
+                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Filter Modal */}
       <Modal
@@ -685,6 +696,108 @@ const styles = StyleSheet.create({
   filterOptionTextSelected: {
     fontWeight: '600',
     color: '#E84545',
+  },
+  acceptModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  acceptModalHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  headerIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  acceptModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  acceptModalSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  acceptJobDetails: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  detailRow: {
+    marginBottom: 16,
+  },
+  detailSplitRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  detailSplitItem: {
+    flex: 1,
+  },
+  detailCardLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  detailCardValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  detailCardBudget: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#10B981',
+  },
+  acceptModalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelModalBtn: {
+    flex: 1,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  cancelModalBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  confirmModalBtn: {
+    height: 56,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    gap: 10,
+  },
+  confirmModalBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 

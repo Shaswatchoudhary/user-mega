@@ -17,63 +17,20 @@ import LinearGradient from 'react-native-linear-gradient';
 
 const DetailScreen = ({ navigation, route }) => {
   const [jobAccepted, setJobAccepted] = useState(false);
+  const [acceptModalVisible, setAcceptModalVisible] = useState(false);
   
-  // Sample job data - in real app, this would come from route.params
-  const jobDetails = {
-    id: '#JB2841',
-    title: 'Pipe Repair',
-    description: 'Leaking bathroom pipe needs immediate repair. The pipe is leaking near the bathroom sink area causing water damage.',
-    category: 'Plumbing',
-    urgency: 'URGENT',
-    customer: {
-      name: 'Rahul Sharma',
-      phone: '+91 9579499891',
-      address: 'Ruikar Colony , Kolhapur',
-      rating: 4.7,
-      totalJobs: 42,
-    },
-    location: {
-      distance: '2.3 km away',
-      address: 'Ruikar Colony, Kolhapur',
-      coordinates: '19.2183, 72.9780', // Kolhapur coordinates
-    },
-    timing: {
-      date: 'Today',
-      time: '4:00 PM',
-      duration: '2 hours estimated',
-    },
-    payment: {
-      amount: '₹960',
-      paymentMethod: 'Cash on completion',
-      additionalCharges: '₹200 for spare parts (if needed)',
-    },
-    requirements: [
-      'Bring pipe wrench and plumber tools',
-      'Carry PVC pipes (1 inch)',
-      'Waterproof sealant required',
-      'Safety gloves and mask',
-    ],
-    specialInstructions: 'Please ring bell twice. Customer will be available from 3:30 PM onwards.',
-  };
+  // Use job data from route params
+  const job = route.params?.job || {};
 
   const handleAcceptJob = () => {
-    Alert.alert(
-      'Accept Job',
-      'Are you sure you want to accept this job?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Accept',
-          onPress: () => {
-            setJobAccepted(true);
-            Alert.alert('Success', 'Job accepted successfully! You can now proceed.');
-          },
-        },
-      ]
-    );
+    setAcceptModalVisible(true);
+  };
+
+  const confirmAcceptance = () => {
+    setAcceptModalVisible(false);
+    setJobAccepted(true);
+    // In a real app, you'd call a backend API here
+    Alert.alert('Success', 'Job accepted successfully! You can now proceed.');
   };
 
   const handleStartJob = () => {
@@ -87,6 +44,66 @@ const DetailScreen = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#E84545" />
+
+      {/* Job Acceptance Modal */}
+      <Modal
+        visible={acceptModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAcceptModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.acceptModalContent}>
+            <View style={styles.acceptModalHeader}>
+              <View style={styles.headerIconContainer}>
+                <Ionicons name="briefcase" size={30} color="#E84545" />
+              </View>
+              <Text style={styles.acceptModalTitle}>Accept This Job?</Text>
+              <Text style={styles.acceptModalSubtitle}>Confirm that you can reach the location and fulfill the requirements.</Text>
+            </View>
+
+            <View style={styles.acceptJobDetails}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailCardLabel}>Job Title</Text>
+                <Text style={styles.detailCardValue}>{job?.title}</Text>
+              </View>
+              <View style={styles.detailSplitRow}>
+                <View style={styles.detailSplitItem}>
+                  <Text style={styles.detailCardLabel}>Budget</Text>
+                  <Text style={styles.detailCardBudget}>₹{job?.budget}</Text>
+                </View>
+                <View style={styles.detailSplitItem}>
+                  <Text style={styles.detailCardLabel}>Urgency</Text>
+                  <Text style={[styles.detailCardValue, { color: job?.urgency === 'urgent' ? '#EF4444' : '#111827' }]}>{job?.urgency?.toUpperCase()}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.acceptModalFooter}>
+              <TouchableOpacity 
+                style={styles.cancelModalBtn}
+                onPress={() => setAcceptModalVisible(false)}
+              >
+                <Text style={styles.cancelModalBtnText}>Decide Later</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={confirmAcceptance}
+                activeOpacity={0.8}
+                style={{ flex: 1.5 }}
+              >
+                <LinearGradient
+                  colors={['#E84545', '#1A1A1A']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.confirmModalBtn}
+                >
+                  <Text style={styles.confirmModalBtnText}>Confirm Acceptance</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Header */}
       <LinearGradient
@@ -109,10 +126,10 @@ const DetailScreen = ({ navigation, route }) => {
       >
         {/* Job ID & Status */}
         <View style={styles.jobIdContainer}>
-          <Text style={styles.jobId}>{jobDetails.id}</Text>
+          <Text style={styles.jobId}>{job?.id || '#JB-NEW'}</Text>
           <View style={styles.urgencyBadge}>
             <Ionicons name="flash" size={12} color="#FFFFFF" />
-            <Text style={styles.urgencyText}>{jobDetails.urgency}</Text>
+            <Text style={styles.urgencyText}>{job?.urgency?.toUpperCase() || 'NORMAL'}</Text>
           </View>
         </View>
 
@@ -125,28 +142,28 @@ const DetailScreen = ({ navigation, route }) => {
         >
           <View style={styles.jobHeader}>
             <View style={styles.jobIcon}>
-              <MaterialCommunityIcons name="pipe-wrench" size={32} color="#FFFFFF" />
+              <MaterialCommunityIcons name="wrench" size={32} color="#FFFFFF" />
             </View>
             <View style={styles.jobTitleContainer}>
-              <Text style={styles.jobTitle}>{jobDetails.title}</Text>
-              <Text style={styles.jobCategory}>{jobDetails.category}</Text>
+              <Text style={styles.jobTitle}>{job?.title}</Text>
+              <Text style={styles.jobCategory}>{job?.category}</Text>
             </View>
           </View>
 
-          <Text style={styles.jobDescription}>{jobDetails.description}</Text>
+          <Text style={styles.jobDescription}>{job?.description || 'No description provided.'}</Text>
 
           <View style={styles.jobStats}>
             <View style={styles.statItem}>
               <Ionicons name="time" size={20} color="rgba(255, 255, 255, 0.8)" />
-              <Text style={styles.statValue}>{jobDetails.timing.duration}</Text>
+              <Text style={styles.statValue}>{job?.timing?.duration || '2 hours'}</Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="cash" size={20} color="rgba(255, 255, 255, 0.8)" />
-              <Text style={styles.statValue}>{jobDetails.payment.amount}</Text>
+              <Text style={styles.statValue}>₹{job?.budget}</Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="location" size={20} color="rgba(255, 255, 255, 0.8)" />
-              <Text style={styles.statValue}>{jobDetails.location.distance}</Text>
+              <Text style={styles.statValue}>{job?.distance} km</Text>
             </View>
           </View>
         </LinearGradient>
@@ -162,27 +179,27 @@ const DetailScreen = ({ navigation, route }) => {
             <View style={styles.customerHeader}>
               <View style={styles.customerAvatar}>
                 <Text style={styles.avatarText}>
-                  {jobDetails.customer.name.split(' ').map(n => n[0]).join('')}
+                  {job?.customer ? job.customer.split(' ').map(n => n[0]).join('') : 'C'}
                 </Text>
               </View>
               <View style={styles.customerDetails}>
-                <Text style={styles.customerName}>{jobDetails.customer.name}</Text>
+                <Text style={styles.customerName}>{job?.customer}</Text>
                 <View style={styles.customerRating}>
                   <Ionicons name="star" size={14} color="#F59E0B" />
-                  <Text style={styles.ratingText}>{jobDetails.customer.rating}</Text>
-                  <Text style={styles.jobsCount}>({jobDetails.customer.totalJobs} jobs)</Text>
+                  <Text style={styles.ratingText}>4.8</Text>
+                  <Text style={styles.jobsCount}>(Verified Customer)</Text>
                 </View>
               </View>
             </View>
 
             <View style={styles.infoRow}>
               <Ionicons name="call" size={16} color="#6B7280" />
-              <Text style={styles.infoText}>{jobDetails.customer.phone}</Text>
+              <Text style={styles.infoText}>Contact visible after acceptance</Text>
             </View>
 
             <View style={styles.infoRow}>
               <Ionicons name="location" size={16} color="#6B7280" />
-              <Text style={styles.infoText}>{jobDetails.customer.address}</Text>
+              <Text style={styles.infoText}>{job?.location}</Text>
             </View>
           </View>
         </View>
@@ -207,7 +224,7 @@ const DetailScreen = ({ navigation, route }) => {
               <View style={styles.timingInfo}>
                 <Text style={styles.timingLabel}>Date & Time</Text>
                 <Text style={styles.timingValue}>
-                  {jobDetails.timing.date}, {jobDetails.timing.time}
+                  {job?.posted || 'Today, 4:00 PM'}
                 </Text>
               </View>
             </View>
@@ -223,7 +240,7 @@ const DetailScreen = ({ navigation, route }) => {
               </LinearGradient>
               <View style={styles.timingInfo}>
                 <Text style={styles.timingLabel}>Location</Text>
-                <Text style={styles.timingValue}>{jobDetails.location.address}</Text>
+                <Text style={styles.timingValue}>{job?.location || 'Nearby'}</Text>
               </View>
             </View>
           </View>
@@ -239,24 +256,24 @@ const DetailScreen = ({ navigation, route }) => {
           <View style={styles.paymentDetails}>
             <View style={styles.paymentRow}>
               <Text style={styles.paymentLabel}>Service Charge</Text>
-              <Text style={styles.paymentAmount}>{jobDetails.payment.amount}</Text>
+              <Text style={styles.paymentAmount}>₹{job?.budget}</Text>
             </View>
             
             <View style={styles.paymentRow}>
               <Text style={styles.paymentLabel}>Additional Charges</Text>
-              <Text style={styles.additionalCharges}>{jobDetails.payment.additionalCharges}</Text>
+              <Text style={styles.additionalCharges}>As per requirements</Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.paymentRow}>
               <Text style={styles.totalLabel}>Total Earning</Text>
-              <Text style={styles.totalAmount}>{jobDetails.payment.amount}</Text>
+              <Text style={styles.totalAmount}>₹{job?.budget}</Text>
             </View>
 
             <View style={styles.paymentMethod}>
               <Ionicons name="card" size={16} color="#6B7280" />
-              <Text style={styles.paymentMethodText}>{jobDetails.payment.paymentMethod}</Text>
+              <Text style={styles.paymentMethodText}>Cash on completion</Text>
             </View>
           </View>
         </View>
@@ -269,7 +286,7 @@ const DetailScreen = ({ navigation, route }) => {
           </View>
 
           <View style={styles.requirementsList}>
-            {jobDetails.requirements.map((item, index) => (
+            {(job?.requirements || ['Standard professional tools', 'Punctuality', 'Safety masks']).map((item, index) => (
               <View key={index} style={styles.requirementItem}>
                 <LinearGradient
                   colors={['#E84545', '#1A1A1A']}
@@ -293,7 +310,9 @@ const DetailScreen = ({ navigation, route }) => {
           </View>
 
           <View style={styles.instructions}>
-            <Text style={styles.instructionsText}>{jobDetails.specialInstructions}</Text>
+            <Text style={styles.instructionsText}>
+              {job?.description || 'Follow standard professional guidelines for this service.'}
+            </Text>
           </View>
         </View>
 
@@ -691,6 +710,111 @@ const styles = StyleSheet.create({
   },
   startButtonText: {
     fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  },
+  acceptModalContent: {
+    width: '85%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  acceptModalHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  headerIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  acceptModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  acceptModalSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  acceptJobDetails: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+  },
+  detailRow: {
+    marginBottom: 12,
+  },
+  detailSplitRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  detailSplitItem: {
+    flex: 1,
+  },
+  detailCardLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  detailCardValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  detailCardBudget: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#10B981',
+  },
+  acceptModalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelModalBtn: {
+    flex: 1,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  cancelModalBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  confirmModalBtn: {
+    flex: 1,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  confirmModalBtnText: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
   },

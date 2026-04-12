@@ -10,6 +10,14 @@ import MainTabNavigator from './mainNavigator';
 import DetailScreen from '../screens/jobdetail/DetailScreen';
 import PaymentScreen from '../screens/map/MapScreen';
 
+// Profile Screens
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import ManageAddressScreen from '../screens/profile/ManageAddressScreen';
+import AboutScreen from '../screens/profile/AboutScreen';
+import PrivacyScreen from '../screens/profile/PrivacyScreen';
+import HelpSupportScreen from '../screens/profile/HelpSupportScreen';
+import ProfessionalDetailsScreen from '../screens/profile/ProfessionalDetailsScreen';
+
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
@@ -28,6 +36,14 @@ export default function AppNavigator() {
       <Stack.Screen name="UnderReviewScreen" component={UnderReviewScreen} />
       <Stack.Screen name="DetailScreen" component={DetailScreen} />
       <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
+
+      {/* Profile Features */}
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="ManageAddress" component={ManageAddressScreen} />
+      <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="Privacy" component={PrivacyScreen} />
+      <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+      <Stack.Screen name="ProfessionalDetails" component={ProfessionalDetailsScreen} />
 
       {/* Main App with Tabs */}
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
