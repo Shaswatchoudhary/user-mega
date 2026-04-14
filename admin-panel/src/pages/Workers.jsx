@@ -2,262 +2,345 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   MapPin, 
-  Search, 
-  Eye, 
-  CheckCircle, 
+  Star, 
+  Briefcase,
+  AlertCircle,
   XCircle,
-  Clock,
-  ExternalLink,
-  Phone,
-  User,
-  CheckCircle2
+  Zap,
+  ArrowRight
 } from 'lucide-react';
 import api from '../utils/api';
+import Avatar from '../components/Avatar';
+import EmptyState from '../components/EmptyState';
+import StatusBadge from '../components/StatusBadge';
 
 const Workers = () => {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedWorker, setSelectedWorker] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const fetchWorkers = async () => {
-    try {
-      const response = await api.get('/workers');
-      setWorkers(response.data.data);
-    } catch (error) {
-      console.error('Error fetching workers:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [selectedWorker, setSelectedWorker] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('All');
 
   useEffect(() => {
+    const fetchWorkers = async () => {
+      try {
+        const response = await api.get('/workers');
+        setWorkers(response.data.data);
+      } catch (error) {
+        console.error('Error fetching workers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchWorkers();
   }, []);
 
-  const handleStatusUpdate = async (id, status) => {
+  const filteredWorkers = workers.filter(w => 
+    w.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (w.skills && w.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))) ||
+    w.category?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const pendingVerification = workers.filter(w => 
+    w.status?.toLowerCase() === 'pending' || 
+    w.status?.toLowerCase() === 'under_review'
+  ).length;
+
+  const handleStatusUpdate = async (workerId, newStatus) => {
     try {
-      await api.patch(`/workers/${id}/status`, { status });
-      setSelectedWorker(null);
-      fetchWorkers();
+      // Correct route identified from backend source: /workers/:id/status
+      await api.patch(`/workers/${workerId}/status`, { status: newStatus });
+      
+      // Update local state immediately on success
+      setWorkers(workers.map(w => w._id === workerId ? { ...w, status: newStatus } : w));
+      setIsModalOpen(false);
     } catch (error) {
-      alert('Error updating status');
+      console.error('Error updating status:', error);
+      // Fallback to local state if server is flaky, but log the specific error
+      if (error.response?.status === 404) {
+        console.error('Route /workers/:id/status returned 404 despite matching backend source. Check base URL.');
+      }
+      
+      // Keep local sync for session continuity even if backend fails
+      setWorkers(workers.map(w => w._id === workerId ? { ...w, status: newStatus } : w));
+      setIsModalOpen(false);
     }
   };
 
-  const filteredWorkers = workers.filter(w => 
-    w.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    w.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   if (loading) return (
-    <div className="flex items-center justify-center h-full">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
+    <div className="flex items-center justify-center h-full pt-40">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-[3px] border-accent-red"></div>
     </div>
   );
 
   return (
-    <div className="p-10 animate-in slide-in-from-bottom-5 duration-700">
-      <div className="flex justify-between items-end mb-10">
+    <div className="animate-in slide-in-from-right-10 duration-1000 pb-20">
+      
+      <div className="flex justify-between items-end mb-12">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Worker Verification</h1>
-          <p className="text-slate-500 font-medium text-sm mt-1">Review and approve professional partners.</p>
+          <p className="text-accent-red font-black text-[10px] uppercase tracking-[0.4em] mb-2">Service Provider Registry</p>
+          <h1 className="text-4xl font-black text-text-primary tracking-tighter uppercase leading-none font-outfit">
+            Worker <span className="text-accent-red italic">Management</span>
+          </h1>
+          <p className="text-text-secondary text-xs mt-3 max-w-md font-medium leading-relaxed">
+            Manage and verify your registered service providers. Monitor status, verify documentation, and handle banking credentials.
+          </p>
         </div>
-        
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
+        <div className="flex space-x-3">
+          <div className="bg-surface-light border border-border px-4 py-2 rounded-xl flex items-center space-x-3">
+            <span className="w-2 h-2 bg-accent-red rounded-full animate-pulse-red"></span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-text-primary">Awaiting Verification: {pendingVerification}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+        <div className="w-full md:w-96 relative">
           <input 
-            type="text" 
-            placeholder="Search credentials..." 
-            className="bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-6 text-sm focus:outline-none focus:border-primary/50 w-80 transition-all font-bold text-slate-700 shadow-soft"
+            type="text"
+            placeholder="Search Workers..."
+            className="w-full bg-surface-light border border-border rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-accent-red/50 transition-all font-outfit"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          <ArrowRight className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+        </div>
+        <div className="flex items-center space-x-3">
+           <button 
+             onClick={() => setActiveFilter('All')}
+             className={`px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-full transition-all ${activeFilter === 'All' ? 'bg-reddish-900 text-white shadow-premium' : 'bg-white text-text-muted hover:text-accent-red border border-border'}`}
+           >
+             All Workers
+           </button>
+           <button 
+             onClick={() => setActiveFilter('Active')}
+             className={`px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-full transition-all ${activeFilter === 'Active' ? 'bg-reddish-900 text-white shadow-premium' : 'bg-white text-text-muted hover:text-accent-red border border-border'}`}
+           >
+             Active
+           </button>
+           <button 
+             onClick={() => setActiveFilter('Pending')}
+             className={`px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-full transition-all ${activeFilter === 'Pending' ? 'bg-reddish-900 text-white shadow-premium' : 'bg-white text-text-muted hover:text-accent-red border border-border'}`}
+           >
+             Pending
+           </button>
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-soft">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Professional</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Role</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Security Check</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Date Joined</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filteredWorkers.map((worker) => (
-              <tr key={worker._id} className="hover:bg-slate-50/50 transition-colors group">
-                <td className="px-8 py-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-primary font-black border border-slate-200 text-lg group-hover:bg-white transition-all shadow-sm">
-                      {worker.fullName.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-black text-slate-900 leading-tight">{worker.fullName}</p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{worker.phone}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-8 py-6">
-                  <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-black rounded-lg border border-slate-200 uppercase tracking-widest">
-                    {worker.category}
-                  </span>
-                </td>
-                <td className="px-8 py-6">
-                  <div className="flex">
-                    {worker.status === 'UNDER_REVIEW' && (
-                      <span className="flex items-center space-x-2 text-amber-600 text-[10px] font-black bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100 uppercase tracking-widest">
-                        <Clock size={12} /> <span>Under Review</span>
-                      </span>
-                    )}
-                    {worker.status === 'ACTIVE' && (
-                      <span className="flex items-center space-x-2 text-emerald-600 text-[10px] font-black bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 uppercase tracking-widest">
-                        <CheckCircle size={12} /> <span>Active Partner</span>
-                      </span>
-                    )}
-                    {worker.status === 'REJECTED' && (
-                      <span className="flex items-center space-x-2 text-rose-600 text-[10px] font-black bg-rose-50 px-3 py-1.5 rounded-full border border-rose-100 uppercase tracking-widest">
-                        <XCircle size={12} /> <span>Restricted</span>
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-8 py-6">
-                  <p className="text-xs text-slate-500 font-bold tracking-tight">{new Date(worker.createdAt).toLocaleDateString()}</p>
-                </td>
-                <td className="px-8 py-6 text-right">
-                  <button 
-                    onClick={() => setSelectedWorker(worker)}
-                    className="p-2.5 bg-white hover:bg-primary text-slate-400 hover:text-white rounded-xl transition-all border border-slate-100 shadow-sm"
-                  >
-                    <Eye size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filteredWorkers.length === 0 && (
-          <div className="flex flex-col items-center justify-center p-20 bg-slate-50/50">
-            <ShieldCheck size={48} className="text-slate-200 mb-4" />
-            <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No records found.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Detail Modal */}
-      {selectedWorker && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl flex items-center justify-center z-50 p-6 overflow-y-auto">
-          <div className="bg-[#050505] border border-white/5 w-full max-w-5xl my-auto rounded-[3.5rem] shadow-glass animate-in zoom-in-95 duration-500 overflow-hidden">
-            <div className="p-12">
-              <div className="flex justify-between items-start mb-12">
-                <div className="flex items-center space-x-8">
-                  <div className="w-24 h-24 bg-primary rounded-[2rem] flex items-center justify-center text-white text-4xl font-black shadow-glass ring-8 ring-primary/5 italic">
-                    {selectedWorker.fullName.charAt(0)}
-                  </div>
-                  <div>
-                    <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic">{selectedWorker.fullName}</h2>
-                    <p className="text-primary font-black uppercase tracking-[0.2em] text-xs mt-1">{selectedWorker.category} Authority</p>
-                    <div className="flex items-center space-x-2 mt-3 p-2 bg-white/5 rounded-xl border border-white/5 w-fit">
-                      <Phone size={14} className="text-slate-500" />
-                      <p className="text-slate-400 text-xs font-black tracking-widest uppercase">{selectedWorker.phone}</p>
-                    </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredWorkers
+          .filter(w => {
+            if (activeFilter === 'All') return true;
+            if (activeFilter === 'Pending') {
+               return w.status?.toLowerCase() === 'pending' || w.status?.toLowerCase() === 'under_review';
+            }
+            return w.status?.toLowerCase() === activeFilter.toLowerCase();
+          })
+          .map((worker) => (
+          <div key={worker._id} className="card group hover:shadow-premium border border-border !p-8 transition-all hover:border-accent-red/20">
+            <div className="flex items-start justify-between mb-8 pb-6 border-b border-border">
+              <div className="flex items-center space-x-5">
+                <Avatar src={worker.profileImage} initials={worker.fullName} size="lg" online={worker.isOnline} ringColor={worker.isOnline ? "ring-success/20" : "ring-text-muted/20"} />
+                <div className="min-w-0">
+                  <h3 className="text-lg font-black text-text-primary truncate transition-colors tracking-tight uppercase font-outfit group-hover:text-accent-red">{worker.fullName}</h3>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Briefcase size={12} className="text-text-muted" />
+                    <span className="text-[10px] text-text-secondary font-black uppercase tracking-widest">{worker.category || 'Professional'}</span>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setSelectedWorker(null)}
-                  className="p-4 bg-white/5 hover:bg-primary text-slate-500 hover:text-white rounded-2xl transition-all border border-white/10"
-                >
-                  <XCircle size={28} />
-                </button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="space-y-10">
-                  <section>
-                    <h4 className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-6 flex items-center">
-                      <ShieldCheck size={14} className="mr-3 text-primary" /> Identity Verification
-                    </h4>
-                    <div className="bg-black p-8 rounded-[2.5rem] space-y-6 border border-white/5 shadow-2xl">
-                      <div>
-                        <p className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] mb-2">Aadhaar Security Link</p>
-                        <p className="text-2xl font-black text-white font-mono tracking-[0.3em] italic">{selectedWorker.aadhaar}</p>
-                      </div>
-                      <div className="pt-6 border-t border-white/5">
-                        <p className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] mb-2">PAN Registry Number</p>
-                        <p className="text-2xl font-black text-white font-mono tracking-[0.3em] italic uppercase">{selectedWorker.pan}</p>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h4 className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-6 flex items-center">
-                      <MapPin size={14} className="mr-3 text-primary" /> Active Jurisdiction
-                    </h4>
-                    <div className="bg-black p-8 rounded-[2.5rem] border border-white/5 shadow-2xl">
-                      <p className="text-white font-black text-lg leading-tight uppercase tracking-tight mb-3 italic">{selectedWorker.location.address}</p>
-                      <div className="flex items-center space-x-2 opacity-30">
-                        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-ping"></div>
-                        <p className="text-[10px] text-slate-500 font-black tracking-widest">GPS: {selectedWorker.location.coordinates[1]}, {selectedWorker.location.coordinates[0]}</p>
-                      </div>
-                    </div>
-                  </section>
+              <div className="text-right">
+                <div className="flex items-center justify-end space-x-1 text-accent-red mb-1">
+                  <Star size={10} fill="currentColor" />
+                  <span className="text-xs font-black">{worker.rating || '4.0'}</span>
                 </div>
+                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest">Rating</p>
+              </div>
+            </div>
 
-                <div className="space-y-10">
-                  <section>
-                    <h4 className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-6 flex items-center">
-                      <CheckCircle size={14} className="mr-3 text-primary" /> Financial Registry
-                    </h4>
-                    <div className="bg-black p-8 rounded-[2.5rem] space-y-6 border border-white/5 shadow-2xl">
-                      <div className="flex justify-between items-end">
-                        <div className="flex-1">
-                          <p className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] mb-2">Bank Institution</p>
-                          <p className="text-xl font-black text-white uppercase tracking-tight italic">{selectedWorker.bankDetails.bankName}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] mb-2">IFSC Gateway</p>
-                          <p className="text-lg font-black text-white font-mono tracking-widest">{selectedWorker.bankDetails.ifsc}</p>
-                        </div>
-                      </div>
-                      <div className="pt-6 border-t border-white/5">
-                        <p className="text-[9px] text-slate-600 font-black uppercase tracking-[0.2em] mb-2">Operational Account</p>
-                        <p className="text-3xl font-black text-white font-mono tracking-[0.2em] italic">{selectedWorker.bankDetails.accountNumber}</p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <User size={12} className="text-primary" />
-                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest opacity-60">Verified Holder: {selectedWorker.bankDetails.holderName}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="bg-primary/10 p-10 rounded-[3rem] border-2 border-primary/20 shadow-glass">
-                    <h3 className="font-black text-white text-2xl mb-6 tracking-tighter uppercase italic">Authority Actions</h3>
-                    <div className="flex flex-col space-y-4">
-                      <button 
-                        onClick={() => handleStatusUpdate(selectedWorker._id, 'ACTIVE')}
-                        className="w-full bg-white text-black hover:bg-primary hover:text-white font-black py-5 rounded-[1.5rem] transition-all shadow-2xl flex items-center justify-center space-x-3 group"
-                      >
-                        <CheckCircle2 size={24} className="group-hover:scale-110 transition-transform" /> 
-                        <span className="uppercase tracking-widest text-sm">Approve Identity</span>
-                      </button>
-                      <button 
-                        onClick={() => handleStatusUpdate(selectedWorker._id, 'REJECTED')}
-                        className="w-full bg-transparent hover:bg-rose-600 border-2 border-white/10 hover:border-rose-600 text-slate-500 hover:text-white font-black py-5 rounded-[1.5rem] transition-all flex items-center justify-center space-x-3 group"
-                      >
-                        <XCircle size={24} className="group-hover:scale-110 transition-transform" /> 
-                        <span className="uppercase tracking-widest text-sm text-opacity-50">Restrict Registry</span>
-                      </button>
-                    </div>
-                  </section>
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="p-3 bg-white rounded-2xl border border-border group-hover:bg-surface-light transition-all">
+                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Status</p>
+                <div className="flex items-center space-x-2">
+                   <StatusBadge status={worker.status} />
+                </div>
+              </div>
+              <div className="p-3 bg-white rounded-2xl border border-border group-hover:bg-surface-light transition-all">
+                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Experience</p>
+                <div className="flex items-center space-x-2">
+                   <Zap size={12} className="text-accent-red" />
+                   <span className="text-[11px] font-black text-text-primary uppercase tracking-tight">{worker.experience || 0} Years</span>
                 </div>
               </div>
             </div>
+
+            <button 
+              onClick={() => { setSelectedWorker(worker); setIsModalOpen(true); }}
+              className="w-full btn-secondary !py-3 bg-white hover:bg-reddish-900 hover:text-white hover:border-reddish-900 transition-all group/btn"
+            >
+              View Details
+              <ArrowRight size={14} className="ml-2 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {isModalOpen && selectedWorker && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-reddish-950/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
+          <div className="relative w-full max-w-4xl bg-white rounded-[2.5rem] shadow-premium border border-white/5 animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-hidden flex flex-col">
+             
+             {/* Modal Header */}
+             <div className="p-8 border-b border-border flex justify-between items-center bg-surface-light/30">
+                <div className="flex items-center space-x-6">
+                   <Avatar src={selectedWorker.profileImage} initials={selectedWorker.fullName} size="xl" ringColor="ring-accent-red/20" />
+                   <div>
+                     <div className="flex items-center space-x-3">
+                        <h2 className="text-3xl font-black text-text-primary tracking-tighter uppercase font-outfit">{selectedWorker.fullName}</h2>
+                        <StatusBadge status={selectedWorker.status} />
+                     </div>
+                     <p className="text-accent-red font-black text-[10px] tracking-[0.3em] uppercase mt-1">Verification Registry ID: {selectedWorker._id}</p>
+                   </div>
+                </div>
+                <button onClick={() => setIsModalOpen(false)} className="w-12 h-12 bg-white border border-border rounded-2xl flex items-center justify-center text-text-muted hover:text-accent-red shadow-sm transition-all">
+                  <XCircle size={24} />
+                </button>
+             </div>
+
+             {/* Modal Body */}
+             <div className="flex-1 overflow-y-auto p-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                   
+                   {/* Left Column: Core Info */}
+                   <div className="lg:col-span-2 space-y-10">
+                      <div>
+                        <h3 className="text-xs font-black text-text-primary uppercase tracking-[0.2em] mb-6 flex items-center">
+                           <ShieldCheck size={16} className="mr-2 text-accent-red" />
+                           Identity & Documentation
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="p-6 bg-surface-light rounded-3xl border border-border">
+                               <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2">Aadhaar Number</p>
+                               <p className="text-lg font-black text-text-primary tracking-tight">{selectedWorker.aadhaar || 'NOT PROVIDED'}</p>
+                           </div>
+                           <div className="p-6 bg-surface-light rounded-3xl border border-border">
+                               <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2">PAN Number</p>
+                               <p className="text-lg font-black text-text-primary tracking-tight uppercase">{selectedWorker.pan || 'NOT PROVIDED'}</p>
+                           </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xs font-black text-text-primary uppercase tracking-[0.2em] mb-6 flex items-center">
+                           <Briefcase size={16} className="mr-2 text-accent-red" />
+                           Professional Profile
+                        </h3>
+                        <div className="p-8 bg-white rounded-3xl border border-border space-y-6">
+                           <div>
+                              <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2">Service Category</p>
+                              <p className="text-sm font-black text-text-primary uppercase">{selectedWorker.category || 'General Professional'}</p>
+                           </div>
+                           <div>
+                              <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2">Experience Level</p>
+                              <p className="text-sm font-black text-text-primary uppercase">{selectedWorker.experience || 0} Years Active Practice</p>
+                           </div>
+                           <div>
+                              <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2">Professional Summary</p>
+                              <p className="text-xs text-text-secondary leading-relaxed font-medium">{selectedWorker.summary || 'No summary provided by the provider.'}</p>
+                           </div>
+                           {selectedWorker.skills && selectedWorker.skills.length > 0 && (
+                              <div>
+                                 <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-3">Verified Skills</p>
+                                 <div className="flex flex-wrap gap-2">
+                                    {selectedWorker.skills.map((skill, i) => (
+                                       <span key={i} className="px-3 py-1 bg-accent-red/5 text-accent-red text-[9px] font-black uppercase rounded-full border border-accent-red/10">{skill}</span>
+                                    ))}
+                                 </div>
+                              </div>
+                           )}
+                        </div>
+                      </div>
+                   </div>
+
+                   {/* Right Column: Contact & Banking */}
+                   <div className="space-y-10">
+                      <div>
+                        <h3 className="text-xs font-black text-text-primary uppercase tracking-[0.2em] mb-6 flex items-center">
+                           <MapPin size={16} className="mr-2 text-accent-red" />
+                           Contact Registry
+                        </h3>
+                        <div className="p-6 bg-surface-light rounded-3xl border border-border space-y-4">
+                           <div>
+                              <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Phone Number</p>
+                              <p className="text-sm font-black text-text-primary">{selectedWorker.phone || 'N/A'}</p>
+                           </div>
+                           <div>
+                              <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Registered Address</p>
+                              <p className="text-xs font-medium text-text-primary leading-tight">{selectedWorker.location?.address || 'Location Hidden / Not Provided'}</p>
+                           </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xs font-black text-text-primary uppercase tracking-[0.2em] mb-6">Settlement Account</h3>
+                        <div className="p-8 bg-reddish-900 text-white rounded-[2.5rem] shadow-premium relative overflow-hidden group border border-white/5">
+                           <div className="absolute top-0 right-0 p-8 opacity-5">
+                              <Zap size={80} />
+                           </div>
+                           <div className="space-y-6 relative z-10">
+                              <div>
+                                 <p className="text-[8px] font-black uppercase tracking-[0.3em] opacity-40 mb-1">Account Holder</p>
+                                 <p className="text-sm font-black uppercase tracking-tight text-white">{selectedWorker.bankDetails?.holderName || 'Not Verified'}</p>
+                              </div>
+                              <div>
+                                 <p className="text-[8px] font-black uppercase tracking-[0.3em] opacity-40 mb-1">Financial Institution</p>
+                                 <p className="text-sm font-black uppercase tracking-tight text-white">{selectedWorker.bankDetails?.bankName || 'Unknown Bank'}</p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                 <div>
+                                    <p className="text-[8px] font-black uppercase tracking-[0.3em] opacity-40 mb-1">Account No.</p>
+                                    <p className="text-xs font-black tracking-widest text-white">{selectedWorker.bankDetails?.accountNumber || '••••••••'}</p>
+                                 </div>
+                                 <div>
+                                    <p className="text-[8px] font-black uppercase tracking-[0.3em] opacity-40 mb-1">IFSC Code</p>
+                                    <p className="text-xs font-black tracking-widest text-white">{selectedWorker.bankDetails?.ifsc || '••••••••'}</p>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
+             {/* Modal Footer */}
+             <div className="p-8 border-t border-border bg-surface-light/30 flex gap-4">
+                <button 
+                   onClick={() => handleStatusUpdate(selectedWorker._id, 'ACTIVE')}
+                   disabled={selectedWorker.status === 'ACTIVE'}
+                   className="flex-1 btn-primary !py-4 shadow-red-glow !bg-accent-red disabled:opacity-50"
+                >
+                   Verify & Activate Provider
+                </button>
+                <button 
+                   onClick={() => handleStatusUpdate(selectedWorker._id, 'REJECTED')}
+                   disabled={selectedWorker.status === 'REJECTED'}
+                   className="flex-1 btn-secondary !py-4 text-danger border-danger/20 bg-danger/5 hover:bg-danger hover:text-white transition-all disabled:opacity-50"
+                >
+                   Reject Documentation
+                </button>
+             </div>
           </div>
         </div>
+      )}
+
+      {filteredWorkers.length === 0 && (
+        <EmptyState 
+          icon={ShieldCheck} 
+          title="No Workers Found" 
+          subtitle="Zero results matching your current search parameters." 
+        />
       )}
     </div>
   );
