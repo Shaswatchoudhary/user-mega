@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { calculateDistance } from '../utils/locationUtils';
 
 const LocationContext = createContext();
@@ -25,27 +24,14 @@ export const LocationProvider = ({ children }) => {
   const arrivalTimerRef = useRef(null);
   const resetTimerRef = useRef(null);
 
-  // Load saved location on mount
+  // Location logic without persistence
   useEffect(() => {
-    loadSavedLocation();
     return () => {
       stopSimulation();
       if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     };
   }, []);
-
-  const loadSavedLocation = async () => {
-    try {
-      const saved = await AsyncStorage.getItem('selectedLocation');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setSelectedLocation(parsed);
-      }
-    } catch (e) {
-      console.error('Error loading location:', e);
-    }
-  };
 
   const saveLocation = async (location) => {
     try {
@@ -58,7 +44,6 @@ export const LocationProvider = ({ children }) => {
         subtitle: location.subtitle || ''
       };
 
-      await AsyncStorage.setItem('selectedLocation', JSON.stringify(standardized));
       setSelectedLocation(standardized);
     } catch (e) {
       console.error('Error saving location:', e);

@@ -75,7 +75,7 @@ export default function BookingStatusScreen({ navigation, route }) {
         {status === 'accepted' && (
           <View style={styles.workerCard}>
             <Image
-              source={{ uri: worker?.image }}
+              source={{ uri: String(worker?.image || 'https://avatar.iran.liara.run/public/job/operator/male') }}
               style={styles.workerImage}
             />
             <View style={styles.workerInfo}>

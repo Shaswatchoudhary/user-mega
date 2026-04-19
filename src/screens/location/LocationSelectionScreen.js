@@ -14,35 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Feather from 'react-native-vector-icons/Feather';
-import Geolocation from 'react-native-geolocation-service';
+import { getUserLocation, reverseGeocode } from '../../utils/locationHelper';
 import { useLocation } from '../../context/LocationContext';
 import permissionService from '../../services/permissionService';
-
-
-// Simple Fetch-based Geocoding bridge (React Native CLI version)
-const reverseGeocode = async (latitude, longitude) => {
-  try {
-    // Note: You should eventually add your Google Maps API Key here
-    // For now, we will use an open-source fallback or simple coordinates
-    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
-    const data = await response.json();
-
-    if (data && data.address) {
-      return [{
-        name: data.display_name.split(',')[0],
-        street: data.address.road || '',
-        district: data.address.suburb || data.address.neighbourhood || '',
-        city: data.address.city || data.address.town || data.address.village || '',
-        region: data.address.state || '',
-        subregion: data.address.county || ''
-      }];
-    }
-    return [];
-  } catch (error) {
-    console.log('Geocoding Error:', error);
-    return [];
-  }
-};
 
 // Mock data for saved addresses
 const MOCK_LOCATIONS = [
@@ -76,64 +50,14 @@ export default function LocationSelectionScreen({ navigation }) {
   const handleUseCurrentLocation = async () => {
     setIsLoading(true);
     try {
-      // 1. Permission check (Runtime)
-      const hasPermission = await requestPermission();
-      
-      if (!hasPermission) {
-        Alert.alert(
-          'Location Permission Required',
-          'To fetch your current location, please enable location permissions for WorkEase in your device settings.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Open Settings', 
-              onPress: () => {
-                if (Platform.OS === 'android') {
-                  const { Linking } = require('react-native');
-                  Linking.openSettings();
-                }
-              } 
-            }
-          ]
-        );
-        setIsLoading(false);
-        return;
+      const location = await getUserLocation();
+      if (location) {
+        await processLocation({ coords: location });
       }
-
-      // 2. Fetch current position with robust logic
-      const getLocationOptions = {
-        enableHighAccuracy: true, 
-        timeout: 20000, 
-        maximumAge: 10000 
-      };
-
-      Geolocation.getCurrentPosition(
-        async (position) => {
-          await processLocation(position);
-        },
-        (error) => {
-          console.log('[Location] High Accuracy Error:', error);
-          
-          // Retry with low accuracy if high accuracy fails
-          Geolocation.getCurrentPosition(
-            async (position) => {
-              await processLocation(position);
-            },
-            (retryError) => {
-              console.log('[Location] Final Error:', retryError);
-              Alert.alert(
-                'Location Unavailable',
-                'We could not determine your current location. Please check if your GPS is on or search for your address manually.'
-              );
-              setIsLoading(false);
-            },
-            { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
-          );
-        },
-        getLocationOptions
-      );
     } catch (error) {
       console.error('[Location] Execution Error:', error);
+      Alert.alert('Location Error', 'Failed to fetch current location');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -144,17 +68,12 @@ export default function LocationSelectionScreen({ navigation }) {
       console.log('[Location] Fetched position:', { latitude, longitude });
 
       // 3. Reverse Geocode for readable address
-      const addressResults = await reverseGeocode(latitude, longitude);
+      const addr = await reverseGeocode(latitude, longitude);
 
-      if (addressResults && addressResults.length > 0) {
-        const addr = addressResults[0];
-        const mainName = addr.name || addr.street || addr.subregion || 'Current Location';
-        const locality = addr.district || addr.city || '';
-        const city = addr.city || addr.subregion || '';
-        const state = addr.region || '';
-
-        const addressText = [mainName, locality, city].filter(Boolean).join(', ');
-        const subtitle = [city, state].filter(Boolean).join(', ');
+      if (addr) {
+        const mainName = addr.name || 'Current Location';
+        const addressText = addr.addressText;
+        const subtitle = addr.subtitle;
 
         const standardizedLocation = {
           name: mainName,

@@ -12,6 +12,8 @@ import PaymentScreen from '../screens/booking/PaymentScreen';
 import SelectPaymentMethodScreen from '../screens/booking/SelectPaymentMethodScreen';
 import ApplianceScreen from '../screens/services/ApplianceScreen';
 import LocationSelectionScreen from '../screens/location/LocationSelectionScreen';
+import LocationPickerScreen from '../screens/location/LocationPickerScreen';
+import AddressDetailsScreen from '../screens/location/AddressDetailsScreen';
 import BookingStatusScreen from '../screens/booking/BookingStatusScreen';
 import TrackingScreen from '../screens/booking/TrackingScreen';
 import AcRepair from '../screens/services/AcRepair';
@@ -25,6 +27,7 @@ import WorkerProfileScreen from '../screens/booking/WorkerProfileScreen';
 import BookingSummaryScreen from '../screens/booking/BookingSummaryScreen';
 import NotificationScreen from '../screens/notifications/NotificationScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import WaitingForWorkerScreen from '../screens/booking/WaitingForWorkerScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -32,14 +35,12 @@ const Stack = createNativeStackNavigator();
 export default function AppNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Splash"
+      initialRouteName="MainTabs"
       screenOptions={{
         headerShown: false,
         animation: 'fade',
       }}
     >
-      <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="OtpLogin" component={OtpLoginScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="Notifications" component={NotificationScreen} />
       <Stack.Screen name="Electrician" component={ElectricianScreen} />
@@ -53,6 +54,8 @@ export default function AppNavigator() {
       <Stack.Screen name="Tracking" component={TrackingScreen} />
       <Stack.Screen name="AcRepair" component={AcRepair} />
       <Stack.Screen name="LocationSelection" component={LocationSelectionScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="LocationPicker" component={LocationPickerScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="AddressDetails" component={AddressDetailsScreen} options={{ headerShown: false }} />
       <Stack.Screen name="BookingStatus" component={BookingStatusScreen} options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="MySupport" component={MySupportScreen} />
       <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
@@ -63,6 +66,7 @@ export default function AppNavigator() {
       <Stack.Screen name="WorkerProfile" component={WorkerProfileScreen} />
       <Stack.Screen name="BookingSummary" component={BookingSummaryScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="WaitingForWorker" component={WaitingForWorkerScreen} />
 
     </Stack.Navigator>
   );

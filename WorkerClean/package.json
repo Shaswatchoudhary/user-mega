@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@notifee/react-native": "^9.1.8",
-    "@react-native-async-storage/async-storage": "^3.0.2",
+    "@react-native-async-storage/async-storage": "1.21.0",
     "@react-native-community/datetimepicker": "^9.1.0",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/app-check": "^24.0.0",
@@ -27,11 +27,9 @@
     "react": "19.1.0",
     "react-native": "0.81.0",
     "react-native-device-info": "^15.0.2",
-    "react-native-geolocation-service": "^5.3.1",
     "react-native-linear-gradient": "^2.8.3",
-    "react-native-maps": "^1.27.2",
     "react-native-safe-area-context": "^5.7.0",
-    "react-native-screens": "4.24.0",
+    "react-native-screens": "^4.24.0",
     "react-native-svg": "^15.15.4",
     "react-native-vector-icons": "^10.3.0"
   },

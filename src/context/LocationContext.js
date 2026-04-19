@@ -1,46 +1,38 @@
-import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { calculateDistance } from '../utils/locationUtils';
 
 const LocationContext = createContext();
 
 export const useLocation = () => useContext(LocationContext);
 
-// Initial worker location (nearby Kolhapur)
-const INITIAL_WORKER_LOCATION = {
+// Hardcoded Kolhapur Coordinates
+const HARDCODED_LOCATION = {
   latitude: 16.7050,
   longitude: 74.2433,
+  addressText: "Kolhapur City Center, Maharashtra, India",
+  name: "Kolhapur",
+  subtitle: "Maharashtra, India"
 };
 
 export const LocationProvider = ({ children }) => {
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  // selectedLocation structure: { addressText, latitude, longitude, name, subtitle }
-
-  const [workerLocation, setWorkerLocation] = useState(INITIAL_WORKER_LOCATION);
-  const [distance, setDistance] = useState(0);
+  const [selectedLocation, setSelectedLocation] = useState(HARDCODED_LOCATION);
+  const [workerLocation, setWorkerLocation] = useState(HARDCODED_LOCATION);
+  const [distance, setDistance] = useState(0.5); // Hardcoded distance in km
   const [isSimulating, setIsSimulating] = useState(false);
   const [hasActiveBooking, setHasActiveBooking] = useState(false);
-  const [bookingStatus, setBookingStatus] = useState(null); // 'on_the_way', 'arrived', null
-  const simulationIntervalRef = useRef(null);
-  const arrivalTimerRef = useRef(null);
-  const resetTimerRef = useRef(null);
+  const [bookingStatus, setBookingStatus] = useState(null);
 
-  // Load saved location on mount
   useEffect(() => {
     loadSavedLocation();
-    return () => {
-      stopSimulation();
-      if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
-      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    };
   }, []);
 
   const loadSavedLocation = async () => {
     try {
       const saved = await AsyncStorage.getItem('selectedLocation');
       if (saved) {
-        const parsed = JSON.parse(saved);
-        setSelectedLocation(parsed);
+        setSelectedLocation(JSON.parse(saved));
+      } else {
+        setSelectedLocation(HARDCODED_LOCATION);
       }
     } catch (e) {
       console.error('Error loading location:', e);
@@ -49,100 +41,31 @@ export const LocationProvider = ({ children }) => {
 
   const saveLocation = async (location) => {
     try {
-      // Ensure the location object is standardized
-      const standardized = {
-        addressText: location.addressText || location.address || '',
-        latitude: location.latitude || location.coords?.latitude,
-        longitude: location.longitude || location.coords?.longitude,
-        name: location.name || '',
-        subtitle: location.subtitle || ''
-      };
-
-      await AsyncStorage.setItem('selectedLocation', JSON.stringify(standardized));
-      setSelectedLocation(standardized);
+      await AsyncStorage.setItem('selectedLocation', JSON.stringify(location));
+      setSelectedLocation(location);
     } catch (e) {
       console.error('Error saving location:', e);
     }
   };
 
-  // Distance calculation whenever locations change
-  useEffect(() => {
-    if (selectedLocation && workerLocation) {
-      const { latitude, longitude } = selectedLocation;
-
-      if (latitude && longitude) {
-        const d = calculateDistance(
-          workerLocation.latitude,
-          workerLocation.longitude,
-          latitude,
-          longitude
-        );
-        setDistance(d);
-      }
-    }
-  }, [selectedLocation, workerLocation]);
-
-  // Simulation Logic
+  // Stubs for previous functionality
   const startSimulation = () => {
-    if (simulationIntervalRef.current) return;
-
-    setIsSimulating(true);
+    console.log("Simulation disabled - Maps removed");
     setHasActiveBooking(true);
     setBookingStatus('on_the_way');
-
-    // Movement Simulation
-    simulationIntervalRef.current = setInterval(() => {
-      setWorkerLocation(prev => {
-        if (!selectedLocation) return prev;
-
-        const { latitude: destLat, longitude: destLng } = selectedLocation;
-
-        if (!destLat) return prev;
-
-        const latDiff = destLat - prev.latitude;
-        const lngDiff = destLng - prev.longitude;
-
-        // Stop if close enough
-        if (Math.abs(latDiff) < 0.0001 && Math.abs(lngDiff) < 0.0001) {
-          return prev;
-        }
-
-        const step = 0.0005;
-        return {
-          latitude: prev.latitude + (latDiff > 0 ? step : -step),
-          longitude: prev.longitude + (lngDiff > 0 ? step : -step),
-        };
-      });
-    }, 8000);
-
-    // Demo Lifecycle Timers
-    arrivalTimerRef.current = setTimeout(() => {
-      setBookingStatus('arrived');
-      resetTimerRef.current = setTimeout(() => {
-        resetBooking();
-      }, 10000);
-    }, 60000);
-  };
-
-  const resetBooking = () => {
-    stopSimulation();
-    if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    setHasActiveBooking(false);
-    setBookingStatus(null);
-    setWorkerLocation(INITIAL_WORKER_LOCATION);
   };
 
   const stopSimulation = () => {
-    if (simulationIntervalRef.current) {
-      clearInterval(simulationIntervalRef.current);
-      simulationIntervalRef.current = null;
-    }
     setIsSimulating(false);
   };
 
-  const resetWorkerLocation = (newWorkerLoc = INITIAL_WORKER_LOCATION) => {
-    setWorkerLocation(newWorkerLoc);
+  const resetBooking = () => {
+    setHasActiveBooking(false);
+    setBookingStatus(null);
+  };
+
+  const resetWorkerLocation = () => {
+    setWorkerLocation(HARDCODED_LOCATION);
   };
 
   return (

@@ -16,10 +16,9 @@ import {
 import { MapPin, Check, ChevronLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
-import Geolocation from 'react-native-geolocation-service';
 import config from '../../constants/config';
 import { useAuth } from '../../context/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import firestore from '@react-native-firebase/firestore';
 
 const CATEGORIES = {
   'AC Repair': ['Installation', 'Gas Refilling', 'Maintenance', 'Fault Diagnosis', 'Compressor Repair'],
@@ -226,9 +225,32 @@ const WorkForm = ({ navigation, route }) => {
       if (response.data.success) {
         // Update local context with the new worker profile
         const newWorker = response.data.data;
+        
+        // --- ADD TO FIRESTORE SO USERS CAN SEE THEM IN REAL TIME --- 
+        try {
+           const uid = newWorker.firebaseUid || newWorker.uid || newWorker._id;
+           await firestore().collection('workers').doc(uid).set({
+             fullName: newWorker.fullName,
+             category: newWorker.category,
+             serviceType: newWorker.category,
+             skills: newWorker.skills || [],
+             isActive: true,
+             isAvailable: true,
+             isVerified: true, // Auto-verify for demo purposes
+             rating: newWorker.rating || 4.0,
+             experience: newWorker.experience || 4,
+             basePrice: newWorker.basePrice || 399,
+             lat: newWorker.location?.coordinates?.[1] || registrationData.lat,
+             lng: newWorker.location?.coordinates?.[0] || registrationData.lng,
+             phone: newWorker.phone || registrationData.phone,
+             syncedAt: firestore.FieldValue.serverTimestamp()
+           }, { merge: true });
+        } catch(fsError) {
+           console.log("Failed to sync to firestore:", fsError);
+        }
+        
         if (setWorkerData) {
             setWorkerData(newWorker);
-            await AsyncStorage.setItem('workerData', JSON.stringify(newWorker));
         }
         
         setIsLoading(false);

@@ -16,6 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { API_BASE_URL } from '../../constants/config';
+import firestore from '@react-native-firebase/firestore';
 
 import { useLocation } from '../../context/LocationContext';
 
@@ -51,34 +52,33 @@ const ElectricianScreen = ({ navigation, route }) => {
 
   const fetchElectricians = async () => {
     try {
-      const coords = selectedLocation?.coords || { latitude: 16.7050, longitude: 74.2433 };
-      const url = `${API_BASE_URL}/workers?category=${encodeURIComponent(category)}&lat=${coords.latitude}&lng=${coords.longitude}`;
-      console.log('Fetching URL:', url);
-      const response = await fetch(url);
+      setLoading(true);
+      const snapshot = await firestore()
+        .collection('workers')
+        .where('category', '==', category)
+        .where('isVerified', '==', true)
+        .where('isActive', '==', true)
+        .where('isAvailable', '==', true)
+        .get();
 
-      console.log('Response status:', response.status);
-      const json = await response.json();
-      console.log('Response data success:', json.success);
-      console.log('Response data count:', json.count);
-
-      if (json.success) {
-        // Map backend data to UI expectations
-        const mappedWorkers = json.data.map(worker => ({
-          id: worker._id,
+      const mappedWorkers = snapshot.docs.map(doc => {
+        const worker = doc.data();
+        return {
+          id: doc.id,
           name: worker.fullName || "Service Professional",
           rating: worker.rating || 4.5,
           reviewCount: worker.completedOrders || 0,
           experience: `${worker.experience || 0}+ Years`,
-          rate: worker.basePrice || 299,
-          distance: worker.distanceInKm || 0,
-          verified: true,
+          rate: worker.basePrice || worker.rate || 299,
+          distance: 0,
+          verified: worker.isVerified !== false,
           specialization: worker.category || category,
-        }));
-        setElectricians(mappedWorkers);
-      }
+          ...worker
+        };
+      });
+      setElectricians(mappedWorkers);
     } catch (error) {
       console.error('FULL ERROR DETAILS:', error);
-      Alert.alert('Network Error', `${error.message} \nURL: ${API_BASE_URL}`);
     } finally {
       setLoading(false);
     }

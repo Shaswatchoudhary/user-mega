@@ -14,6 +14,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors, typography, spacing, borderRadius } from '../../theme';
 import { Rating, Button, Badge } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
+import { useLocation } from '../../context/LocationContext';
+import firestore from '@react-native-firebase/firestore';
+import { Alert } from 'react-native';
+import { getUserLocation } from '../../utils/locationHelper';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -21,6 +26,8 @@ const WorkerProfileScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { worker } = route.params;
+  const { user } = useAuth();
+  const { selectedLocation } = useLocation();
 
   const [selectedServices, setSelectedServices] = useState([]);
   const [showFullBio, setShowFullBio] = useState(false);
@@ -36,13 +43,58 @@ const WorkerProfileScreen = () => {
     setSelectedServices([service]);
   };
 
-  const handleBookNow = () => {
+  const handleBookNow = async () => {
     const finalServices = selectedServices.length > 0 ? selectedServices : [services[0]];
-    navigation.navigate('BookingSummary', {
-      worker: worker,
-      selectedServices: finalServices,
-      preSelectedProduct: route.params?.preSelectedProduct
-    });
+    const serviceType = finalServices[0].name;
+
+    try {
+      // Use the comprehensive selectedLocation from context
+      if (!selectedLocation || !selectedLocation.latitude) {
+        Alert.alert('Location Required', 'Please select your delivery location first.');
+        return;
+      }
+
+      const bookingRef = await firestore().collection('bookings').add({
+        userId: user?._id || user?.uid,
+        workerId: worker.id || worker._id,
+        serviceType: serviceType || worker.specialization || worker.category || 'Service',
+        userName: user?.displayName || user?.fullName || 'Customer',
+        userPhone: user?.phone || '9876543210',
+        status: 'pending',
+        userLocation: {
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          address: selectedLocation.fullAddress || selectedLocation.addressText || selectedLocation.address,
+          shortAddress: selectedLocation.shortAddress || '',
+          fullAddress: selectedLocation.fullAddress || '',
+          displayAddress: selectedLocation.displayAddress || '',
+          flat: selectedLocation.flat || '',
+          wing: selectedLocation.wing || '',
+          landmark: selectedLocation.landmark || '',
+          addressType: selectedLocation.addressType || 'Home',
+        },
+        createdAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+        paymentStatus: 'pending',
+        ticketStatus: null,
+      });
+
+      // Mark worker as unavailable temporarily
+      await firestore().collection('workers').doc(worker.id || worker._id).update({
+        isAvailable: false,
+        currentBookingId: bookingRef.id,
+      });
+
+      // Navigate to waiting screen
+      navigation.navigate('WaitingForWorker', { 
+        bookingId: bookingRef.id,
+        workerId: worker.id || worker._id
+      });
+
+    } catch (error) {
+      console.error('Booking error:', error);
+      Alert.alert('Error', 'Could not create booking. Try again.');
+    }
   };
 
   return (
@@ -50,7 +102,7 @@ const WorkerProfileScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <Image source={{ uri: worker.image || worker.photo }} style={styles.heroImage} />
+          <Image source={{ uri: String(worker.image || worker.photo || 'https://avatar.iran.liara.run/public/job/operator/male') }} style={styles.heroImage} />
           {/* Subtle white fade instead of dark gradient */}
           <LinearGradient
             colors={['transparent', 'rgba(255,255,255,0.7)', colors.white]}

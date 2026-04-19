@@ -108,7 +108,7 @@ export default function BookingWaitingScreen({ route, navigation }) {
         <View style={styles.animationContainer}>
           <Animated.View style={[styles.pulseCircle, { transform: [{ scale: pulseAnim }] }]} />
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: worker.profilePhoto }} style={styles.workerAvatar} />
+            <Image source={{ uri: String(worker.profilePhoto || worker.image || 'https://avatar.iran.liara.run/public/job/operator/male') }} style={styles.workerAvatar} />
           </View>
         </View>
 

@@ -5,9 +5,10 @@ import Octicons from 'react-native-vector-icons/Octicons';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Geolocation from 'react-native-geolocation-service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+
+const DEFAULT_WORKER_IMAGE = 'https://avatar.iran.liara.run/public/job/operator/male';
 
 const topBanners = [
   { id: 1, title: "Electrician\nWorkers", image: 'https://plus.unsplash.com/premium_photo-1678766819262-cdc490bfd0d1?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8ZWxlY3RyaWNhbiUyMHdvcmtlcnxlbnwwfHwwfHx8MA%3D%3D', screen: 'Electrician' },
@@ -173,7 +174,7 @@ const searchPlaceholders = [
 import { API_BASE_URL } from '../../constants/config';
 import { useLocation } from '../../context/LocationContext';
 import { useAuth } from '../../context/AuthContext';
-import firestore from '@react-native-firebase/firestore';
+import { getFirestore, collection, doc, onSnapshot, query, where } from '@react-native-firebase/firestore';
 
 export default function HomeScreen({ navigation }) {
   const [placeholder, setPlaceholder] = useState(searchPlaceholders[0]);
@@ -269,8 +270,8 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const locationName = selectedLocation?.name || 'Select Location';
-  const locationSubtitle = selectedLocation?.addressText || selectedLocation?.address || 'Tap to choose address';
+  const locationName = selectedLocation?.shortAddress || selectedLocation?.name || 'Select Location';
+  const locationSubtitle = selectedLocation?.displayAddress || selectedLocation?.addressText || selectedLocation?.address || 'Tap to choose address';
 
   const fetchMostBookedWorkers = async () => {
     try {
@@ -293,7 +294,7 @@ export default function HomeScreen({ navigation }) {
           reviews: `${worker.completedOrders || 0} bookings`,
           price: `₹${worker.basePrice || 299}`,
           originalPrice: `₹${(worker.basePrice || 299) + 150}`,
-          image: worker.image || fallbackImages[worker.category] || fallbackImages['default'],
+          image: String(worker.image || fallbackImages[worker.category] || fallbackImages['default']),
           subtitle: `${worker.fullName || "Professional"} • ${worker.experience || 0} Yrs Exp`
         }));
         setMostBookedWorkers(mappedWorkers);
@@ -317,15 +318,14 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     if (!user?._id) return;
 
-    const unsubscribe = firestore()
-      .collection('users')
-      .doc(user._id)
-      .collection('notifications')
-      .where('isRead', '==', false)
-      .onSnapshot(querySnapshot => {
+    const db = getFirestore();
+    const notificationsCol = collection(db, 'users', user._id, 'notifications');
+    const q = query(notificationsCol, where('isRead', '==', false));
+
+    const unsubscribe = onSnapshot(q, querySnapshot => {
         setUnreadCount(querySnapshot?.size || 0);
       }, error => {
-        console.error('[HomeScreen] Error listening to notifications:', error);
+        console.error('[HomeScreen] Error listening to notifications:', error.message);
       });
 
     return () => unsubscribe();
@@ -394,7 +394,11 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.locationContainer}
-            onPress={() => navigation.navigate('LocationSelection')}
+            onPress={() => navigation.navigate('LocationPicker', {
+              onLocationSelected: (addr) => {
+                saveLocation(addr);
+              }
+            })}
             activeOpacity={0.7}
           >
             <View style={{ marginRight: 8 }}>
@@ -474,7 +478,7 @@ export default function HomeScreen({ navigation }) {
               activeOpacity={0.9}
               onPress={() => handleBannerPress(banner)}
             >
-              <Image source={{ uri: banner.image }} style={styles.bannerImage} />
+              <Image source={{ uri: String(banner.image || DEFAULT_WORKER_IMAGE) }} style={styles.bannerImage} />
               <View style={styles.bannerOverlay}>
                 <Text style={styles.bannerTitle}>{banner.title}</Text>
               </View>
@@ -515,7 +519,7 @@ export default function HomeScreen({ navigation }) {
                 activeOpacity={0.9}
                 onPress={() => navigation.navigate('WorkerProfile', { worker: { ...worker, name: worker.subtitle.split(' • ')[0] } })}
               >
-                <Image source={{ uri: worker.image }} style={styles.mostBookedImage} />
+                <Image source={{ uri: String(worker.image || DEFAULT_WORKER_IMAGE) }} style={styles.mostBookedImage} />
                 <View style={styles.mostBookedInfo}>
                   <Text style={styles.mostBookedTitle} numberOfLines={2}>{worker.title}</Text>
                   <Text style={styles.workerSubtitle}>{worker.subtitle}</Text>
@@ -557,7 +561,7 @@ export default function HomeScreen({ navigation }) {
                   <Text style={styles.promoButtonText}>{promo.buttonText}</Text>
                 </View>
               </View>
-              <Image source={{ uri: promo.image }} style={styles.promoImage} />
+              <Image source={{ uri: String(promo.image || DEFAULT_WORKER_IMAGE) }} style={styles.promoImage} />
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -583,7 +587,7 @@ export default function HomeScreen({ navigation }) {
                 activeOpacity={0.9}
                 onPress={() => navigation.navigate('Electrician', { category: 'Electrician' })}
               >
-                <Image source={{ uri: service.image }} style={styles.categoryImage} />
+                <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
               </TouchableOpacity>
             )}
@@ -612,7 +616,7 @@ export default function HomeScreen({ navigation }) {
                 activeOpacity={0.9}
                 onPress={() => navigation.navigate('Plumber', { category: 'Plumber' })}
               >
-                <Image source={{ uri: service.image }} style={styles.categoryImage} />
+                <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
               </TouchableOpacity>
             )}
@@ -641,7 +645,7 @@ export default function HomeScreen({ navigation }) {
                 activeOpacity={0.9}
                 onPress={() => navigation.navigate('Carpenter', { category: 'Carpenter' })}
               >
-                <Image source={{ uri: service.image }} style={styles.categoryImage} />
+                <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
               </TouchableOpacity>
             )}
@@ -670,7 +674,7 @@ export default function HomeScreen({ navigation }) {
                 activeOpacity={0.9}
                 onPress={() => navigation.navigate('AcRepair', { category: 'AcRepair' })}
               >
-                <Image source={{ uri: service.image }} style={styles.categoryImage} />
+                <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
               </TouchableOpacity>
             )}
@@ -699,7 +703,7 @@ export default function HomeScreen({ navigation }) {
                 activeOpacity={0.9}
                 onPress={() => navigation.navigate('Appliance', { category: 'Appliance' })}
               >
-                <Image source={{ uri: service.image }} style={styles.categoryImage} />
+                <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
               </TouchableOpacity>
             )}
@@ -728,7 +732,7 @@ export default function HomeScreen({ navigation }) {
                 activeOpacity={0.9}
                 onPress={() => handleSeeAllPress('SelfCare')}
               >
-                <Image source={{ uri: service.image }} style={styles.categoryImage} />
+                <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
               </TouchableOpacity>
             )}

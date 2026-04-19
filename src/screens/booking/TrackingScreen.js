@@ -16,10 +16,10 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useLocation } from "../../context/LocationContext";
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { colors, spacing, borderRadius, typography } from "../../theme";
-import firestore from '@react-native-firebase/firestore';
+import { getFirestore, doc, onSnapshot, updateDoc, serverTimestamp, query, collection, where, orderBy, limit } from '@react-native-firebase/firestore';
 import { useAuth } from "../../context/AuthContext";
+import { getUserLocation } from "../../utils/locationHelper";
 import TicketStatusCard from "../../components/booking/TicketStatusCard";
 import WorkCompletionPopup from "../../components/booking/WorkCompletionPopup";
 
@@ -28,13 +28,16 @@ const ASPECT_RATIO = width / height;
 const LATITUDE_DELTA = 0.01;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-export default function TrackingScreen({ navigation }) {
+export default function TrackingScreen({ navigation, route }) {
   const mapRef = useRef(null);
-  const { selectedLocation, workerLocation, distance, bookingStatus: localStatus } = useLocation();
+  const { selectedLocation, workerLocation: initialWorkerLoc, distance, bookingStatus: localStatus } = useLocation();
   const { user } = useAuth();
   const [eta, setEta] = useState(12);
   const [booking, setBooking] = useState(null);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const [workerLoc, setWorkerLoc] = useState(initialWorkerLoc);
+  const [userLoc, setUserLocation] = useState(selectedLocation);
+  const db = getFirestore();
 
   // Animated pulse for worker marker
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -48,51 +51,74 @@ export default function TrackingScreen({ navigation }) {
     ).start();
   }, []);
 
-  // Firestore Real-time Listener for Active Booking
+  // Listen to the specific booking and worker location
   useEffect(() => {
-    if (!user?._id) return;
+    const userId = user?._id || user?.uid;
+    if (!userId) return;
 
-    const unsubscribe = firestore()
-      .collection('bookings')
-      .where('userId', '==', user._id)
-      .orderBy('createdAt', 'desc')
-      .limit(1)
-      .onSnapshot(querySnapshot => {
-        if (!querySnapshot.empty) {
-          const bookingData = querySnapshot.docs[0].data();
-          const docId = querySnapshot.docs[0].id;
-          const currentBooking = { ...bookingData, id: docId };
-          setBooking(currentBooking);
+    // 1. Get user's own location for the map
+    getUserLocation().then(loc => {
+      if (loc) setUserLocation(loc);
+    });
 
-          // Check for work completion
-          if (currentBooking.status === 'work_completed' && currentBooking.ticketStatus === 'open') {
-            setShowCompletionPopup(true);
-          }
+    // 2. Listen to booking (Modular Query)
+    const bookingsCol = collection(db, 'bookings');
+    const q = query(
+      bookingsCol,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    );
+
+    const unsubscribeBooking = onSnapshot(q, querySnapshot => {
+      if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        const currentBooking = { ...docSnap.data(), id: docSnap.id };
+        setBooking(currentBooking);
+
+        // Check for work completion
+        if (currentBooking.status === 'work_completed' && currentBooking.ticketStatus === 'open') {
+          setShowCompletionPopup(true);
         }
-      }, error => {
-        console.error("Firestore Tracking Error:", error);
-      });
 
-    return () => unsubscribe();
-  }, [user?._id]);
+        // 3. Listen to booking document directly for worker location updates
+        if (currentBooking.id && currentBooking.status !== 'completed') {
+          const bookingRef = doc(db, 'bookings', currentBooking.id);
+          const unsubLoc = onSnapshot(bookingRef, (locSnap) => {
+            if (locSnap.exists() && locSnap.data().workerLocation) {
+              setWorkerLoc(locSnap.data().workerLocation);
+            }
+          });
+          return () => unsubLoc();
+        }
+      }
+    }, error => {
+      console.error("Firestore Tracking Error:", error.message);
+    });
+
+    return () => unsubscribeBooking();
+  }, [user?._id, user?.uid]);
 
   // Update ETA based on distance
   useEffect(() => {
     if (distance) {
-      const estimatedMins = Math.max(1, Math.round(distance * 4)); // approx 4 mins per km
+      const estimatedMins = Math.max(1, Math.round(distance * 4));
       setEta(estimatedMins);
     }
   }, [distance]);
 
   const workerData = {
-    name: booking?.workerName || "Vaibhav Jain",
-    rating: "4.9",
-    reviews: "125",
-    vehicle: "Honda Civic - ABC 123",
-    image: booking?.workerImage || "https://avatar.iran.liara.run/public/job/operator/male",
-    status: booking?.status === 'arrived' ? "Reached location" : 
-            booking?.status === 'work_completed' ? "Work completed" : "On the way",
-    address: selectedLocation?.addressText || "Ruikar Colony, Kolhapur"
+    name: booking?.workerName || "Assigned Worker",
+    rating: booking?.workerRating || "4.8",
+    reviews: "100+",
+    vehicle: booking?.workerVehicle || "Service Partner",
+    image: String(booking?.workerImage || "https://avatar.iran.liara.run/public/job/operator/male"),
+    status: booking?.status === 'accepted' ? "Order accepted" :
+      booking?.status === 'navigating' ? "On the way" :
+        booking?.status === 'arrived' ? "Reached location" :
+          booking?.status === 'in_progress' ? "Work in progress" :
+            booking?.status === 'work_completed' ? "Work completed" : "Checking status",
+    address: booking?.userLocation?.address || "Delivery Location"
   };
 
   const handleCallPress = () => {
@@ -106,25 +132,25 @@ export default function TrackingScreen({ navigation }) {
   const handleCloseTicket = async () => {
     try {
       if (!booking?.id) return;
+      const bookingRef = doc(db, 'bookings', booking.id);
 
-      await firestore().collection('bookings').doc(booking.id).update({
+      await updateDoc(bookingRef, {
         ticketStatus: 'closed',
-        workEndTime: firestore.FieldValue.serverTimestamp(),
+        status: 'completed',
+        workEndTime: serverTimestamp(),
         paymentUnlocked: true,
       });
 
       setShowCompletionPopup(false);
-      
-      // Navigate to PaymentScreen with finalized data
+
       navigation.replace('Payment', {
-        totalAmount: booking.totalAmount || 299,
-        worker: { 
-          name: booking.workerName, 
-          image: booking.workerImage,
+        totalAmount: booking.price || 299,
+        worker: {
+          name: workerData.name,
+          image: workerData.image,
           _id: booking.workerId
         },
         bookingId: booking.id,
-        workDuration: true // flag to show duration
       });
     } catch (error) {
       Alert.alert("Error", "Could not close ticket. Try again.");
@@ -134,9 +160,10 @@ export default function TrackingScreen({ navigation }) {
   const handleRaiseIssue = async (issue) => {
     try {
       if (!booking?.id) return;
-      await firestore().collection('bookings').doc(booking.id).update({
+      const bookingRef = doc(db, 'bookings', booking.id);
+      await updateDoc(bookingRef, {
         issue: issue,
-        issueReportedAt: firestore.FieldValue.serverTimestamp()
+        issueReportedAt: serverTimestamp()
       });
       Alert.alert("Issue Reported", "Our team will contact you shortly.");
     } catch (error) {
@@ -144,74 +171,29 @@ export default function TrackingScreen({ navigation }) {
     }
   };
 
-  // Helper for timeline status
-  const getTimelineStatus = () => {
-    const status = booking?.status || localStatus;
-    return {
-      isAccepted: !!status,
-      isOnTheWay: status === 'on_the_way' || status === 'arrived' || status === 'work_completed',
-      isArrived: status === 'arrived' || status === 'work_completed',
-    };
+  const ts = {
+    isAccepted: booking?.status === 'accepted' || booking?.status === 'navigating' || booking?.status === 'arrived' || booking?.status === 'in_progress' || booking?.status === 'work_completed',
+    isOnTheWay: booking?.status === 'navigating' || booking?.status === 'arrived' || booking?.status === 'in_progress' || booking?.status === 'work_completed',
+    isArrived: booking?.status === 'arrived' || booking?.status === 'in_progress' || booking?.status === 'work_completed',
+    isInProgress: booking?.status === 'in_progress' || booking?.status === 'work_completed',
   };
-
-  const ts = getTimelineStatus();
 
   return (
     <View style={styles.container}>
-      {/* 📍 Map Layer */}
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        initialRegion={{
-          latitude: selectedLocation?.latitude || 16.7050,
-          longitude: selectedLocation?.longitude || 74.2433,
-          latitudeDelta: LATITUDE_DELTA,
-          longitudeDelta: LONGITUDE_DELTA,
-        }}
-        region={{
-          latitude: (workerLocation.latitude + (selectedLocation?.latitude || 16.7050)) / 2,
-          longitude: (workerLocation.longitude + (selectedLocation?.longitude || 74.2433)) / 2,
-          latitudeDelta: Math.abs(workerLocation.latitude - (selectedLocation?.latitude || 16.7050)) * 2,
-          longitudeDelta: Math.abs(workerLocation.longitude - (selectedLocation?.longitude || 74.2433)) * 2,
-        }}
-      >
-        {/* User Marker */}
-        <Marker coordinate={{
-          latitude: selectedLocation?.latitude || 16.7050,
-          longitude: selectedLocation?.longitude || 74.2433
-        }}>
-          <View style={styles.userMarkerContainer}>
-            <View style={styles.userMarker}>
-              <Ionicons name="home" size={16} color="#FFF" />
-            </View>
-            <View style={styles.markerPointer} />
+      <View style={styles.mapPlaceholder}>
+        <LinearGradient
+          colors={[colors.accent + '20', '#FFF']}
+          style={styles.placeholderGradient}
+        >
+          <MaterialCommunityIcons name="map-marker-radius" size={80} color={colors.accent} />
+          <Text style={styles.placeholderText}>Worker is on the way to your location</Text>
+          <View style={styles.locationBadge}>
+            <Ionicons name="location" size={16} color={colors.accent} />
+            <Text style={styles.locationBadgeText}>Live Tracking Active</Text>
           </View>
-        </Marker>
+        </LinearGradient>
+      </View>
 
-        {/* Worker Marker */}
-        <Marker coordinate={workerLocation}>
-          <View style={styles.workerMarkerContainer}>
-            <Animated.View style={[styles.workerPulse, { transform: [{ scale: pulseAnim }] }]} />
-            <View style={styles.workerMarker}>
-              <MaterialCommunityIcons name="tools" size={20} color="#FFF" />
-            </View>
-          </View>
-        </Marker>
-
-        {/* Route Line */}
-        <Polyline
-          coordinates={[
-            workerLocation,
-            { latitude: selectedLocation?.latitude || 16.7050, longitude: selectedLocation?.longitude || 74.2433 }
-          ]}
-          strokeColor={colors.accent}
-          strokeWidth={3}
-          lineDashPattern={[5, 5]}
-        />
-      </MapView>
-
-      {/* 🔝 Floating Header */}
       <SafeAreaView style={styles.headerOverlay} pointerEvents="box-none">
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -225,9 +207,7 @@ export default function TrackingScreen({ navigation }) {
         </View>
       </SafeAreaView>
 
-      {/* 📦 Swiggy/Zomato Style Tracking Card */}
       <View style={styles.bottomSheet}>
-        {/* Progress Timeline */}
         <View style={styles.timelineRow}>
           <View style={styles.timelineStep}>
             <View style={[styles.timelineDot, ts.isAccepted ? styles.timelineDotActive : null]} />
@@ -236,18 +216,22 @@ export default function TrackingScreen({ navigation }) {
           <View style={[styles.timelineLine, ts.isOnTheWay ? styles.timelineLineActive : null]} />
           <View style={styles.timelineStep}>
             <View style={[styles.timelineDot, ts.isOnTheWay ? styles.timelineDotActive : null]} />
-            <Text style={styles.timelineLabel}>On the way</Text>
+            <Text style={styles.timelineLabel}>On way</Text>
           </View>
           <View style={[styles.timelineLine, ts.isArrived ? styles.timelineLineActive : null]} />
           <View style={styles.timelineStep}>
             <View style={[styles.timelineDot, ts.isArrived ? styles.timelineDotActive : null]} />
             <Text style={styles.timelineLabel}>Arrived</Text>
           </View>
+          <View style={[styles.timelineLine, ts.isInProgress ? styles.timelineLineActive : null]} />
+          <View style={styles.timelineStep}>
+            <View style={[styles.timelineDot, ts.isInProgress ? styles.timelineDotActive : null]} />
+            <Text style={styles.timelineLabel}>Working</Text>
+          </View>
         </View>
 
-        {/* Dynamic Ticket Status Card */}
         {booking?.ticketStatus && (
-          <TicketStatusCard 
+          <TicketStatusCard
             ticketStatus={booking.ticketStatus}
             workStartTime={booking.workStartTime}
             ticketId={booking.ticketId || `#WE${booking.id?.substring(0, 6).toUpperCase()}`}
@@ -260,13 +244,14 @@ export default function TrackingScreen({ navigation }) {
           </View>
           <View style={styles.etaInfo}>
             <Text style={styles.etaTimeText}>{eta} mins away</Text>
-            <Text style={styles.etaSubText}>Arriving at {workerData.address}</Text>
+            <Text style={styles.etaSubText} numberOfLines={2}>
+              Professional is moving towards your location
+            </Text>
           </View>
         </View>
 
         <View style={styles.divider} />
 
-        {/* Worker Details Row */}
         <View style={styles.workerRow}>
           <Image source={{ uri: workerData.image }} style={styles.workerAvatar} />
           <View style={styles.workerInfo}>
@@ -287,16 +272,16 @@ export default function TrackingScreen({ navigation }) {
           </View>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.safetyButton}
-          onPress={() => Alert.alert("24/7 Support", "Connecting to safety helpline...")}
+          onPress={() => Alert.alert("Project Safety", "Our partners are verified and trained.")}
         >
           <Ionicons name="shield-checkmark" size={18} color="#10B981" />
-          <Text style={styles.safetyText}>Project Safety Policy Active</Text>
+          <Text style={styles.safetyText}>Safety Policy Active</Text>
         </TouchableOpacity>
       </View>
 
-      <WorkCompletionPopup 
+      <WorkCompletionPopup
         visible={showCompletionPopup}
         workerName={workerData.name}
         onConfirm={handleCloseTicket}
@@ -308,7 +293,45 @@ export default function TrackingScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF' },
-  map: { flex: 1 },
+  mapPlaceholder: {
+    height: height * 0.45,
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  placeholderText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    textAlign: 'center',
+    marginTop: 20,
+    fontFamily: 'Poppins-Bold',
+  },
+  locationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: colors.accent + '30',
+  },
+  locationBadgeText: {
+    fontSize: 12,
+    color: colors.accent,
+    fontWeight: '600',
+    marginLeft: 6,
+    fontFamily: 'Poppins-Medium',
+  },
   headerOverlay: {
     position: 'absolute',
     top: 0,
@@ -339,29 +362,8 @@ const styles = StyleSheet.create({
   headerInfo: { alignItems: 'center' },
   headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', fontFamily: 'Poppins-Bold' },
   headerStatus: { fontSize: 12, color: colors.accent, fontWeight: '600' },
-  
-  // Custom Markers
-  userMarkerContainer: { alignItems: 'center', justifyContent: 'center' },
-  userMarker: {
-    width: 34, height: 34, borderRadius: 17, backgroundColor: '#4F46E5',
-    alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFF'
-  },
-  markerPointer: {
-    width: 0, height: 0, borderLeftWidth: 6, borderRightWidth: 6,
-    borderTopWidth: 8, borderLeftColor: 'transparent',
-    borderRightColor: 'transparent', borderTopColor: '#4F46E5', marginTop: -2
-  },
-  workerMarkerContainer: { alignItems: 'center', justifyContent: 'center' },
-  workerMarker: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: colors.accent,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#FFF', elevation: 5
-  },
-  workerPulse: {
-    position: 'absolute', width: 60, height: 60, borderRadius: 30,
-    backgroundColor: 'rgba(232, 69, 69, 0.2)'
-  },
 
-  // Bottom Sheet
+
   bottomSheet: {
     backgroundColor: '#FFF',
     borderTopLeftRadius: 30,
@@ -379,7 +381,7 @@ const styles = StyleSheet.create({
   timelineDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#DDD', marginBottom: 6 },
   timelineDotActive: { backgroundColor: colors.accent },
   timelineLabel: { fontSize: 10, color: '#666', fontFamily: 'Poppins-Medium' },
-  timelineLine: { width: width * 0.15, height: 2, backgroundColor: '#EEE', marginTop: -15, marginHorizontal: 4 },
+  timelineLine: { width: width * 0.12, height: 2, backgroundColor: '#EEE', marginTop: -15, marginHorizontal: 2 },
   timelineLineActive: { backgroundColor: colors.accent },
 
   etaContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },

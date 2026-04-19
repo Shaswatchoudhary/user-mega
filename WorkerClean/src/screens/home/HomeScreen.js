@@ -15,42 +15,93 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
-import config from '../../constants/config';
 import { useAuth } from '../../context/AuthContext';
+import { getFirestore, collection, query, where, onSnapshot } from '@react-native-firebase/firestore';
+import locationService from '../../services/locationService';
 
 export default function HomeScreen({ navigation }) {
   const { user, workerData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [activeBookings, setActiveBookings] = useState([]);
+  const [newRequests, setNewRequests] = useState([]);
+  const db = getFirestore();
 
-  // Handle Android back button press
+  // Start background location tracking for worker
   useEffect(() => {
-    const backAction = () => {
-      Alert.alert(
-        'Exit App',
-        'Are you sure you want to exit?',
-        [
-          {
-            text: 'Cancel',
-            onPress: () => null,
-            style: 'cancel',
-          },
-          {
-            text: 'YES',
-            onPress: () => BackHandler.exitApp()
-          },
-        ]
-      );
-      return true;
+    const workerId = workerData?.id || workerData?._id || user?.uid;
+    if (!workerId) return;
+
+    const initTracking = async () => {
+      const hasPermission = await locationService.requestPermission();
+      if (hasPermission) {
+        locationService.startTracking(workerId);
+      }
     };
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
+    initTracking();
 
+    return () => {
+      locationService.stopTracking();
+    };
+  }, [workerData?.id, workerData?._id, user?.uid]);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert('Exit App', 'Are you sure you want to exit?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'YES', onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, []);
 
+  // Listen for real-time bookings (Modular API)
+  useEffect(() => {
+    const workerId = workerData?.id || workerData?._id || user?.uid;
+    if (!workerId) return;
+
+    const bookingsCol = collection(db, 'bookings');
+
+    // 1. Listen for Incoming (Pending) Requests
+    const qIncoming = query(
+      bookingsCol,
+      where('workerId', '==', workerId),
+      where('status', '==', 'pending')
+    );
+
+    const unsubscribeIncoming = onSnapshot(qIncoming, (snapshot) => {
+      if (!snapshot.empty) {
+        const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setNewRequests(requests);
+      } else {
+        setNewRequests([]);
+      }
+    });
+
+    // 2. Listen for Active Jobs
+    const qActive = query(
+      bookingsCol,
+      where('workerId', '==', workerId),
+      where('status', 'in', ['accepted', 'navigating', 'arrived', 'in_progress'])
+    );
+
+    const unsubscribeActive = onSnapshot(qActive, (snapshot) => {
+      if (!snapshot.empty) {
+        const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setActiveBookings(bookings);
+      } else {
+        setActiveBookings([]);
+      }
+    });
+
+    return () => {
+      unsubscribeIncoming();
+      unsubscribeActive();
+    };
+  }, [workerData?.id, workerData?._id, user?.uid]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -154,20 +205,31 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* New Requests Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>New Requests</Text>
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{workerData?.requests?.length || 0}</Text>
+            <Text style={styles.badgeText}>{newRequests?.length || 0}</Text>
           </View>
         </View>
 
-        {/* Request Cards */}
         <View style={styles.requestsContainer}>
-          {workerData?.requests && workerData.requests.length > 0 ? (
-            workerData.requests.map((request, index) => (
-              <TouchableOpacity key={index} style={styles.requestCard}>
-                {/* ... existing request card logic adapted for dynamic data ... */}
+          {newRequests && newRequests.length > 0 ? (
+            newRequests.map((request, index) => (
+              <TouchableOpacity 
+                key={index} 
+                style={styles.requestCard}
+                onPress={() => navigation.navigate('IncomingBooking', { bookingId: request.id, bookingData: request })}
+              >
+                 <View style={styles.requestHeader}>
+                    <View style={styles.requestIcon}>
+                       <MaterialCommunityIcons name="clipboard-text-play" size={24} color="#E84545" />
+                    </View>
+                    <View style={styles.requestInfo}>
+                       <Text style={styles.requestTitle}>{request.serviceType || 'Job Request'}</Text>
+                       <Text style={styles.requestSubtitle}>📍 {request.userLocation?.shortAddress || request.userLocation?.address || 'Location provided'}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+                 </View>
               </TouchableOpacity>
             ))
           ) : (
@@ -178,19 +240,45 @@ export default function HomeScreen({ navigation }) {
           )}
         </View>
 
-        {/* Active Orders Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Active Orders</Text>
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{workerData?.activeOrders?.length || 0}</Text>
+            <Text style={styles.badgeText}>{activeBookings?.length || 0}</Text>
           </View>
         </View>
 
         <View style={styles.activeOrdersContainer}>
-          {workerData?.activeOrders && workerData.activeOrders.length > 0 ? (
-            workerData.activeOrders.map((order, index) => (
-              <TouchableOpacity key={index} style={styles.activeOrderCard}>
-                {/* ... existing active order card logic adapted for dynamic data ... */}
+          {activeBookings && activeBookings.length > 0 ? (
+            activeBookings.map((order, index) => (
+              <TouchableOpacity 
+                key={index} 
+                style={styles.activeOrderCard}
+                onPress={() => navigation.navigate('ActiveJob', { bookingId: order.id, bookingData: order })}
+              >
+                <View style={styles.activeOrderHeader}>
+                  <View style={styles.inProgressBadge}>
+                    <View style={styles.pulseDot} />
+                    <Text style={styles.inProgressText}>ACTIVE JOB</Text>
+                  </View>
+                  <Text style={styles.orderId}>#{order.id.slice(0,6).toUpperCase()}</Text>
+                </View>
+                
+                <View style={styles.activeOrderContent}>
+                  <View style={styles.activeOrderInfo}>
+                    <Text style={styles.activeOrderTitle}>{order.serviceType || 'Service Booked'}</Text>
+                    <Text style={styles.activeOrderSubtitle}>📍 {order.userLocation?.shortAddress || order.userLocation?.address || 'Location provided'}</Text>
+                  </View>
+                  <Text style={styles.activeOrderAmount}>
+                    ₹{order.price || order.basePrice || 399}
+                  </Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={[styles.completeButton, { backgroundColor: '#E84545' }]}
+                  onPress={() => navigation.navigate('ActiveJob', { bookingId: order.id, bookingData: order })}
+                >
+                  <Text style={styles.completeButtonText}>View Job Tasks & Complete</Text>
+                </TouchableOpacity>
               </TouchableOpacity>
             ))
           ) : (

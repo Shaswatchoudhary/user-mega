@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import auth from '@react-native-firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import firestore from '@react-native-firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -10,25 +10,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Handle user state changes
-  async function onAuthStateChanged(fbUser) {
-    if (fbUser) {
-      setUser(fbUser);
-      // Try to load persisted worker data if available
-      const storedWorker = await AsyncStorage.getItem('workerData');
-      if (storedWorker) {
-          setWorkerData(JSON.parse(storedWorker));
-      }
-    } else {
-      setUser(null);
-      setWorkerData(null);
-      await AsyncStorage.removeItem('workerData');
-    }
-    
-    if (loading) setLoading(false);
-  }
-
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    const subscriber = auth().onAuthStateChanged(async (fbUser) => {
+      if (fbUser) {
+        setUser(fbUser);
+        try {
+          const workerDoc = await firestore().collection('workers').doc(fbUser.uid).get();
+          if (workerDoc.exists) {
+            setWorkerData({ id: fbUser.uid, ...workerDoc.data() });
+          }
+        } catch (error) {
+          console.error("Error fetching worker data:", error);
+        }
+      } else {
+        setUser(null);
+        setWorkerData(null);
+      }
+      setLoading(false);
+    });
     return subscriber; 
   }, []);
 
@@ -36,7 +35,6 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     if (profileData) {
       setWorkerData(profileData);
-      await AsyncStorage.setItem('workerData', JSON.stringify(profileData));
     }
   };
 
@@ -44,7 +42,6 @@ export const AuthProvider = ({ children }) => {
     await auth().signOut();
     setUser(null);
     setWorkerData(null);
-    await AsyncStorage.removeItem('workerData');
   };
 
   return (

@@ -14,6 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { API_BASE_URL } from '../../constants/config';
+import firestore from '@react-native-firebase/firestore';
 
 import { useLocation } from '../../context/LocationContext';
 
@@ -36,31 +37,31 @@ const AcRepair = ({ navigation, route }) => {
 
   const fetchWorkers = async () => {
     try {
-      const { latitude, longitude } = selectedLocation || { latitude: 16.7050, longitude: 74.2433 };
-      const url = `${API_BASE_URL}/workers?category=${encodeURIComponent(category)}&lat=${latitude}&lng=${longitude}`;
-      console.log('Fetching URL:', url);
-      const response = await fetch(url);
+      setLoading(true);
+      const snapshot = await firestore()
+        .collection('workers')
+        .where('category', '==', category)
+        .where('isVerified', '==', true)
+        .where('isActive', '==', true)
+        .where('isAvailable', '==', true)
+        .get();
 
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status}`);
-      }
-
-      const json = await response.json();
-      if (json.success) {
-        const mappedWorkers = json.data.map(worker => ({
-          id: worker._id,
+      const mappedWorkers = snapshot.docs.map(doc => {
+        const worker = doc.data();
+        return {
+          id: doc.id,
           name: worker.fullName || "Service Professional",
           rating: worker.rating || 4.5,
           reviewCount: worker.completedOrders || 0,
           experience: `${worker.experience || 0}+ Years`,
-          rate: worker.basePrice || 299,
-          distance: worker.distanceInKm || 0,
-          verified: true,
+          rate: worker.basePrice || worker.rate || 299,
+          distance: 0,
+          verified: worker.isVerified !== false,
           specialization: worker.category || category,
-          image: worker.image
-        }));
-        setWorkers(mappedWorkers);
-      }
+          ...worker
+        };
+      });
+      setWorkers(mappedWorkers);
     } catch (error) {
       console.error('FULL ERROR DETAILS:', error);
     } finally {
