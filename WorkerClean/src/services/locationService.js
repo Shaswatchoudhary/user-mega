@@ -1,4 +1,5 @@
 import { getFirestore, doc, updateDoc } from '@react-native-firebase/firestore';
+import { requestLocationPermission } from '../utils/locationHelper';
 
 class LocationService {
   constructor() {
@@ -15,7 +16,7 @@ class LocationService {
   }
 
   async requestPermission() {
-    return true; // Auto-grant since we aren't using real location
+    return await requestLocationPermission();
   }
 
   async startTracking(workerId, bookingId = null) {
@@ -23,27 +24,56 @@ class LocationService {
     this.activeBookingId = bookingId;
     const db = getFirestore();
 
-    // Stubbing the tracking update logic to run once with hardcoded values
-    try {
-      if (this.currentWorkerId) {
-        const workerRef = doc(db, 'workers', this.currentWorkerId);
-        await updateDoc(workerRef, {
-          currentLocation: this.lastPosition
-        });
+    const updateLocation = async (lat, lng) => {
+      try {
+        const timestamp = new Date().toISOString();
+        if (this.currentWorkerId) {
+          const workerRef = doc(db, 'workers', this.currentWorkerId);
+          await updateDoc(workerRef, {
+            currentLocation: {
+              latitude: lat,
+              longitude: lng,
+              lastUpdated: timestamp
+            },
+            status: 'ONLINE'
+          });
+        }
+        if (this.activeBookingId) {
+          const bookingRef = doc(db, 'bookings', this.activeBookingId);
+          await updateDoc(bookingRef, {
+            workerLocation: {
+              latitude: lat,
+              longitude: lng,
+              lastUpdated: timestamp
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Location update failed', e);
       }
-      if (this.activeBookingId) {
-        const bookingRef = doc(db, 'bookings', this.activeBookingId);
-        await updateDoc(bookingRef, {
-          workerLocation: this.lastPosition
-        });
+    };
+
+    // Watch for location changes
+    this.watchId = Geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        updateLocation(latitude, longitude);
+      },
+      (error) => console.error('Tracking error:', error),
+      {
+        enableHighAccuracy: true,
+        distanceFilter: 10,
+        interval: 10000,
+        fastestInterval: 5000,
       }
-    } catch (e) {
-      console.log('Location stub update failed', e);
-    }
+    );
   }
 
   stopTracking() {
-    this.watchId = null;
+    if (this.watchId !== null) {
+      Geolocation.clearWatch(this.watchId);
+      this.watchId = null;
+    }
   }
 
   setActiveBooking(bookingId) {

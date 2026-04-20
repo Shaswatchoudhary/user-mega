@@ -95,11 +95,13 @@ const ActiveJobScreen = ({ route, navigation }) => {
   };
 
   const handleNavigate = () => {
+    // Try to get from nested userLocation object or top-level fields
     const loc = bookingData?.userLocation;
-    const lat = loc?.latitude || loc?.lat || loc?.coords?.latitude;
-    const lng = loc?.longitude || loc?.lng || loc?.coords?.longitude;
+    const lat = loc?.latitude || loc?.lat || loc?.coords?.latitude || bookingData?.userLat;
+    const lng = loc?.longitude || loc?.lng || loc?.coords?.longitude || bookingData?.userLng;
 
-    if (!lat || !lng) {
+    // Check if values are null or undefined (allowing 0 as a valid coordinate)
+    if (lat === undefined || lat === null || lng === undefined || lng === null) {
         Alert.alert('Error', 'No coordinates available for navigation');
         return;
     }

@@ -104,10 +104,18 @@ export default function LocationSelectionScreen({ navigation }) {
 
   const saveAndNavigate = async (locationData) => {
     try {
-      await saveLocation(locationData);
-      navigation.goBack();
+      navigation.navigate('AddressDetails', {
+        location: {
+          ...locationData,
+          shortAddress: locationData.name,
+          fullAddress: locationData.addressText
+        },
+        onLocationSelected: async (finalAddr) => {
+          await saveLocation(finalAddr);
+        }
+      });
     } catch (e) {
-      console.log('Storage Error:', e);
+      console.log('Navigation Error:', e);
     }
   };
 

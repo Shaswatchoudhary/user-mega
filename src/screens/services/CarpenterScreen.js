@@ -37,32 +37,42 @@ const CarpenterScreen = ({ navigation, route }) => {
   const fetchWorkers = async () => {
     try {
       setLoading(true);
-      const snapshot = await firestore()
-        .collection('workers')
-        .where('category', '==', category)
-        .where('isVerified', '==', true)
-        .where('isActive', '==', true)
-        .where('isAvailable', '==', true)
-        .get();
-
-      const mappedWorkers = snapshot.docs.map(doc => {
-        const worker = doc.data();
-        return {
-          id: doc.id,
-          name: worker.fullName || "Service Professional",
-          rating: worker.rating || 4.5,
-          reviewCount: worker.completedOrders || 0,
-          experience: `${worker.experience || 0}+ Years`,
-          rate: worker.basePrice || worker.rate || 299,
-          distance: 0,
-          verified: worker.isVerified !== false,
-          specialization: worker.category || category,
-          ...worker
-        };
-      });
-      setWorkers(mappedWorkers);
+      const response = await fetch(`${API_BASE_URL}/workers`);
+      const json = await response.json();
+      
+      if (json.success && json.data) {
+        console.log(`DEBUG: CarpenterScreen - Total workers from API: ${json.data.length}`);
+        const targetCat = category.toLowerCase().replace(/\s+/g, '');
+        const mappedWorkers = json.data
+          .filter(w => {
+            if ((w.status || '').toUpperCase() !== 'ACTIVE') return false;
+            if (!w.category) return false;
+            
+            const normalizedWorkerCat = w.category.toLowerCase().replace(/\s+/g, '');
+            const match = normalizedWorkerCat === targetCat || 
+                         (targetCat === 'carpenter' && normalizedWorkerCat === 'carpenters') ||
+                         (targetCat === 'carpenters' && normalizedWorkerCat === 'carpenter');
+            return match;
+          })
+          .map(worker => ({
+            id: worker._id,
+            name: worker.fullName || "Service Professional",
+            rating: worker.rating || 4.5,
+            reviewCount: worker.completedOrders || 0,
+            experience: `${worker.experience || 0}+ Years`,
+            rate: worker.basePrice || worker.rate || 299,
+            distance: 0.5,
+            verified: true,
+            specialization: worker.category || category,
+            image: worker.image,
+            ...worker
+          }));
+        
+        console.log(`DEBUG: Found ${mappedWorkers.length} active ${category}s`);
+        setWorkers(mappedWorkers);
+      }
     } catch (error) {
-      console.error('FULL ERROR DETAILS:', error);
+      console.error('FETCH ERROR:', error);
     } finally {
       setLoading(false);
     }

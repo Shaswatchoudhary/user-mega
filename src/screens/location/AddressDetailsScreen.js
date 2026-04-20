@@ -131,61 +131,71 @@ const AddressDetailsScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   header: {
     flexDirection: 'row', alignItems: 'center',
     padding: 16, borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
-  backBtn: { fontSize: 24, color: '#F8FAFC', marginRight: 12 },
+  backBtn: { fontSize: 24, color: '#1A1A1A', marginRight: 12 },
   headerTitle: {
-    color: '#F8FAFC', fontSize: 18, fontWeight: '700'
+    color: '#1A1A1A', fontSize: 18, fontWeight: '700', fontFamily: 'Poppins-Bold'
   },
   content: { flex: 1, padding: 16 },
   locationPreview: {
     flexDirection: 'row',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF',
     padding: 16, borderRadius: 12,
     marginBottom: 20, alignItems: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   locationIcon: { fontSize: 24, marginRight: 12 },
   locationText: { flex: 1 },
   areaName: {
-    color: '#F8FAFC', fontSize: 16, fontWeight: '700'
+    color: '#1A1A1A', fontSize: 16, fontWeight: '700', fontFamily: 'Poppins-Bold'
   },
-  areaFull: { color: '#94A3B8', fontSize: 13, marginTop: 4 },
+  areaFull: { color: '#64748B', fontSize: 13, marginTop: 4, fontFamily: 'Poppins-Regular' },
   inputGroup: { marginBottom: 20 },
   inputLabel: {
-    color: '#94A3B8', fontSize: 13,
+    color: '#64748B', fontSize: 13,
     fontWeight: '600', marginBottom: 8,
     textTransform: 'uppercase', letterSpacing: 0.5,
+    fontFamily: 'Poppins-SemiBold'
   },
   input: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12, padding: 14,
-    color: '#F8FAFC', fontSize: 15,
-    borderWidth: 1, borderColor: '#334155',
+    color: '#1A1A1A', fontSize: 15,
+    borderWidth: 1, borderColor: '#E2E8F0',
+    fontFamily: 'Poppins-Regular'
   },
   typeRow: { flexDirection: 'row', gap: 12 },
   typeChip: {
     flex: 1, padding: 12,
     borderRadius: 10, borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF',
   },
   typeChipActive: {
-    borderColor: '#3B82F6',
-    backgroundColor: 'rgba(59, 130, 246, 0.19)',
+    borderColor: '#E84545',
+    backgroundColor: '#FFF5F5',
   },
-  typeText: { color: '#94A3B8', fontSize: 14 },
-  typeTextActive: { color: '#3B82F6', fontWeight: '600' },
+  typeText: { color: '#64748B', fontSize: 14, fontFamily: 'Poppins-Regular' },
+  typeTextActive: { color: '#E84545', fontWeight: '600', fontFamily: 'Poppins-SemiBold' },
   saveButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#E84545',
     margin: 16, padding: 16,
     borderRadius: 12, alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#E84545',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
-  saveText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  saveText: { color: '#fff', fontSize: 16, fontWeight: '700', fontFamily: 'Poppins-Bold' },
 });
 
 export default AddressDetailsScreen;

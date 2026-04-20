@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { API_BASE_URL } from '../../constants/config';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 const BookingCard = ({ item }) => {
   const getStatusColor = (status) => {
@@ -45,7 +46,7 @@ const BookingCard = ({ item }) => {
         </View>
         <View style={styles.infoRow}>
           <MaterialCommunityIcons name="currency-inr" size={14} color="#A0A0A0" />
-          <Text style={styles.priceText}>Total: ₹{item.totalPrice}</Text>
+          <Text style={styles.priceText}>Total: ₹{item.price || item.totalPrice || 249}</Text>
         </View>
       </View>
 
@@ -69,27 +70,48 @@ const BookingScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchBookings();
+    const user = auth().currentUser;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    console.log('[BOOKINGS DEBUG] Listening for userId:', user.uid);
+
+    const unsubscribe = firestore()
+      .collection('bookings')
+      .where('userId', '==', user.uid)
+      .orderBy('createdAt', 'desc')
+      .onSnapshot(
+        (querySnapshot) => {
+          const bookingList = [];
+          if (querySnapshot) {
+            querySnapshot.forEach((doc) => {
+              bookingList.push({
+                id: doc.id,
+                ...doc.data(),
+              });
+            });
+          }
+          console.log('[BOOKINGS DEBUG] Found bookings:', bookingList.length);
+          setBookings(bookingList);
+          setLoading(false);
+          setRefreshing(false);
+        },
+        (error) => {
+          console.error('[BOOKINGS ERROR] Firestore listener failed:', error);
+          setLoading(false);
+          setRefreshing(false);
+        }
+      );
+
+    return () => unsubscribe();
   }, []);
 
-  const fetchBookings = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/booking`);
-      const json = await response.json();
-      if (json.success) {
-        setBookings(json.data);
-      }
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
   const onRefresh = () => {
+    // onSnapshot handles real-time updates, but we can keep RefreshControl for manual "feel"
     setRefreshing(true);
-    fetchBookings();
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   const handleHelpPress = () => {

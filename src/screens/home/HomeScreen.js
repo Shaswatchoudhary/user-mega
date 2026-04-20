@@ -11,18 +11,18 @@ import { useFocusEffect } from '@react-navigation/native';
 const DEFAULT_WORKER_IMAGE = 'https://avatar.iran.liara.run/public/job/operator/male';
 
 const topBanners = [
-  { id: 1, title: "Electrician\nWorkers", image: 'https://plus.unsplash.com/premium_photo-1678766819262-cdc490bfd0d1?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8ZWxlY3RyaWNhbiUyMHdvcmtlcnxlbnwwfHwwfHx8MA%3D%3D', screen: 'Electrician' },
-  { id: 2, title: "Plumber\nWorkers", image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400', screen: 'Plumber' },
-  { id: 3, title: "Carpenter\nWorkers", image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400', screen: 'Carpenter' },
+  { id: 1, title: "Electrician\nWorkers", image: 'https://plus.unsplash.com/premium_photo-1678766819262-cdc490bfd0d1?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8ZWxlY3RyaWNhbiUyMHdvcmtlcnxlbnwwfHwwfHx8MA%3D%3D', screen: 'WorkerList', category: 'Electrician' },
+  { id: 2, title: "Plumber\nWorkers", image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400', screen: 'WorkerList', category: 'Plumber' },
+  { id: 3, title: "Carpenter\nWorkers", image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400', screen: 'WorkerList', category: 'Carpenter' },
 ];
 
 const popularServices = [
-  { id: 1, name: 'Electrician', icon: 'lightning-bolt', color: '#F39C12', screen: 'Electrician' },
-  { id: 2, name: 'Plumber', icon: 'pipe-wrench', color: '#3498DB', screen: 'Plumber' },
-  { id: 3, name: 'Carpenter', icon: 'hammer-screwdriver', color: '#E67E22', screen: 'Carpenter' },
-  { id: 4, name: 'Self-Care\nWorkers', icon: 'face-woman-shimmer', color: '#FF6B9D', screen: 'SelfCare', hasSubcategories: true },
-  { id: 5, name: 'AC Repair', icon: 'air-conditioner', color: '#1ABC9C', screen: 'AcRepair' },
-  { id: 6, name: 'Appliance\nRepair', icon: 'washing-machine', color: '#9B59B6', screen: 'Appliance' },
+  { id: 1, name: 'Electrician', icon: 'lightning-bolt', color: '#F39C12', screen: 'WorkerList' },
+  { id: 2, name: 'Plumber', icon: 'pipe-wrench', color: '#3498DB', screen: 'WorkerList' },
+  { id: 3, name: 'Carpenter', icon: 'hammer-screwdriver', color: '#E67E22', screen: 'WorkerList' },
+  { id: 4, name: 'Self-Care', icon: 'face-woman-shimmer', color: '#FF6B9D', screen: 'SelfCare', hasSubcategories: true },
+  { id: 5, name: 'AcRepair', icon: 'air-conditioner', color: '#1ABC9C', screen: 'WorkerList' },
+  { id: 6, name: 'Appliance', icon: 'washing-machine', color: '#9B59B6', screen: 'WorkerList' },
 ];
 
 
@@ -151,7 +151,8 @@ const bannerPromos = [
     buttonText: 'Book now',
     bg: '#F39C12',
     image: 'https://content.jdmagicbox.com/v2/comp/bangalore/n7/080pxx80.xx80.160413211625.i6n7/catalogue/gururaja-r-srinagar-banashankari-1st-stage-bangalore-electricians-for-residence-1lrzrclwa7.jpg',
-    screen: 'Electrician'
+    screen: 'WorkerList',
+    category: 'Electrician'
   },
   {
     id: 2,
@@ -159,7 +160,8 @@ const bannerPromos = [
     buttonText: 'Book now',
     bg: '#1ABC9C',
     image: 'https://content3.jdmagicbox.com/v2/comp/ernakulam/x7/0484px484.x484.161007111216.j2x7/catalogue/home-star-services-india-pvt-ltd-palarivattom-ernakulam-ac-repair-and-services-41xdekdexb.jpg',
-    screen: 'ACRepair'
+    screen: 'WorkerList',
+    category: 'AcRepair'
   },
 ];
 
@@ -357,33 +359,23 @@ export default function HomeScreen({ navigation }) {
     if (banner.screen === 'SelfCare') {
       setShowSelfCareModal(true);
     } else {
-      navigation.navigate(banner.screen);
+      navigation.navigate(banner.screen, { category: banner.category });
     }
   };
 
   const handlePromoPress = (promo) => {
-    const screenMap = {
-      'Electrician': 'Electrician',
-      'Plumber': 'Plumber',
-      'Carpenter': 'Carpenter',
-      'AcRepair': 'AcRepair',
-      'ACRepair': 'AcRepair',
-      'Appliance': 'Appliance',
-      'SelfCare': 'SelfCare'
-    };
-    const target = screenMap[promo.screen] || promo.screen;
-    if (target === 'SelfCare') {
+    if (promo.screen === 'SelfCare') {
       setShowSelfCareModal(true);
     } else {
-      navigation.navigate(target);
+      navigation.navigate(promo.screen, { category: promo.category });
     }
   };
 
-  const handleSeeAllPress = (screenName) => {
-    if (screenName === 'SelfCare') {
+  const handleSeeAllPress = (category) => {
+    if (category === 'SelfCare') {
       setShowSelfCareModal(true);
     } else {
-      navigation.navigate(screenName);
+      navigation.navigate('WorkerList', { category: category });
     }
   };
 
@@ -394,11 +386,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.locationContainer}
-            onPress={() => navigation.navigate('LocationPicker', {
-              onLocationSelected: (addr) => {
-                saveLocation(addr);
-              }
-            })}
+            onPress={() => navigation.navigate('LocationSelection')}
             activeOpacity={0.7}
           >
             <View style={{ marginRight: 8 }}>
@@ -585,7 +573,7 @@ export default function HomeScreen({ navigation }) {
                 key={service.id}
                 style={styles.categoryCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('Electrician', { category: 'Electrician' })}
+                onPress={() => navigation.navigate('WorkerList', { category: 'Electrician' })}
               >
                 <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
@@ -614,7 +602,7 @@ export default function HomeScreen({ navigation }) {
                 key={service.id}
                 style={styles.categoryCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('Plumber', { category: 'Plumber' })}
+                onPress={() => navigation.navigate('WorkerList', { category: 'Plumber' })}
               >
                 <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
@@ -643,7 +631,7 @@ export default function HomeScreen({ navigation }) {
                 key={service.id}
                 style={styles.categoryCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('Carpenter', { category: 'Carpenter' })}
+                onPress={() => navigation.navigate('WorkerList', { category: 'Carpenter' })}
               >
                 <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
@@ -672,7 +660,7 @@ export default function HomeScreen({ navigation }) {
                 key={service.id}
                 style={styles.categoryCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('AcRepair', { category: 'AcRepair' })}
+                onPress={() => navigation.navigate('WorkerList', { category: 'AcRepair' })}
               >
                 <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>
@@ -701,7 +689,7 @@ export default function HomeScreen({ navigation }) {
                 key={service.id}
                 style={styles.categoryCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('Appliance', { category: 'Appliance' })}
+                onPress={() => navigation.navigate('WorkerList', { category: 'Appliance' })}
               >
                 <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>

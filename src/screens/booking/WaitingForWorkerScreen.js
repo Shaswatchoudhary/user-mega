@@ -1,150 +1,194 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import { getFirestore, doc, onSnapshot, updateDoc, serverTimestamp } from '@react-native-firebase/firestore';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const WaitingForWorkerScreen = ({ route, navigation }) => {
   const { bookingId, workerId } = route.params;
-  const [booking, setBooking] = useState(null);
-  const [timeoutId, setTimeoutId] = useState(null);
-  const db = getFirestore();
+  const [bookingStatus, setBookingStatus] = useState('pending');
 
   useEffect(() => {
-    // Real-time listener on booking document (Modular)
-    const bookingRef = doc(db, 'bookings', bookingId);
-    const unsubscribe = onSnapshot(bookingRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setBooking(data);
+    // Listener for real-time status updates on the booking document
+    const unsubscribe = firestore()
+      .collection('bookings')
+      .doc(bookingId)
+      .onSnapshot(
+        (docSnap) => {
+          if (docSnap.exists) {
+            const data = docSnap.data();
+            setBookingStatus(data.status);
 
-        if (data.status === 'accepted') {
-          // Worker accepted! Go to tracking
-          if (timeoutId) clearTimeout(timeoutId);
-          navigation.replace('Tracking', { 
-            bookingId,
-            workerId 
-          });
-        } else if (data.status === 'rejected') {
-          // Worker rejected
-          if (timeoutId) clearTimeout(timeoutId);
-          Alert.alert(
-            'Booking Rejected',
-            'The worker is unavailable. Please try another worker.',
-            [{ text: 'OK', onPress: () => navigation.goBack() }]
-          );
+            if (data.status === 'accepted') {
+              // Worker accepted! Navigate to tracking screen
+              Alert.alert(
+                'Booking Confirmed!', 
+                'The professional has accepted your request and is starting now.',
+                [{ text: 'Awesome!', onPress: () => navigation.replace('Tracking', { bookingId, workerId }) }]
+              );
+            } else if (data.status === 'rejected') {
+              // Worker rejected
+              Alert.alert(
+                'Worker Unavailable',
+                'The professional declined the request. Please try another professional.',
+                [{ text: 'Try Again', onPress: () => navigation.goBack() }]
+              );
+            }
+          }
+        },
+        (error) => {
+          console.error('Firestore Monitor Error:', error);
         }
-      }
-    });
+      );
 
-    // Auto-cancel after 10 minutes if no response
-    const timeout = setTimeout(async () => {
-      try {
-        await updateDoc(bookingRef, {
-          status: 'cancelled',
-          cancelReason: 'No response from worker',
-          updatedAt: serverTimestamp()
-        });
-        
-        const workerRef = doc(db, 'workers', workerId);
-        await updateDoc(workerRef, {
-          isAvailable: true,
-          currentBookingId: null,
-          updatedAt: serverTimestamp()
-        });
-        
-        Alert.alert('Timeout', 'Worker did not respond. Please try another professional.');
-        navigation.goBack();
-      } catch (err) {
-        console.error('Timeout handler failed:', err.message);
-      }
-    }, 600000); // 10 minutes
-
-    setTimeoutId(timeout);
+    // Auto-timeout after 5 minutes if no response
+    const timer = setTimeout(() => {
+        if (bookingStatus === 'pending') {
+            handleCancel('Request timed out as the worker did not respond.');
+        }
+    }, 300000); // 5 minutes
 
     return () => {
       unsubscribe();
-      if (timeout) clearTimeout(timeout);
+      clearTimeout(timer);
     };
   }, [bookingId, workerId]);
 
-  const handleCancel = async () => {
+  const handleCancel = async (reason = 'Request cancelled by user.') => {
     try {
-      const bookingRef = doc(db, 'bookings', bookingId);
-      await updateDoc(bookingRef, {
+      await firestore().collection('bookings').doc(bookingId).update({
         status: 'cancelled',
-        updatedAt: serverTimestamp()
+        cancelReason: reason,
+        updatedAt: firestore.FieldValue.serverTimestamp(),
       });
-      
-      const workerRef = doc(db, 'workers', workerId);
-      await updateDoc(workerRef, {
+
+      // Make worker available again
+      await firestore().collection('workers').doc(workerId).update({
         isAvailable: true,
-        currentBookingId: null,
-        updatedAt: serverTimestamp()
+        updatedAt: firestore.FieldValue.serverTimestamp(),
       });
-      
+
       navigation.goBack();
     } catch (err) {
-      Alert.alert('Error', 'Could not cancel request. ' + err.message);
+      console.error('Cancellation error:', err);
+      navigation.goBack();
     }
   };
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#3B82F6" />
-      <Text style={styles.title}>Connecting to Professional...</Text>
-      <Text style={styles.subtitle}>
-        The worker is reviewing your request. Please stay on this screen.
-      </Text>
-      <Text style={styles.timer}>Request expires in 10 minutes</Text>
-      
-      <TouchableOpacity 
-        style={styles.cancelButton}
-        onPress={handleCancel}>
-        <Text style={styles.cancelText}>Cancel Request</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <View style={styles.pulseContainer}>
+             <ActivityIndicator size={120} color="#E84545" style={styles.loader} />
+             <View style={styles.centerIcon}>
+                <MaterialCommunityIcons name="clock-fast" size={50} color="#E84545" />
+             </View>
+          </View>
+        </View>
+
+        <Text style={styles.title}>Connecting to Professional...</Text>
+        <Text style={styles.subtitle}>
+          The professional is reviewing your booking request. This usually takes less than a minute.
+        </Text>
+
+        <View style={styles.infoCard}>
+           <View style={styles.infoRow}>
+              <Ionicons name="shield-checkmark" size={20} color="#10B981" />
+              <Text style={styles.infoText}>Secured Payment Process</Text>
+           </View>
+           <View style={styles.infoRow}>
+              <Ionicons name="star" size={20} color="#F59E0B" />
+              <Text style={styles.infoText}>Top-rated local experts</Text>
+           </View>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.cancelButton}
+          onPress={() => handleCancel()}
+        >
+          <Text style={styles.cancelText}>Cancel Request</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 24,
+    paddingHorizontal: 30,
+  },
+  iconContainer: {
+    marginBottom: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulseContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loader: {
+    transform: [{ scale: 1.5 }],
+  },
+  centerIcon: {
+    position: 'absolute',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 24,
-    color: '#1F2937',
-    fontFamily: 'Poppins-Bold'
+    fontWeight: '700',
+    color: '#1A1A1A',
+    textAlign: 'center',
+    fontFamily: 'Poppins-Bold',
+    marginBottom: 16,
   },
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
-    marginTop: 12,
     textAlign: 'center',
     lineHeight: 24,
-    fontFamily: 'Poppins-Regular'
+    fontFamily: 'Poppins-Regular',
+    marginBottom: 40,
   },
-  timer: {
+  infoCard: {
+    backgroundColor: '#F9FAFB',
+    width: '100%',
+    padding: 20,
+    borderRadius: 20,
+    gap: 16,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  infoText: {
     fontSize: 14,
-    color: '#EF4444',
-    marginTop: 24,
-    fontWeight: '600',
+    color: '#374151',
+    fontWeight: '500',
+    fontFamily: 'Poppins-Medium',
   },
   cancelButton: {
-    marginTop: 48,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    backgroundColor: '#FFF1F2',
+    borderRadius: 16,
   },
   cancelText: {
-    color: '#EF4444',
-    fontWeight: 'bold',
+    color: '#E11D48',
+    fontWeight: '700',
     fontSize: 16,
+    fontFamily: 'Poppins-Bold',
   },
 });
 

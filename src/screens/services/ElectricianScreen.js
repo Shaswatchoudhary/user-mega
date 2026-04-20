@@ -53,32 +53,45 @@ const ElectricianScreen = ({ navigation, route }) => {
   const fetchElectricians = async () => {
     try {
       setLoading(true);
-      const snapshot = await firestore()
-        .collection('workers')
-        .where('category', '==', category)
-        .where('isVerified', '==', true)
-        .where('isActive', '==', true)
-        .where('isAvailable', '==', true)
-        .get();
-
-      const mappedWorkers = snapshot.docs.map(doc => {
-        const worker = doc.data();
-        return {
-          id: doc.id,
-          name: worker.fullName || "Service Professional",
-          rating: worker.rating || 4.5,
-          reviewCount: worker.completedOrders || 0,
-          experience: `${worker.experience || 0}+ Years`,
-          rate: worker.basePrice || worker.rate || 299,
-          distance: 0,
-          verified: worker.isVerified !== false,
-          specialization: worker.category || category,
-          ...worker
-        };
-      });
-      setElectricians(mappedWorkers);
+      // Fetch all workers from API for consistent filtering
+      const response = await fetch(`${API_BASE_URL}/workers`);
+      const json = await response.json();
+      
+      if (json.success && json.data) {
+        // Normalize targeting
+        const targetCat = category.toLowerCase().replace(/\s+/g, '');
+        
+        const mappedWorkers = json.data
+          .filter(w => {
+            // Must be ACTIVE
+            if ((w.status || '').toUpperCase() !== 'ACTIVE') return false;
+            // Match category case-insensitively
+            if (!w.category) return false;
+            const normalizedWorkerCat = w.category.toLowerCase().replace(/\s+/g, '');
+            return normalizedWorkerCat === targetCat;
+          })
+          .map(worker => {
+            return {
+              id: worker._id,
+              name: worker.fullName || "Service Professional",
+              rating: worker.rating || 4.5,
+              reviewCount: worker.completedOrders || 0,
+              experience: `${worker.experience || 0}+ Years`,
+              rate: worker.basePrice || worker.rate || 299,
+              distance: 0.5,
+              verified: true,
+              specialization: worker.category || category,
+              image: worker.image,
+              ...worker
+            };
+          });
+          
+        console.log(`DEBUG: Found ${mappedWorkers.length} active ${category}s`);
+        setElectricians(mappedWorkers);
+      }
     } catch (error) {
-      console.error('FULL ERROR DETAILS:', error);
+      console.error('FETCH ERROR:', error);
+      Alert.alert('Error', 'Failed to load professionals. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -16,11 +16,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { getFirestore, collection, query, where, onSnapshot } from '@react-native-firebase/firestore';
+import { getFirestore, collection, query, where, onSnapshot, Timestamp } from '@react-native-firebase/firestore';
 import locationService from '../../services/locationService';
+import { useLocation } from '../../context/LocationContext';
 
 export default function HomeScreen({ navigation }) {
   const { user, workerData } = useAuth();
+  const { selectedLocation } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [activeBookings, setActiveBookings] = useState([]);
   const [newRequests, setNewRequests] = useState([]);
@@ -61,25 +63,38 @@ export default function HomeScreen({ navigation }) {
   // Listen for real-time bookings (Modular API)
   useEffect(() => {
     const workerId = workerData?.id || workerData?._id || user?.uid;
-    if (!workerId) return;
+    console.log('[WORKER HOME DEBUG] Initializing listeners for workerId:', workerId);
+    if (!workerId) {
+      console.log('[WORKER HOME DEBUG] No workerId found, skipping listeners.');
+      return;
+    }
 
     const bookingsCol = collection(db, 'bookings');
 
-    // 1. Listen for Incoming (Pending) Requests
+    // 1. Listen for Incoming (Pending) Requests - Filtered to last 24 hours to avoid "ghost" requests
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const qIncoming = query(
       bookingsCol,
       where('workerId', '==', workerId),
-      where('status', '==', 'pending')
+      where('status', '==', 'pending'),
+      where('createdAt', '>=', Timestamp.fromDate(twentyFourHoursAgo))
     );
 
-    const unsubscribeIncoming = onSnapshot(qIncoming, (snapshot) => {
-      if (!snapshot.empty) {
-        const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setNewRequests(requests);
-      } else {
-        setNewRequests([]);
+    const unsubscribeIncoming = onSnapshot(qIncoming, 
+      (snapshot) => {
+        console.log('[WORKER HOME DEBUG] Incoming (Pending) Snapshot received. Size:', snapshot?.size || 0);
+        if (snapshot && !snapshot.empty) {
+          const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          console.log('[WORKER HOME DEBUG] Pending Requst IDs:', requests.map(r => r.id));
+          setNewRequests(requests);
+        } else {
+          setNewRequests([]);
+        }
+      },
+      (error) => {
+        console.error('ERROR: Incoming bookings listener failed:', error);
       }
-    });
+    );
 
     // 2. Listen for Active Jobs
     const qActive = query(
@@ -88,14 +103,21 @@ export default function HomeScreen({ navigation }) {
       where('status', 'in', ['accepted', 'navigating', 'arrived', 'in_progress'])
     );
 
-    const unsubscribeActive = onSnapshot(qActive, (snapshot) => {
-      if (!snapshot.empty) {
-        const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setActiveBookings(bookings);
-      } else {
-        setActiveBookings([]);
+    const unsubscribeActive = onSnapshot(qActive, 
+      (snapshot) => {
+        console.log('[WORKER HOME DEBUG] Active Jobs Snapshot received. Size:', snapshot?.size || 0);
+        if (snapshot && !snapshot.empty) {
+          const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          console.log('[WORKER HOME DEBUG] Active Job IDs:', bookings.map(b => b.id));
+          setActiveBookings(bookings);
+        } else {
+          setActiveBookings([]);
+        }
+      },
+      (error) => {
+        console.error('ERROR: Active bookings listener failed:', error);
       }
-    });
+    );
 
     return () => {
       unsubscribeIncoming();
@@ -112,6 +134,32 @@ export default function HomeScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Location Header - Zomato Style */}
+        <View style={styles.locationHeader}>
+          <TouchableOpacity
+            style={styles.locationContainer}
+            onPress={() => navigation.navigate('Location')}
+          >
+            <View style={styles.locationIconBox}>
+              <MaterialCommunityIcons name="map-marker-radius" size={24} color="#E84545" />
+            </View>
+            <View style={styles.locationTextBox}>
+              <View style={styles.locationTopRow}>
+                <Text style={styles.locationTitle} numberOfLines={1}>
+                  {selectedLocation?.name || 'Set Location'}
+                </Text>
+                <Ionicons name="chevron-down" size={14} color="#666" />
+              </View>
+              <Text style={styles.locationSubtitle} numberOfLines={1}>
+                {selectedLocation?.address || 'Detect your current location'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.notificationBtn}>
+            <Ionicons name="notifications-outline" size={24} color="#1A1A1A" />
+            <View style={styles.notificationDot} />
+          </TouchableOpacity>
+        </View>
         {/* Under Review Banner */}
         {workerData?.status === 'UNDER_REVIEW' && (
           <View style={styles.underReviewBanner}>
@@ -137,7 +185,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             </View>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.profileButton}
             onPress={() => navigation.navigate('Profile')}
           >
@@ -205,89 +253,83 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>New Requests</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{newRequests?.length || 0}</Text>
-          </View>
-        </View>
+        {newRequests && newRequests.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>New Requests</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{newRequests.length}</Text>
+              </View>
+            </View>
 
-        <View style={styles.requestsContainer}>
-          {newRequests && newRequests.length > 0 ? (
-            newRequests.map((request, index) => (
-              <TouchableOpacity 
-                key={index} 
-                style={styles.requestCard}
-                onPress={() => navigation.navigate('IncomingBooking', { bookingId: request.id, bookingData: request })}
-              >
-                 <View style={styles.requestHeader}>
+            <View style={styles.requestsContainer}>
+              {newRequests.map((request, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.requestCard}
+                  onPress={() => navigation.navigate('IncomingBooking', { bookingId: request.id, bookingData: request })}
+                >
+                  <View style={styles.requestHeader}>
                     <View style={styles.requestIcon}>
-                       <MaterialCommunityIcons name="clipboard-text-play" size={24} color="#E84545" />
+                      <MaterialCommunityIcons name="clipboard-text-play" size={24} color="#E84545" />
                     </View>
                     <View style={styles.requestInfo}>
-                       <Text style={styles.requestTitle}>{request.serviceType || 'Job Request'}</Text>
-                       <Text style={styles.requestSubtitle}>📍 {request.userLocation?.shortAddress || request.userLocation?.address || 'Location provided'}</Text>
+                      <Text style={styles.requestTitle}>{request.serviceType || 'Job Request'}</Text>
+                      <Text style={styles.requestSubtitle}>📍 {request.userLocation?.shortAddress || request.userLocation?.address || request.userAddress || 'Location provided'}</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
-                 </View>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.emptyStateContainer}>
-              <MaterialCommunityIcons name="clipboard-text-outline" size={48} color="#D1D5DB" />
-              <Text style={styles.emptyStateText}>No new requests available</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
-          )}
-        </View>
+          </>
+        )}
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Active Orders</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{activeBookings?.length || 0}</Text>
-          </View>
-        </View>
+        {activeBookings && activeBookings.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Active Orders</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{activeBookings.length}</Text>
+              </View>
+            </View>
 
-        <View style={styles.activeOrdersContainer}>
-          {activeBookings && activeBookings.length > 0 ? (
-            activeBookings.map((order, index) => (
-              <TouchableOpacity 
-                key={index} 
-                style={styles.activeOrderCard}
-                onPress={() => navigation.navigate('ActiveJob', { bookingId: order.id, bookingData: order })}
-              >
-                <View style={styles.activeOrderHeader}>
-                  <View style={styles.inProgressBadge}>
-                    <View style={styles.pulseDot} />
-                    <Text style={styles.inProgressText}>ACTIVE JOB</Text>
-                  </View>
-                  <Text style={styles.orderId}>#{order.id.slice(0,6).toUpperCase()}</Text>
-                </View>
-                
-                <View style={styles.activeOrderContent}>
-                  <View style={styles.activeOrderInfo}>
-                    <Text style={styles.activeOrderTitle}>{order.serviceType || 'Service Booked'}</Text>
-                    <Text style={styles.activeOrderSubtitle}>📍 {order.userLocation?.shortAddress || order.userLocation?.address || 'Location provided'}</Text>
-                  </View>
-                  <Text style={styles.activeOrderAmount}>
-                    ₹{order.price || order.basePrice || 399}
-                  </Text>
-                </View>
-
-                <TouchableOpacity 
-                  style={[styles.completeButton, { backgroundColor: '#E84545' }]}
+            <View style={styles.activeOrdersContainer}>
+              {activeBookings.map((order, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.activeOrderCard}
                   onPress={() => navigation.navigate('ActiveJob', { bookingId: order.id, bookingData: order })}
                 >
-                  <Text style={styles.completeButtonText}>View Job Tasks & Complete</Text>
+                  <View style={styles.activeOrderHeader}>
+                    <View style={styles.inProgressBadge}>
+                      <View style={styles.pulseDot} />
+                      <Text style={styles.inProgressText}>ACTIVE JOB</Text>
+                    </View>
+                    <Text style={styles.orderId}>#{order.id.slice(0, 6).toUpperCase()}</Text>
+                  </View>
+
+                  <View style={styles.activeOrderContent}>
+                    <View style={styles.activeOrderInfo}>
+                      <Text style={styles.activeOrderTitle}>{order.serviceType || 'Service Booked'}</Text>
+                      <Text style={styles.activeOrderSubtitle}>📍 {order.userLocation?.shortAddress || order.userLocation?.address || order.userAddress || 'Location provided'}</Text>
+                    </View>
+                    <Text style={styles.activeOrderAmount}>
+                      ₹{order.price || order.basePrice || 399}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.completeButton, { backgroundColor: '#E84545' }]}
+                    onPress={() => navigation.navigate('ActiveJob', { bookingId: order.id, bookingData: order })}
+                  >
+                    <Text style={styles.completeButtonText}>View Job Tasks & Complete</Text>
+                  </TouchableOpacity>
                 </TouchableOpacity>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.emptyStateContainer}>
-              <MaterialCommunityIcons name="briefcase-check-outline" size={48} color="#D1D5DB" />
-              <Text style={styles.emptyStateText}>No active orders at the moment</Text>
+              ))}
             </View>
-          )}
-        </View>
+          </>
+        )}
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -296,6 +338,66 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    paddingBottom: 100,
+  },
+  locationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 15,
+    backgroundColor: '#FFFFFF',
+  },
+  locationContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationIconBox: {
+    paddingRight: 12,
+  },
+  locationTextBox: {
+    flex: 1,
+  },
+  locationTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  locationTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  locationSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 1,
+  },
+  notificationBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F7F7F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 15,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 12,
+    right: 13,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E84545',
+    borderWidth: 2,
+    borderColor: '#F7F7F7',
+  },
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',

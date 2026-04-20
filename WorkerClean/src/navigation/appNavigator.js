@@ -11,6 +11,7 @@ import DetailScreen from '../screens/jobdetail/DetailScreen';
 import PaymentScreen from '../screens/map/MapScreen';
 import IncomingBookingScreen from '../screens/home/IncomingBookingScreen';
 import ActiveJobScreen from '../screens/work/ActiveJobScreen';
+import LocationScreen from '../screens/location/LocationScreen';
 
 // Profile Screens
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
@@ -49,6 +50,7 @@ export default function AppNavigator() {
 
       <Stack.Screen name="ActiveJob" component={ActiveJobScreen} />
       <Stack.Screen name="IncomingBooking" component={IncomingBookingScreen} />
+      <Stack.Screen name="Location" component={LocationScreen} />
 
       {/* Main App with Tabs */}
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
