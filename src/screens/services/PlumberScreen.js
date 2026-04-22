@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,13 @@ import {
   TouchableOpacity,
   StatusBar,
   Modal,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { API_BASE_URL } from '../../constants/config';
-import firestore from '@react-native-firebase/firestore';
 import { useLocation } from '../../context/LocationContext';
 
 const PlumberScreen = ({ navigation, route }) => {
@@ -24,7 +24,7 @@ const PlumberScreen = ({ navigation, route }) => {
   const [filterVisible, setFilterVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  // Get category from params, default
+  // Get category from params, default to 'Plumber'
   const category = route?.params?.category || 'Plumber';
 
   const [workers, setWorkers] = useState([]);
@@ -41,8 +41,6 @@ const PlumberScreen = ({ navigation, route }) => {
       const json = await response.json();
       
       if (json.success && json.data) {
-        console.log(`DEBUG: PlumberScreen - Total workers from API: ${json.data.length}`);
-        console.log(`DEBUG: All Workers in DB:`, json.data.map(w => w.fullName || w.name));
         const targetCat = category.toLowerCase().replace(/\s+/g, '');
         
         const mappedWorkers = json.data
@@ -51,15 +49,9 @@ const PlumberScreen = ({ navigation, route }) => {
             if (!w.category) return false;
             
             const normalizedWorkerCat = w.category.toLowerCase().replace(/\s+/g, '');
-            const match = normalizedWorkerCat === targetCat || 
-                        (targetCat === 'plumber' && normalizedWorkerCat === 'plumbers') ||
-                        (targetCat === 'plumbers' && normalizedWorkerCat === 'plumber');
-            
-            if (w.fullName?.includes('Ritvik') || w._id?.includes('Ritvik')) {
-              console.log(`DEBUG: Checking Ritvik - Cat: ${w.category}, Target: ${targetCat}, Match: ${match}, Status: ${w.status}`);
-            }
-            
-            return match;
+            return normalizedWorkerCat === targetCat || 
+                   (targetCat === 'plumber' && normalizedWorkerCat === 'plumbers') ||
+                   (targetCat === 'plumbers' && normalizedWorkerCat === 'plumber');
           })
           .map(worker => ({
             id: worker._id,
@@ -67,15 +59,14 @@ const PlumberScreen = ({ navigation, route }) => {
             rating: worker.rating || 4.5,
             reviewCount: worker.completedOrders || 0,
             experience: `${worker.experience || 0}+ Years`,
-            rate: worker.basePrice || worker.rate || 249,
+            rate: worker.basePrice || worker.rate || 299,
             distance: 0.5,
             verified: true,
             specialization: worker.category || category,
             image: worker.image,
             ...worker
           }));
-        
-        console.log(`DEBUG: Found ${mappedWorkers.length} active ${category}s`);
+          
         setWorkers(mappedWorkers);
       }
     } catch (error) {
@@ -94,20 +85,28 @@ const PlumberScreen = ({ navigation, route }) => {
     { id: 'experience', label: 'Most Experienced', icon: 'ribbon' },
   ];
 
-  const getSortedWorkers = () => {
-    let sorted = [...workers];
+  const filteredAndSortedWorkers = useMemo(() => {
+    let result = workers.filter(w => 
+      w.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      w.specialization.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     switch (selectedFilter) {
-      case 'rating': sorted.sort((a, b) => b.rating - a.rating); break;
-      case 'price_low': sorted.sort((a, b) => a.rate - b.rate); break;
-      case 'price_high': sorted.sort((a, b) => b.rate - a.rate); break;
-      case 'distance': sorted.sort((a, b) => a.distance - b.distance); break;
+      case 'rating': result.sort((a, b) => b.rating - a.rating); break;
+      case 'price_low': result.sort((a, b) => a.rate - b.rate); break;
+      case 'price_high': result.sort((a, b) => b.rate - a.rate); break;
+      case 'distance': result.sort((a, b) => a.distance - b.distance); break;
       case 'experience':
-        sorted.sort((a, b) => parseInt(b.experience) - parseInt(a.experience));
+        result.sort((a, b) => {
+          const expA = parseInt(a.experience) || 0;
+          const expB = parseInt(b.experience) || 0;
+          return expB - expA;
+        });
         break;
       default: break;
     }
-    return sorted;
-  };
+    return result;
+  }, [workers, searchQuery, selectedFilter]);
 
   const handleBookNow = (worker) => {
     navigation.navigate('WorkerProfile', { 
@@ -121,7 +120,7 @@ const PlumberScreen = ({ navigation, route }) => {
       <View style={styles.cardContent}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatarPlaceholder}>
-            <MaterialCommunityIcons name="pipe-wrench" size={32} color="#9CA3AF" />
+            <MaterialCommunityIcons name="water-pump" size={32} color="#9CA3AF" />
           </View>
         </View>
 
@@ -194,7 +193,7 @@ const PlumberScreen = ({ navigation, route }) => {
 
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Plumbers</Text>
-          <Text style={styles.headerSubtitle}>{getSortedWorkers().length} professionals nearby</Text>
+          <Text style={styles.headerSubtitle}>{filteredAndSortedWorkers.length} professionals nearby</Text>
         </View>
 
         <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}>
@@ -203,7 +202,6 @@ const PlumberScreen = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Location Display Header */}
       <TouchableOpacity
         style={styles.locationDisplayRow}
         onPress={() => navigation.navigate('LocationSelection')}
@@ -215,12 +213,11 @@ const PlumberScreen = ({ navigation, route }) => {
         <Ionicons name="chevron-forward" size={14} color="#6B7280" />
       </TouchableOpacity>
 
-      {/* Product Selection Banner */}
       {route.params?.preSelectedProduct && (
         <View style={styles.productBanner}>
           <MaterialCommunityIcons name="shopping-outline" size={18} color="#FFF" />
           <Text style={styles.productBannerText}>
-            Booking for: <Text style={{ fontWeight: 'bold' }}>{route.params.preSelectedProduct}</Text>
+             Booking for: <Text style={{ fontWeight: 'bold' }}>{route.params.preSelectedProduct}</Text>
           </Text>
           <TouchableOpacity onPress={() => navigation.setParams({ preSelectedProduct: null })}>
             <Ionicons name="close-circle" size={18} color="#FFF" />
@@ -246,15 +243,26 @@ const PlumberScreen = ({ navigation, route }) => {
         </View>
       </View>
 
+      {selectedFilter !== 'all' && (
+        <View style={styles.activeFilterContainer}>
+          <View style={styles.filterChip}>
+            <Ionicons name={filterOptions.find(f => f.id === selectedFilter)?.icon} size={14} color="#E84545" />
+            <Text style={styles.filterChipText}>{filterOptions.find(f => f.id === selectedFilter)?.label}</Text>
+            <TouchableOpacity onPress={() => setSelectedFilter('all')}>
+              <Ionicons name="close" size={16} color="#E84545" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[styles.listContainer, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
       >
-        {getSortedWorkers().map(worker => renderWorkerCard(worker))}
+        {filteredAndSortedWorkers.map(worker => renderWorkerCard(worker))}
       </ScrollView>
 
-      {/* Filter Modal */}
       <Modal
         visible={filterVisible}
         transparent={true}
@@ -264,6 +272,7 @@ const PlumberScreen = ({ navigation, route }) => {
         <View style={styles.modalOverlay}>
           <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setFilterVisible(false)} />
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
+            <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Sort & Filter</Text>
               <TouchableOpacity onPress={() => setFilterVisible(false)}>
@@ -274,13 +283,37 @@ const PlumberScreen = ({ navigation, route }) => {
               {filterOptions.map((option) => (
                 <TouchableOpacity
                   key={option.id}
-                  style={[styles.filterOption, selectedFilter === option.id && styles.filterOptionSelected]}
-                  onPress={() => { setSelectedFilter(option.id); setFilterVisible(false); }}
+                  style={[
+                    styles.filterOption,
+                    selectedFilter === option.id && styles.filterOptionSelected
+                  ]}
+                  onPress={() => {
+                    setSelectedFilter(option.id);
+                    setFilterVisible(false);
+                  }}
+                  activeOpacity={0.7}
                 >
-                  <Text style={[styles.filterOptionText, selectedFilter === option.id && styles.filterOptionTextSelected]}>
-                    {option.label}
-                  </Text>
-                  {selectedFilter === option.id && <Ionicons name="checkmark-circle" size={24} color="#E84545" />}
+                  <View style={styles.filterOptionLeft}>
+                    <View style={[
+                      styles.filterIconContainer,
+                      selectedFilter === option.id && styles.filterIconContainerSelected
+                    ]}>
+                      <Ionicons
+                        name={option.icon}
+                        size={20}
+                        color={selectedFilter === option.id ? '#E84545' : '#6B7280'}
+                      />
+                    </View>
+                    <Text style={[
+                      styles.filterOptionText,
+                      selectedFilter === option.id && styles.filterOptionTextSelected
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </View>
+                  {selectedFilter === option.id && (
+                    <Ionicons name="checkmark-circle" size={24} color="#E84545" />
+                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -298,8 +331,8 @@ const styles = StyleSheet.create({
   headerCenter: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
   headerSubtitle: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  filterButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  filterDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: '#E84545' },
+  filterButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  filterDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: '#E84545', borderWidht: 2, borderColor: '#FFFFFF' },
   locationDisplayRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -316,42 +349,50 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontWeight: '500',
   },
-  searchContainer: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF' },
+  searchContainer: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 12, height: 44, paddingHorizontal: 14, gap: 10 },
   searchInput: { flex: 1, fontSize: 15, color: '#000' },
+  activeFilterContainer: { paddingHorizontal: 16, paddingVertical: 12 },
+  filterChip: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#FEF2F2', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 6 },
+  filterChipText: { fontSize: 13, fontWeight: '600', color: '#E84545' },
   scrollView: { flex: 1 },
   listContainer: { padding: 16 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E5E7EB', padding: 16 },
-  cardContent: { flexDirection: 'row' },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E5E7EB', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  cardContent: { flexDirection: 'row', padding: 16 },
   avatarContainer: { marginRight: 14 },
-  avatarPlaceholder: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' },
+  avatarPlaceholder: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#E5E7EB' },
   mainContent: { flex: 1 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
+  nameSection: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
   name: { fontSize: 16, fontWeight: '600', color: '#000' },
-  ratingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', padding: 4, borderRadius: 6, gap: 4 },
+  ratingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, gap: 4 },
   ratingText: { fontSize: 13, fontWeight: '600', color: '#000' },
   specialization: { fontSize: 13, color: '#6B7280', marginBottom: 12 },
-  infoGrid: { flexDirection: 'row', gap: 12, marginBottom: 14 },
+  infoGrid: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 12 },
   infoItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  infoText: { fontSize: 13, color: '#6B7280' },
+  infoText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
   infoDivider: { width: 1, height: 12, backgroundColor: '#E5E7EB' },
   bottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
-  priceLabel: { fontSize: 11, color: '#9CA3AF' },
+  priceSection: { gap: 2 },
+  priceLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
   price: { fontSize: 16, fontWeight: '700', color: '#000' },
   bookButton: { borderRadius: 10, overflow: 'hidden' },
   bookButtonGradient: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, gap: 6 },
   bookButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalBackdrop: { ...StyleSheet.absoluteFillObject },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '80%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  modalTitle: { fontSize: 18, fontWeight: '600' },
-  filterOptions: { padding: 8 },
-  filterOption: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
+  modalHandle: { width: 40, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 8 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  modalTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
+  filterOptions: { paddingVertical: 8 },
+  filterOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14 },
   filterOptionSelected: { backgroundColor: '#FEF2F2' },
-  filterOptionText: { fontSize: 15, color: '#374151' },
+  filterOptionLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  filterIconContainer: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F9FAFB', justifyContent: 'center', alignItems: 'center' },
+  filterIconContainerSelected: { backgroundColor: '#FEE2E2' },
+  filterOptionText: { fontSize: 15, color: '#374151', fontWeight: '500' },
   filterOptionTextSelected: { fontWeight: '600', color: '#E84545' },
-  nameSection: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   productBanner: {
     flexDirection: 'row',
     alignItems: 'center',

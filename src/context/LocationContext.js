@@ -15,9 +15,9 @@ const HARDCODED_LOCATION = {
 };
 
 export const LocationProvider = ({ children }) => {
-  const [selectedLocation, setSelectedLocation] = useState(HARDCODED_LOCATION);
-  const [workerLocation, setWorkerLocation] = useState(HARDCODED_LOCATION);
-  const [distance, setDistance] = useState(0.5); // Hardcoded distance in km
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [workerLocation, setWorkerLocation] = useState(null);
+  const [distance, setDistance] = useState(null); 
   const [isSimulating, setIsSimulating] = useState(false);
   const [hasActiveBooking, setHasActiveBooking] = useState(false);
   const [bookingStatus, setBookingStatus] = useState(null);

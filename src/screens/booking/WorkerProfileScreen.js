@@ -48,7 +48,7 @@ const WorkerProfileScreen = () => {
       return;
     }
 
-    if (!selectedLocation || !selectedLocation.latitude) {
+    if (!selectedLocation || (!selectedLocation.latitude && !selectedLocation.coords?.latitude)) {
       Alert.alert('Location Required', 'Please select your service address first.');
       return;
     }
@@ -66,36 +66,31 @@ const WorkerProfileScreen = () => {
         price: selectedService?.price || 249,
         status: 'pending',
         userName: user?.displayName || user?.name || 'Customer',
-        userAddress: selectedLocation?.addressText 
-          || selectedLocation?.address 
-          || selectedLocation?.fullAddress 
-          || 'Address Not Provided',
-        userLat: selectedLocation?.latitude 
-          || selectedLocation?.coords?.latitude 
-          || 0,
-        userLng: selectedLocation?.longitude 
-          || selectedLocation?.coords?.longitude 
-          || 0,
-        // ADDED for compatibility with Worker App UI
         userLocation: {
-          address: selectedLocation?.addressText || selectedLocation?.address || 'Address Not Provided',
-          shortAddress: selectedLocation?.name || selectedLocation?.addressText?.split(',')[0] || 'Main Address',
-          latitude: selectedLocation?.latitude || selectedLocation?.coords?.latitude || 0,
-          longitude: selectedLocation?.longitude || selectedLocation?.coords?.longitude || 0,
+          flat: selectedLocation?.flat || '',
+          wing: selectedLocation?.wing || '',
+          landmark: selectedLocation?.landmark || '',
+          addressType: selectedLocation?.addressType || 'Home',
+          shortAddress: selectedLocation?.shortAddress || selectedLocation?.name || '',
+          fullAddress: selectedLocation?.fullAddress || selectedLocation?.addressText || selectedLocation?.address || '',
+          displayAddress: selectedLocation?.displayAddress || selectedLocation?.addressText || '',
+          latitude: selectedLocation?.latitude || selectedLocation?.coords?.latitude || null,
+          longitude: selectedLocation?.longitude || selectedLocation?.coords?.longitude || null,
         },
+        userAddress: selectedLocation?.displayAddress || selectedLocation?.fullAddress || selectedLocation?.address || '',
         createdAt: firestore.FieldValue.serverTimestamp(),
         updatedAt: firestore.FieldValue.serverTimestamp(),
       };
 
-      // Remove any undefined values before sending to Firestore
+      // Remove undefined/null fields before saving
       const cleanBookingData = Object.fromEntries(
-        Object.entries(bookingData).filter(([_, v]) => v !== undefined)
+        Object.entries(bookingData).filter(([_, v]) => v !== undefined && v !== null)
       );
 
       const bookingRef = await firestore().collection('bookings').add(cleanBookingData);
 
       // Temporary update to worker's availability if needed
-      await firestore().collection('workers').doc(worker.id).update({
+      await firestore().collection('workers').doc(worker.id || worker._id).update({
         isAvailable: false,
         updatedAt: firestore.FieldValue.serverTimestamp(),
       });
@@ -103,7 +98,7 @@ const WorkerProfileScreen = () => {
       // Navigate to the waiting screen
       navigation.navigate('WaitingForWorker', {
         bookingId: bookingRef.id,
-        workerId: worker.id,
+        workerId: worker.id || worker._id,
       });
 
     } catch (error) {
@@ -118,7 +113,7 @@ const WorkerProfileScreen = () => {
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <Image 
-            source={{ uri: worker.photo || 'https://avatar.iran.liara.run/public/job/operator/male' }} 
+            source={{ uri: worker.photo || worker.image || 'https://avatar.iran.liara.run/public/job/operator/male' }} 
             style={styles.heroImage} 
           />
           <LinearGradient
@@ -138,13 +133,13 @@ const WorkerProfileScreen = () => {
         {/* Worker Info */}
         <View style={styles.infoSection}>
           <View style={styles.nameRow}>
-            <Text style={styles.name}>{worker.fullName}</Text>
+            <Text style={styles.name}>{worker.fullName || worker.name}</Text>
             <Badge text="Verified" variant="success" style={styles.verifiedBadge} />
           </View>
-          <Text style={styles.category}>{worker.serviceType}</Text>
+          <Text style={styles.category}>{worker.serviceType || worker.category}</Text>
 
           <View style={styles.statsRow}>
-            <Rating rating={worker.rating || 4.5} reviewCount={worker.reviewCount || 0} />
+            <Rating rating={worker.rating || 4.5} reviewCount={worker.completedOrders || 0} />
           </View>
 
           <View style={styles.quickStats}>
@@ -166,17 +161,19 @@ const WorkerProfileScreen = () => {
         </View>
 
         {/* Skills Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Skills & Expertise</Text>
-          <View style={styles.skillsList}>
-            {worker.skills?.map((skill, idx) => (
-              <View key={idx} style={styles.skillItem}>
-                <Ionicons name="checkmark-circle" size={18} color="#10B981" />
-                <Text style={styles.skillText}>{skill}</Text>
-              </View>
-            ))}
+        {worker.skills && worker.skills.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Skills & Expertise</Text>
+            <View style={styles.skillsList}>
+              {worker.skills?.map((skill, idx) => (
+                <View key={idx} style={styles.skillItem}>
+                  <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                  <Text style={styles.skillText}>{skill}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* About Section */}
         <View style={styles.section}>

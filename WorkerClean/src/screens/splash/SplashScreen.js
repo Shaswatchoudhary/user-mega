@@ -3,7 +3,10 @@ import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 
+import { useAuth } from '../../context/AuthContext';
+
 const SplashScreen = ({ navigation }) => {
+  const { user, loading } = useAuth();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
@@ -23,12 +26,18 @@ const SplashScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
+    if (loading) return;
+
     const timer = setTimeout(() => {
-      navigation.replace('Otp');
+      if (user) {
+        navigation.replace('HomeNavigator');
+      } else {
+        navigation.replace('Otp');
+      }
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, user, loading]);
 
   return (
     <LinearGradient

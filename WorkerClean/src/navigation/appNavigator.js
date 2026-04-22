@@ -23,10 +23,10 @@ import ProfessionalDetailsScreen from '../screens/profile/ProfessionalDetailsScr
 
 const Stack = createNativeStackNavigator();
 
-export default function AppNavigator() {
+export default function AppNavigator({ user }) {
   return (
     <Stack.Navigator
-      initialRouteName="Splash"
+      initialRouteName={user ? "MainTabs" : "Splash"}
       screenOptions={{
         headerShown: false,
         animation: 'fade',

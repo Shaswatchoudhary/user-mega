@@ -15,270 +15,390 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import Geolocation from '@react-native-community/geolocation';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useLocation } from "../../context/LocationContext";
 import { colors, spacing, borderRadius, typography } from "../../theme";
-import { getFirestore, doc, onSnapshot, updateDoc, serverTimestamp, query, collection, where, orderBy, limit } from '@react-native-firebase/firestore';
+import { getFirestore, doc, onSnapshot, updateDoc, addDoc, serverTimestamp, query, collection, where, orderBy, limit, getDoc } from '@react-native-firebase/firestore';
 import { useAuth } from "../../context/AuthContext";
-import { getUserLocation } from "../../utils/locationHelper";
+import { API_BASE_URL } from "../../constants/config";
 import TicketStatusCard from "../../components/booking/TicketStatusCard";
 import WorkCompletionPopup from "../../components/booking/WorkCompletionPopup";
 
 const { width, height } = Dimensions.get("window");
-const ASPECT_RATIO = width / height;
-const LATITUDE_DELTA = 0.01;
-const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+
+// ISSUE 2: REAL DISTANCE LOGIC (Haversine formula)
+const getDistanceKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI/180) *
+    Math.cos(lat2 * Math.PI/180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+const getETA = (distanceKm) => {
+  // Average speed 30km/h in city
+  const minutes = Math.round((distanceKm / 30) * 60);
+  if (minutes < 1) return 'Less than 1 min';
+  if (minutes === 1) return '1 min away';
+  return `${minutes} mins away`;
+};
+
+// ISSUE 3: STATUS TEXT MAPPING
+const getStatusDisplay = (status) => {
+  const s = status?.toLowerCase();
+  switch(s) {
+    case 'pending': return { text: 'Pending', color: '#94A3B8' };
+    case 'accepted': return { text: 'Accepted', color: '#3B82F6' };
+    case 'on_the_way': return { text: 'On the way', color: '#F59E0B' };
+    case 'arrived': return { text: 'Worker Arrived', color: '#8B5CF6' };
+    case 'working': return { text: 'Work in Progress', color: '#10B981' };
+    case 'work_completed': return { text: 'Work Completed', color: '#10B981' };
+    case 'completed': return { text: 'Completed', color: '#10B981' };
+    default: return { text: 'Processing', color: '#94A3B8' };
+  }
+};
 
 export default function TrackingScreen({ navigation, route }) {
-  const mapRef = useRef(null);
-  const { selectedLocation, workerLocation: initialWorkerLoc, distance, bookingStatus: localStatus } = useLocation();
   const { user } = useAuth();
-  const [eta, setEta] = useState(12);
+  const db = getFirestore();
+  const mapRef = useRef(null);
+  
   const [booking, setBooking] = useState(null);
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
-  const [workerLoc, setWorkerLoc] = useState(initialWorkerLoc);
-  const [userLoc, setUserLocation] = useState(selectedLocation);
-  const db = getFirestore();
+  const [workerLoc, setWorkerLoc] = useState(null);
+  const [userLoc, setUserLoc] = useState(null);
+  const [distanceKm, setDistanceKm] = useState(null);
+  const [workerData, setWorkerData] = useState({
+    name: "Loading...",
+    rating: "0.0",
+    serviceType: "Specialist",
+    phone: "",
+    image: "https://avatar.iran.liara.run/public/job/operator/male"
+  });
 
-  // Animated pulse for worker marker
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
-  // Listen to the specific booking and worker location
+  // 1. ISSUE 5 & 8: Listen to the booking (Real-time update)
   useEffect(() => {
     const userId = user?._id || user?.uid;
     if (!userId) return;
 
-    // 1. Get user's own location for the map
-    getUserLocation().then(loc => {
-      if (loc) setUserLocation(loc);
-    });
-
-    // 2. Listen to booking (Modular Query)
-    const bookingsCol = collection(db, 'bookings');
-    const q = query(
-      bookingsCol,
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
-      limit(1)
-    );
-
-    const unsubscribeBooking = onSnapshot(q, querySnapshot => {
-      if (!querySnapshot.empty) {
-        const docSnap = querySnapshot.docs[0];
-        const currentBooking = { ...docSnap.data(), id: docSnap.id };
-        setBooking(currentBooking);
-
-        // Check for work completion
-        if (currentBooking.status === 'work_completed' && currentBooking.ticketStatus === 'open') {
-          setShowCompletionPopup(true);
+    // Use bookingId from route if available, otherwise fallback to latest
+    const bookingIdFromRoute = route?.params?.bookingId;
+    
+    if (bookingIdFromRoute) {
+      const unsubscribe = onSnapshot(doc(db, 'bookings', bookingIdFromRoute), docSnap => {
+        if (docSnap.exists()) {
+          const data = { ...docSnap.data(), id: docSnap.id };
+          setBooking(data);
+          if (data.status === 'work_completed' && !data.userIssue) setShowCompletionPopup(true);
         }
+      });
+      return () => unsubscribe();
+    } else {
+      const bookingsCol = collection(db, 'bookings');
+      const q = query(
+        bookingsCol,
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+      );
 
-        // 3. Listen to booking document directly for worker location updates
-        if (currentBooking.id && currentBooking.status !== 'completed') {
-          const bookingRef = doc(db, 'bookings', currentBooking.id);
-          const unsubLoc = onSnapshot(bookingRef, (locSnap) => {
-            if (locSnap.exists() && locSnap.data().workerLocation) {
-              setWorkerLoc(locSnap.data().workerLocation);
-            }
-          });
-          return () => unsubLoc();
+      const unsubscribe = onSnapshot(q, querySnapshot => {
+        if (!querySnapshot.empty) {
+          const docSnap = querySnapshot.docs[0];
+          const data = { ...docSnap.data(), id: docSnap.id };
+          setBooking(data);
+          if (data.status === 'work_completed' && !data.userIssue) setShowCompletionPopup(true);
         }
-      }
-    }, error => {
-      console.error("Firestore Tracking Error:", error.message);
-    });
-
-    return () => unsubscribeBooking();
-  }, [user?._id, user?.uid]);
-
-  // Update ETA based on distance
-  useEffect(() => {
-    if (distance) {
-      const estimatedMins = Math.max(1, Math.round(distance * 4));
-      setEta(estimatedMins);
+      });
+      return () => unsubscribe();
     }
-  }, [distance]);
+  }, [user?._id, user?.uid, route?.params?.bookingId]);
 
-  const workerData = {
-    name: booking?.workerName || "Assigned Worker",
-    rating: booking?.workerRating || "4.8",
-    reviews: "100+",
-    vehicle: booking?.workerVehicle || "Service Partner",
-    image: String(booking?.workerImage || "https://avatar.iran.liara.run/public/job/operator/male"),
-    status: booking?.status === 'accepted' ? "Order accepted" :
-      booking?.status === 'navigating' ? "On the way" :
-        booking?.status === 'arrived' ? "Reached location" :
-          booking?.status === 'in_progress' ? "Work in progress" :
-            booking?.status === 'work_completed' ? "Work completed" : "Checking status",
-    address: booking?.userLocation?.address || "Delivery Location"
-  };
+  // 2. ISSUE 4 & 7: Fetch Worker Data
+  useEffect(() => {
+    if (booking?.workerId) {
+      const unsubscribe = onSnapshot(doc(db, 'workers', booking.workerId), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setWorkerData({
+            name: data.name || "Assigned Specialist",
+            rating: data.rating || "4.9",
+            serviceType: data.category || data.serviceType || "Expert",
+            phone: data.phone || "",
+            image: data.profileImage || "https://avatar.iran.liara.run/public/job/operator/male"
+          });
+          
+          // ISSUE 6: Real-time Worker Location
+          if (data.currentLocation) {
+            setWorkerLoc(data.currentLocation);
+          }
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [booking?.workerId]);
 
-  const handleCallPress = () => {
-    Linking.openURL(`tel:+919876543210`);
-  };
+  // 3. Get User Location & Calculate Distance
+  useEffect(() => {
+    const fetchUserLoc = () => {
+      Geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setUserLoc({ latitude, longitude });
+        },
+        (err) => console.log('Geolocation Error:', err),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+      );
+    };
 
-  const handleMessagePress = () => {
-    Alert.alert("Opening Chat", "Connecting to your professional...");
-  };
+    fetchUserLoc();
+    const interval = setInterval(fetchUserLoc, 10000); // Update user location every 10s
+    return () => clearInterval(interval);
+  }, []);
+
+  // 4. Update distance and map bounds when locations change
+  useEffect(() => {
+    if (userLoc && workerLoc) {
+      const dist = getDistanceKm(
+        userLoc.latitude, 
+        userLoc.longitude, 
+        workerLoc.latitude, 
+        workerLoc.longitude
+      );
+      setDistanceKm(dist);
+
+      // Fit map to show both pins
+      if (mapRef.current) {
+        mapRef.current.fitToCoordinates([userLoc, workerLoc], {
+          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+          animated: true,
+        });
+      }
+    }
+  }, [userLoc, workerLoc]);
 
   const handleCloseTicket = async () => {
     try {
       if (!booking?.id) return;
       const bookingRef = doc(db, 'bookings', booking.id);
-
       await updateDoc(bookingRef, {
-        ticketStatus: 'closed',
         status: 'completed',
-        workEndTime: serverTimestamp(),
-        paymentUnlocked: true,
+        ticketStatus: 'closed',
+        completedAt: serverTimestamp(),
       });
-
       setShowCompletionPopup(false);
-
-      navigation.replace('Payment', {
-        totalAmount: booking.price || 299,
-        worker: {
-          name: workerData.name,
-          image: workerData.image,
-          _id: booking.workerId
-        },
-        bookingId: booking.id,
-      });
+      navigation.navigate('MainTabs', { screen: 'Bookings' });
     } catch (error) {
-      Alert.alert("Error", "Could not close ticket. Try again.");
+      Alert.alert("Error", "Could not complete the process.");
     }
   };
 
-  const handleRaiseIssue = async (issue) => {
+  const handleRaiseIssue = async (issueText) => {
     try {
       if (!booking?.id) return;
+      
+      // 1. Update the booking itself in Firestore
       const bookingRef = doc(db, 'bookings', booking.id);
       await updateDoc(bookingRef, {
-        issue: issue,
+        userIssue: issueText,
         issueReportedAt: serverTimestamp()
       });
+
+      // 2. Add to global 'issues' collection in Firestore
+      const issuesCol = collection(db, 'issues');
+      await addDoc(issuesCol, {
+        bookingId: booking.id,
+        userId: booking.userId,
+        workerId: booking.workerId,
+        userName: booking.userName || 'User',
+        workerName: workerData.name || 'Worker',
+        issueText: issueText,
+        status: 'open',
+        serviceType: booking.serviceType || 'General',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      // 3. SYNC WITH ADMIN PANEL (REST API / MongoDB)
+      try {
+        await fetch(`${API_BASE_URL}/users/report`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bookingId: booking.id,
+            userId: user?._id || user?.uid,
+            workerId: booking.workerId,
+            userName: booking.userName || user?.name || 'User',
+            workerName: workerData.name || 'Worker',
+            subject: `Issue with ${booking.serviceType || 'Booking'}`,
+            description: issueText,
+            priority: 'medium',
+            category: booking.serviceType || 'General'
+          })
+        });
+        console.log('[Sync] Issue synced with Admin Panel');
+      } catch (syncError) {
+        console.error('[Sync] Admin Panel sync failed:', syncError);
+      }
+
+      setShowCompletionPopup(false);
       Alert.alert("Issue Reported", "Our team will contact you shortly.");
     } catch (error) {
-      Alert.alert("Error", "Could not report issue.");
+      console.error("Raise Issue Error:", error);
+      Alert.alert("Error", "Could not submit your issue.");
     }
   };
 
-  const ts = {
-    isAccepted: booking?.status === 'accepted' || booking?.status === 'navigating' || booking?.status === 'arrived' || booking?.status === 'in_progress' || booking?.status === 'work_completed',
-    isOnTheWay: booking?.status === 'navigating' || booking?.status === 'arrived' || booking?.status === 'in_progress' || booking?.status === 'work_completed',
-    isArrived: booking?.status === 'arrived' || booking?.status === 'in_progress' || booking?.status === 'work_completed',
-    isInProgress: booking?.status === 'in_progress' || booking?.status === 'work_completed',
+  const statusInfo = getStatusDisplay(booking?.status);
+
+  // ISSUE 7: CALL BUTTON LOGIC
+  const callWorker = () => {
+    if (workerData.phone) {
+      Linking.openURL(`tel:${workerData.phone}`);
+    } else {
+      Alert.alert("Error", "Worker phone number not available.");
+    }
   };
+
+  // Timeline Step Mapping
+  const getStepIndex = (status) => {
+    const s = status?.toLowerCase();
+    const steps = ['accepted', 'on_the_way', 'arrived', 'working', 'work_completed', 'completed'];
+    return steps.indexOf(s);
+  };
+  const currentStep = getStepIndex(booking?.status);
 
   return (
     <View style={styles.container}>
-      <View style={styles.mapPlaceholder}>
-        <LinearGradient
-          colors={[colors.accent + '20', '#FFF']}
-          style={styles.placeholderGradient}
-        >
-          <MaterialCommunityIcons name="map-marker-radius" size={80} color={colors.accent} />
-          <Text style={styles.placeholderText}>Worker is on the way to your location</Text>
-          <View style={styles.locationBadge}>
-            <Ionicons name="location" size={16} color={colors.accent} />
-            <Text style={styles.locationBadgeText}>Live Tracking Active</Text>
+      {/* Top Status Banner for Working Status */}
+      {booking?.status === 'working' && (
+        <SafeAreaView style={styles.bannerContainer}>
+          <View style={styles.inProgressBanner}>
+            <Ionicons name="construct" size={18} color="#FFF" />
+            <Text style={styles.bannerText}>Worker is currently working</Text>
           </View>
-        </LinearGradient>
+        </SafeAreaView>
+      )}
+
+      {/* ISSUE 1: REAL GOOGLE MAP */}
+      <View style={styles.mapContainer}>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          provider={PROVIDER_GOOGLE}
+          initialRegion={{
+            latitude: userLoc?.latitude || 20.5937,
+            longitude: userLoc?.longitude || 78.9629,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
+        >
+          {userLoc && (
+            <Marker 
+              coordinate={userLoc} 
+              title="Your Location"
+              pinColor="red"
+            />
+          )}
+          {workerLoc && (
+            <Marker 
+              coordinate={workerLoc} 
+              title="Worker"
+              pinColor="green"
+            />
+          )}
+        </MapView>
+        
+        {/* Live Indicator Overlay */}
+        <View style={styles.activeBadgeOverlay}>
+          <View style={styles.pulseDot} />
+          <Text style={styles.activeLabel}>Live Updates</Text>
+        </View>
       </View>
 
-      <SafeAreaView style={styles.headerOverlay} pointerEvents="box-none">
+      <SafeAreaView style={styles.headerLayer} pointerEvents="box-none">
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#000" />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <View style={styles.headerInfo}>
-            <Text style={styles.headerTitle}>Live Tracking</Text>
-            <Text style={styles.headerStatus}>{workerData.status}</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.title}>Track Order</Text>
+            <Text style={[styles.statusSubtitle, { color: statusInfo.color }]}>
+              {statusInfo.text}
+            </Text>
           </View>
-          <View style={{ width: 44 }} />
+          <TouchableOpacity onPress={callWorker} style={styles.navCallBtn}>
+            <Ionicons name="call" size={22} color={colors.accent} />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
 
-      <View style={styles.bottomSheet}>
-        <View style={styles.timelineRow}>
-          <View style={styles.timelineStep}>
-            <View style={[styles.timelineDot, ts.isAccepted ? styles.timelineDotActive : null]} />
-            <Text style={styles.timelineLabel}>Accepted</Text>
+      <View style={styles.sheet}>
+        <View style={styles.indicator} />
+        
+        {/* ISSUE 2: REAL DISTANCE / ETA */}
+        <View style={styles.etaRow}>
+          <View style={styles.etaCircle}>
+            <MaterialCommunityIcons name="map-marker-distance" size={26} color={colors.accent} />
           </View>
-          <View style={[styles.timelineLine, ts.isOnTheWay ? styles.timelineLineActive : null]} />
-          <View style={styles.timelineStep}>
-            <View style={[styles.timelineDot, ts.isOnTheWay ? styles.timelineDotActive : null]} />
-            <Text style={styles.timelineLabel}>On way</Text>
-          </View>
-          <View style={[styles.timelineLine, ts.isArrived ? styles.timelineLineActive : null]} />
-          <View style={styles.timelineStep}>
-            <View style={[styles.timelineDot, ts.isArrived ? styles.timelineDotActive : null]} />
-            <Text style={styles.timelineLabel}>Arrived</Text>
-          </View>
-          <View style={[styles.timelineLine, ts.isInProgress ? styles.timelineLineActive : null]} />
-          <View style={styles.timelineStep}>
-            <View style={[styles.timelineDot, ts.isInProgress ? styles.timelineDotActive : null]} />
-            <Text style={styles.timelineLabel}>Working</Text>
-          </View>
-        </View>
-
-        {booking?.ticketStatus && (
-          <TicketStatusCard
-            ticketStatus={booking.ticketStatus}
-            workStartTime={booking.workStartTime}
-            ticketId={booking.ticketId || `#WE${booking.id?.substring(0, 6).toUpperCase()}`}
-          />
-        )}
-
-        <View style={styles.etaContainer}>
-          <View style={styles.etaIconBg}>
-            <MaterialCommunityIcons name="clock-time-three" size={24} color={colors.accent} />
-          </View>
-          <View style={styles.etaInfo}>
-            <Text style={styles.etaTimeText}>{eta} mins away</Text>
-            <Text style={styles.etaSubText} numberOfLines={2}>
-              Professional is moving towards your location
+          <View style={styles.etaTextContent}>
+            <Text style={styles.distanceValue}>
+              {booking?.status === 'arrived' ? 'Worker Arrived!' : (workerLoc ? (distanceKm < 0.1 ? 'Worker Arrived!' : getETA(distanceKm)) : "On the way...")}
+            </Text>
+            <Text style={styles.distanceSub}>
+              {distanceKm ? `${distanceKm.toFixed(1)} km away` : 'Synchronizing location...'}
             </Text>
           </View>
         </View>
 
         <View style={styles.divider} />
 
-        <View style={styles.workerRow}>
-          <Image source={{ uri: workerData.image }} style={styles.workerAvatar} />
-          <View style={styles.workerInfo}>
-            <Text style={styles.workerName}>{workerData.name}</Text>
-            <View style={styles.ratingRow}>
-              <Ionicons name="star" size={14} color="#FFD700" />
-              <Text style={styles.ratingText}>{workerData.rating} ({workerData.reviews} reviews)</Text>
+        {/* ISSUE 4: DYNAMIC WORKER PROFILE */}
+        <View style={styles.workerProfile}>
+          <Image source={{ uri: workerData.image }} style={styles.avatar} />
+          <View style={styles.workerDetails}>
+            <Text style={styles.name}>{workerData.name}</Text>
+            <View style={styles.row}>
+              <Ionicons name="star" size={14} color="#FBBF24" />
+              <Text style={styles.rating}>{workerData.rating} ({workerData.serviceType})</Text>
             </View>
-            <Text style={styles.vehicleText}>{workerData.vehicle}</Text>
           </View>
-          <View style={styles.contactRow}>
-            <TouchableOpacity onPress={handleMessagePress} style={styles.iconCircle}>
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={styles.chatBtn} onPress={() => Alert.alert("Chat", "Connecting...")}>
               <Ionicons name="chatbubble-ellipses" size={20} color={colors.accent} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleCallPress} style={[styles.iconCircle, styles.callIcon]}>
+            <TouchableOpacity style={styles.callBtn} onPress={callWorker}>
               <Ionicons name="call" size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.safetyButton}
-          onPress={() => Alert.alert("Project Safety", "Our partners are verified and trained.")}
-        >
-          <Ionicons name="shield-checkmark" size={18} color="#10B981" />
-          <Text style={styles.safetyText}>Safety Policy Active</Text>
-        </TouchableOpacity>
+        {/* ISSUE 5: REAL STATUS TIMELINE */}
+        <View style={styles.timeline}>
+           <View style={styles.timelineInner}>
+              <View style={[styles.step, currentStep >= 0 ? styles.stepActive : null]} />
+              <View style={[styles.line, currentStep >= 1 ? styles.lineActive : null]} />
+              <View style={[styles.step, currentStep >= 1 ? styles.stepActive : null]} />
+              <View style={[styles.line, currentStep >= 2 ? styles.lineActive : null]} />
+              <View style={[styles.step, currentStep >= 2 ? styles.stepActive : null]} />
+              <View style={[styles.line, currentStep >= 3 ? styles.lineActive : null]} />
+              <View style={[styles.step, currentStep >= 3 ? styles.stepActive : null]} />
+           </View>
+           <View style={styles.labelRow}>
+              <Text style={[styles.label, currentStep >= 0 && styles.labelActive]}>Accepted</Text>
+              <Text style={[styles.label, currentStep >= 1 && styles.labelActive]}>On Way</Text>
+              <Text style={[styles.label, currentStep >= 2 && styles.labelActive]}>Arrived</Text>
+              <Text style={[styles.label, currentStep >= 3 && styles.labelActive]}>Working</Text>
+           </View>
+        </View>
       </View>
 
       <WorkCompletionPopup
@@ -293,126 +413,151 @@ export default function TrackingScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF' },
-  mapPlaceholder: {
-    height: height * 0.45,
-    backgroundColor: '#F8FAFC',
-    justifyContent: 'center',
-    alignItems: 'center',
+  bannerContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
   },
-  placeholderGradient: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
+  inProgressBanner: {
+    backgroundColor: '#10B981',
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 40,
+    justifyContent: 'center',
+    paddingVertical: 10,
+    gap: 8,
   },
-  placeholderText: {
-    fontSize: 18,
+  bannerText: {
+    color: '#FFF',
+    fontSize: 14,
     fontWeight: '700',
-    color: '#1E293B',
-    textAlign: 'center',
-    marginTop: 20,
-    fontFamily: 'Poppins-Bold',
   },
-  locationBadge: {
+  mapContainer: {
+    height: height * 0.45,
+    width: '100%',
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  activeBadgeOverlay: {
+    position: 'absolute',
+    bottom: 60,
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    marginTop: 15,
-    borderWidth: 1,
-    borderColor: colors.accent + '30',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
-  locationBadgeText: {
+  pulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+    marginRight: 6,
+  },
+  activeLabel: {
     fontSize: 12,
-    color: colors.accent,
+    color: '#6B7280',
     fontWeight: '600',
-    marginLeft: 6,
-    fontFamily: 'Poppins-Medium',
   },
-  headerOverlay: {
+  headerLayer: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
+    top: 50,
+    left: 20,
+    right: 20,
+    zIndex: 20,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    marginHorizontal: 16,
-    marginTop: 10,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: '#FFF',
+    padding: 12,
     borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 10,
+    elevation: 8,
   },
-  backButton: {
+  backBtn: {
     padding: 8,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F3F4F6',
     borderRadius: 12,
   },
-  headerInfo: { alignItems: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', fontFamily: 'Poppins-Bold' },
-  headerStatus: { fontSize: 12, color: colors.accent, fontWeight: '600' },
+  headerCenter: { alignItems: 'center' },
+  title: { fontSize: 16, fontWeight: '800', color: '#111827' },
+  statusSubtitle: { fontSize: 12, fontWeight: '700' },
+  navCallBtn: { padding: 8 },
 
-
-  bottomSheet: {
+  sheet: {
+    flex: 1,
     backgroundColor: '#FFF',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: 35,
+    borderTopRightRadius: 35,
+    marginTop: -40,
     padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 44 : 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
-    elevation: 20,
+    elevation: 10,
   },
-  timelineRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24, justifyContent: 'center' },
-  timelineStep: { alignItems: 'center' },
-  timelineDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#DDD', marginBottom: 6 },
-  timelineDotActive: { backgroundColor: colors.accent },
-  timelineLabel: { fontSize: 10, color: '#666', fontFamily: 'Poppins-Medium' },
-  timelineLine: { width: width * 0.12, height: 2, backgroundColor: '#EEE', marginTop: -15, marginHorizontal: 2 },
-  timelineLineActive: { backgroundColor: colors.accent },
-
-  etaContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  etaIconBg: {
-    width: 48, height: 48, borderRadius: 12, backgroundColor: '#FFF0F0',
-    alignItems: 'center', justifyContent: 'center', marginRight: 16
+  indicator: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 24,
   },
-  etaInfo: { flex: 1 },
-  etaTimeText: { fontSize: 20, fontWeight: '800', color: '#1A1A1A', fontFamily: 'Poppins-Bold' },
-  etaSubText: { fontSize: 13, color: '#666', fontFamily: 'Poppins-Regular' },
-
-  divider: { height: 1, backgroundColor: '#F0F0F0', marginBottom: 20 },
-
-  workerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  workerAvatar: { width: 56, height: 56, borderRadius: 28, marginRight: 16 },
-  workerInfo: { flex: 1 },
-  workerName: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', fontFamily: 'Poppins-Bold' },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
-  ratingText: { fontSize: 12, color: '#666', marginLeft: 4 },
-  vehicleText: { fontSize: 11, color: '#999', marginTop: 2 },
-
-  contactRow: { flexDirection: 'row', gap: 12 },
-  iconCircle: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#F5F5F5',
-    alignItems: 'center', justifyContent: 'center'
+  etaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  callIcon: { backgroundColor: '#10B981' },
-
-  safetyButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#F0FDF4', paddingVertical: 10, borderRadius: 12, gap: 8
+  etaCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFF0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
   },
-  safetyText: { fontSize: 12, fontWeight: '600', color: '#10B981', fontFamily: 'Poppins-Medium' },
+  etaTextContent: { flex: 1 },
+  distanceValue: { fontSize: 22, fontWeight: '900', color: '#111827' },
+  distanceSub: { fontSize: 13, color: '#9CA3AF', marginTop: 2, fontWeight: '500' },
+  
+  divider: { height: 1, backgroundColor: '#F9FAFB', marginVertical: 20 },
+  
+  workerProfile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  avatar: { width: 56, height: 56, borderRadius: 28 },
+  workerDetails: { flex: 1, marginLeft: 16 },
+  name: { fontSize: 17, fontWeight: '800', color: '#111827' },
+  rating: { fontSize: 12, color: '#6B7280', marginLeft: 4, fontWeight: '600' },
+  row: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  
+  actionRow: { flexDirection: 'row', gap: 10 },
+  chatBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  callBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center' },
+
+  timeline: { marginTop: 10 },
+  timelineInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 },
+  step: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#E5E7EB' },
+  stepActive: { backgroundColor: colors.accent, width: 14, height: 14, borderRadius: 7 },
+  line: { flex: 1, height: 2, backgroundColor: '#F3F4F6', marginHorizontal: 2 },
+  lineActive: { backgroundColor: colors.accent },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  label: { fontSize: 11, color: '#9CA3AF', fontWeight: '700', textTransform: 'uppercase' },
+  labelActive: { color: colors.accent }
 });

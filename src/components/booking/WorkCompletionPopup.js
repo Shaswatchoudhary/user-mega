@@ -1,82 +1,81 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { colors, spacing, borderRadius, typography } from '../../theme';
-import { Button } from '../common';
+
+const { width } = Dimensions.get('window');
 
 const WorkCompletionPopup = ({ visible, onConfirm, onRaiseIssue, workerName }) => {
   const [showIssueInput, setShowIssueInput] = useState(false);
   const [issueText, setIssueText] = useState('');
 
-  const handleRaiseIssue = () => {
-    if (showIssueInput) {
+  const handleSubmitIssue = () => {
+    if (issueText.trim()) {
       onRaiseIssue(issueText);
       setShowIssueInput(false);
       setIssueText('');
     } else {
-      setShowIssueInput(true);
+      setShowIssueInput(false);
     }
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalContainer}
+          style={styles.modalContent}
         >
-          <View style={styles.content}>
-            <View style={styles.iconContainer}>
-              <MaterialCommunityIcons name="check-decagram" size={60} color="#10B981" />
-            </View>
-            
-            <Text style={styles.title}>Work Completed!</Text>
-            <Text style={styles.subtitle}>
-              {workerName} has marked the job as done. Are you satisfied with the work?
-            </Text>
+          <View style={styles.handle} />
+          
+          <View style={styles.topIcon}>
+            <MaterialCommunityIcons name="check-circle" size={50} color="#10B981" />
+          </View>
 
-            {showIssueInput ? (
-              <View style={styles.issueContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Tell us what went wrong..."
-                  multiline
-                  numberOfLines={4}
-                  value={issueText}
-                  onChangeText={setIssueText}
-                />
-                <View style={styles.btnRow}>
-                  <TouchableOpacity 
-                    style={styles.cancelLink} 
-                    onPress={() => setShowIssueInput(false)}
-                  >
-                    <Text style={styles.cancelText}>Back</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.submitBtn} 
-                    onPress={handleRaiseIssue}
-                  >
-                    <Text style={styles.submitBtnText}>Submit Issue</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.actions}>
-                <Button 
-                  title="Yes, Close Ticket" 
-                  onPress={onConfirm}
-                  style={styles.confirmBtn}
-                />
+          <Text style={styles.title}>Work Completed?</Text>
+          <Text style={styles.subtitle}>
+            Your professional {workerName || 'Expert'} has marked the job as done. Are you happy with the service?
+          </Text>
+
+          {showIssueInput ? (
+            <View style={styles.issueBox}>
+              <TextInput
+                style={styles.input}
+                placeholder="Describe the issue you're facing..."
+                placeholderTextColor="#9CA3AF"
+                multiline
+                value={issueText}
+                onChangeText={setIssueText}
+              />
+              <View style={styles.issueButtons}>
                 <TouchableOpacity 
-                  style={styles.issueLink} 
-                  onPress={() => setShowIssueInput(true)}
+                  style={styles.backButton} 
+                  onPress={() => setShowIssueInput(false)}
                 >
-                  <Text style={styles.issueText}>Raise an Issue</Text>
+                  <Text style={styles.backButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.submitIssueButton} 
+                  onPress={handleSubmitIssue}
+                >
+                  <Text style={styles.submitIssueText}>Submit Issue</Text>
                 </TouchableOpacity>
               </View>
-            )}
-          </View>
+            </View>
+          ) : (
+            <View style={styles.actionColumn}>
+              <TouchableOpacity style={styles.confirmButton} onPress={onConfirm}>
+                <Text style={styles.confirmText}>Yes, Close Job</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.issueButton} 
+                onPress={() => setShowIssueInput(true)}
+              >
+                <Text style={styles.issueButtonText}>Raise Issue</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </KeyboardAvoidingView>
       </View>
     </Modal>
@@ -86,96 +85,119 @@ const WorkCompletionPopup = ({ visible, onConfirm, onRaiseIssue, workerName }) =
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     padding: 24,
-  },
-  modalContainer: {
-    backgroundColor: '#FFF',
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  content: {
-    padding: 30,
+    paddingBottom: Platform.OS === 'ios' ? 44 : 32,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 20,
   },
-  iconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    marginBottom: 20,
+  },
+  topIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F0FDF4',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
-    color: '#1A1A1A',
-    fontFamily: 'Poppins-Bold',
-    marginBottom: 10,
-    textAlign: 'center',
+    color: '#111827',
+    marginBottom: 12,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 15,
+    color: '#6B7280',
     textAlign: 'center',
-    lineHeight: 20,
-    fontFamily: 'Poppins-Regular',
-    marginBottom: 24,
+    lineHeight: 22,
+    marginBottom: 32,
+    paddingHorizontal: 20,
   },
-  actions: {
+  actionColumn: {
     width: '100%',
-    gap: 16,
+    gap: 12,
   },
-  confirmBtn: {
-    backgroundColor: '#10B981',
-  },
-  issueLink: {
+  confirmButton: {
+    backgroundColor: '#E84545',
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 16,
     alignItems: 'center',
-    paddingVertical: 10,
+    justifyContent: 'center',
   },
-  issueText: {
-    color: '#EF4444',
-    fontWeight: '600',
-    fontFamily: 'Poppins-Medium',
+  confirmText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
   },
-  issueContainer: {
+  issueButton: {
+    width: '100%',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  issueButtonText: {
+    color: '#6B7280',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  issueBox: {
     width: '100%',
   },
   input: {
     backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 12,
-    height: 100,
+    borderColor: '#F3F4F6',
+    borderRadius: 16,
+    padding: 16,
+    height: 120,
     textAlignVertical: 'top',
-    fontFamily: 'Poppins-Regular',
-    marginBottom: 16,
+    fontSize: 14,
+    color: '#111827',
+    marginBottom: 20,
   },
-  btnRow: {
+  issueButtons: {
     flexDirection: 'row',
+    gap: 12,
+  },
+  backButton: {
+    flex: 1,
+    paddingVertical: 16,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
   },
-  cancelLink: {
-    padding: 10,
-  },
-  cancelText: {
-    color: '#666',
-    fontFamily: 'Poppins-Medium',
-  },
-  submitBtn: {
-    backgroundColor: '#EF4444',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  submitBtnText: {
-    color: '#FFF',
+  backButtonText: {
+    color: '#4B5563',
     fontWeight: '700',
-    fontFamily: 'Poppins-Bold',
+  },
+  submitIssueButton: {
+    flex: 2,
+    backgroundColor: '#111827',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  submitIssueText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });
 

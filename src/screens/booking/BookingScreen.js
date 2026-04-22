@@ -4,63 +4,110 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import firestore from '@react-native-firebase/firestore';
-import auth from '@react-native-firebase/auth';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
 
 const BookingCard = ({ item }) => {
+  const navigation = useNavigation();
+
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'booked': return '#991B1B';
-      case 'accepted': return '#10B981';
-      case 'completed': return '#3B82F6';
-      case 'cancelled': return '#6B7280';
-      default: return '#991B1B';
+      case 'pending': return '#F59E0B'; // Orange
+      case 'accepted':
+      case 'on_the_way':
+      case 'navigating':
+      case 'arrived':
+      case 'working':
+      case 'in_progress': 
+        return '#3B82F6'; // Blue
+      case 'work_completed': return '#8B5CF6'; // Purple
+      case 'completed': return '#10B981'; // Green
+      case 'cancelled': return '#6B7280'; // Grey
+      default: return '#E84545';
     }
   };
 
   const statusColor = getStatusColor(item.status);
+  
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'Just now';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleCardPress = () => {
+    const activeStatuses = ['accepted', 'on_the_way', 'navigating', 'arrived', 'working', 'in_progress', 'work_completed'];
+    if (activeStatuses.includes(item.status?.toLowerCase())) {
+      navigation.navigate('Tracking', { bookingId: item.id });
+    }
+  };
+
+  // Address logic as requested: fullAddress OR address OR userAddress OR fallback
+  const displayAddress = item.userLocation?.fullAddress 
+    || item.userLocation?.address 
+    || item.userAddress 
+    || 'Address saved';
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={handleCardPress}
+      activeOpacity={0.7}
+    >
       <View style={styles.cardHeader}>
         <View style={styles.headerLeft}>
-          <Text style={styles.serviceName}>{item.serviceType || item.service}</Text>
-          <Text style={styles.professionalName}>Professional: {item.workerName || item.professional}</Text>
+          <Text style={styles.serviceName}>{item.serviceType || 'Standard Service'}</Text>
+          <Text style={styles.professionalName}>Professional: {item.workerName || 'Expert'}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+        <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
           <Text style={[styles.statusText, { color: statusColor }]}>
-            {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : 'Booked'}
+            {item.status ? item.status.replace('_', ' ').charAt(0).toUpperCase() + item.status.replace('_', ' ').slice(1) : 'Pending'}
           </Text>
         </View>
       </View>
 
       <View style={styles.cardBody}>
         <View style={styles.infoRow}>
-          <Ionicons name="calendar-outline" size={14} color="#A0A0A0" />
-          <Text style={styles.dateText}>
-            {item.bookingTime ? new Date(item.bookingTime).toLocaleString() : item.date}
+          <Ionicons name="calendar-outline" size={16} color="#E84545" />
+          <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Ionicons name="location-outline" size={16} color="#E84545" />
+          <Text style={styles.addressText} numberOfLines={2}>
+            {displayAddress}
           </Text>
         </View>
         <View style={styles.infoRow}>
-          <Ionicons name="location-outline" size={14} color="#A0A0A0" />
-          <Text style={styles.addressText} numberOfLines={1}>{item.address}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <MaterialCommunityIcons name="currency-inr" size={14} color="#A0A0A0" />
-          <Text style={styles.priceText}>Total: ₹{item.price || item.totalPrice || 249}</Text>
+          <MaterialCommunityIcons name="currency-inr" size={16} color="#E84545" />
+          <Text style={styles.priceText}>₹{item.price || item.totalPrice || 249}</Text>
         </View>
       </View>
 
       <View style={styles.cardFooter}>
-        <TouchableOpacity style={styles.detailsButton}>
-          <Text style={styles.detailsButtonText}>View details</Text>
-        </TouchableOpacity>
-        {item.status?.toLowerCase() !== 'completed' && item.status?.toLowerCase() !== 'cancelled' && (
-          <TouchableOpacity style={styles.rescheduleButton}>
-            <Text style={styles.rescheduleButtonText}>Reschedule</Text>
+        {item.status === 'pending' ? (
+          <View style={styles.pendingContainer}>
+            <ActivityIndicator size="small" color="#F59E0B" />
+            <Text style={styles.pendingText}>Waiting for worker to accept...</Text>
+          </View>
+        ) : (
+          <TouchableOpacity 
+            style={[styles.detailsButton, !['completed', 'cancelled', 'rejected', 'declined'].includes(item.status?.toLowerCase()) && styles.activeButton]} 
+            onPress={handleCardPress}
+            disabled={['completed', 'cancelled', 'rejected', 'declined'].includes(item.status?.toLowerCase())}
+          >
+            <Text style={[styles.detailsButtonText, !['completed', 'cancelled', 'rejected', 'declined'].includes(item.status?.toLowerCase()) && styles.activeButtonText]}>
+              {['completed', 'cancelled', 'rejected', 'declined'].includes(item.status?.toLowerCase()) ? 'Booking Closed' : 'Track Status'}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -68,19 +115,19 @@ const BookingScreen = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const user = auth().currentUser;
-    if (!user) {
+    const uid = user?.uid || user?._id;
+    if (!uid) {
       setLoading(false);
       return;
     }
 
-    console.log('[BOOKINGS DEBUG] Listening for userId:', user.uid);
-
+    setLoading(true);
     const unsubscribe = firestore()
       .collection('bookings')
-      .where('userId', '==', user.uid)
+      .where('userId', '==', uid)
       .orderBy('createdAt', 'desc')
       .onSnapshot(
         (querySnapshot) => {
@@ -93,66 +140,59 @@ const BookingScreen = () => {
               });
             });
           }
-          console.log('[BOOKINGS DEBUG] Found bookings:', bookingList.length);
           setBookings(bookingList);
           setLoading(false);
           setRefreshing(false);
         },
         (error) => {
-          console.error('[BOOKINGS ERROR] Firestore listener failed:', error);
+          console.error('Firestore Error:', error);
           setLoading(false);
           setRefreshing(false);
         }
       );
 
     return () => unsubscribe();
-  }, []);
+  }, [user?.uid, user?._id]);
 
   const onRefresh = () => {
-    // onSnapshot handles real-time updates, but we can keep RefreshControl for manual "feel"
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1000);
-  };
-
-  const handleHelpPress = () => {
-    console.log('Help pressed');
   };
 
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" />
-        <ActivityIndicator size="large" color="#991B1B" />
+        <ActivityIndicator size="large" color="#E84545" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.title}>My bookings</Text>
-          <TouchableOpacity style={styles.helpButton} onPress={handleHelpPress}>
-            <Text style={styles.helpButtonText}>Help</Text>
+          <Text style={styles.title}>History & Tracking</Text>
+          <TouchableOpacity style={styles.helpButton}>
+            <Text style={styles.helpButtonText}>Support</Text>
           </TouchableOpacity>
         </View>
 
         {bookings.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons name="calendar-blank" size={64} color="#333" />
-            <Text style={styles.emptyTitle}>No bookings yet</Text>
-            <Text style={styles.emptySubtitle}>Your booked services will appear here</Text>
+            <MaterialCommunityIcons name="calendar-blank-outline" size={80} color="#E5E7EB" />
+            <Text style={styles.emptyTitle}>No bookings found</Text>
+            <Text style={styles.emptySubtitle}>Your full booking history will appear here.</Text>
           </View>
         ) : (
           <FlatList
             data={bookings}
-            keyExtractor={(item) => item._id || item.id}
+            keyExtractor={(item) => item.id}
             renderItem={({ item }) => <BookingCard item={item} />}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#991B1B" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E84545" />
             }
           />
         )}
@@ -164,7 +204,7 @@ const BookingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
   },
   loadingContainer: {
     flex: 1,
@@ -180,80 +220,77 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 15,
     backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#333333',
-    fontFamily: 'Poppins-SemiBold',
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#111827',
   },
   helpButton: {
-    borderWidth: 1,
-    borderColor: '#991B1B',
+    backgroundColor: '#FFF5F5',
     borderRadius: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 6,
   },
   helpButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#991B1B',
-    fontFamily: 'Poppins-Regular',
+    color: '#E84545',
   },
   listContainer: {
     padding: 16,
-    paddingBottom: 100, // Space for tab bar
+    paddingBottom: 40,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 18,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    alignItems: 'flex-start',
+    marginBottom: 14,
   },
   headerLeft: {
     flex: 1,
-    marginRight: 10,
+    paddingRight: 10,
   },
   serviceName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 2,
-    fontFamily: 'Poppins-SemiBold',
+    color: '#111827',
+    marginBottom: 4,
   },
   professionalName: {
-    fontSize: 14,
-    color: '#666666',
-    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     textTransform: 'uppercase',
-    fontFamily: 'Poppins-Bold',
   },
   cardBody: {
-    marginBottom: 20,
+    marginBottom: 16,
     gap: 10,
   },
   infoRow: {
@@ -262,77 +299,79 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   dateText: {
-    fontSize: 14,
-    color: '#333333',
-    fontWeight: '500',
-    fontFamily: 'Poppins-Medium',
+    fontSize: 13,
+    color: '#374151',
+    fontWeight: '700',
   },
   addressText: {
-    fontSize: 13,
-    color: '#717171',
+    fontSize: 12,
+    color: '#6B7280',
     flex: 1,
-    fontFamily: 'Poppins-Regular',
+    lineHeight: 18,
   },
   priceText: {
     fontSize: 15,
-    color: '#991B1B',
-    fontWeight: '700',
-    fontFamily: 'Poppins-Bold',
+    color: '#E84545',
+    fontWeight: '900',
   },
   cardFooter: {
+    borderTopWidth: 1,
+    borderTopColor: '#F9FAFB',
+    paddingTop: 12,
+  },
+  pendingContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    padding: 10,
+    borderRadius: 10,
+    gap: 10,
+    justifyContent: 'center',
+  },
+  pendingText: {
+    color: '#92400E',
+    fontSize: 13,
+    fontWeight: '600',
   },
   detailsButton: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    width: '100%',
+    backgroundColor: '#F9FAFB',
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#991B1B',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  activeButton: {
+    backgroundColor: '#E84545',
+    borderColor: '#E84545',
   },
   detailsButtonText: {
-    color: '#991B1B',
+    color: '#4B5563',
     fontSize: 14,
     fontWeight: '700',
-    fontFamily: 'Poppins-Bold',
   },
-  rescheduleButton: {
-    flex: 1,
-    backgroundColor: '#991B1B',
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#991B1B',
-  },
-  rescheduleButtonText: {
+  activeButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: 'Poppins-Bold',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
-    marginTop: -50,
+    marginTop: -40,
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333333',
+    fontWeight: '800',
+    color: '#1F2937',
     marginTop: 20,
     marginBottom: 8,
   },
   emptySubtitle: {
-    fontSize: 15,
-    color: '#666666',
+    fontSize: 14,
+    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 22,
   },

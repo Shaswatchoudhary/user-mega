@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Image, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Image, Linking, Platform, ScrollView } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -24,7 +24,7 @@ const ActiveJobScreen = ({ route, navigation }) => {
           setBookingData({ id: doc.id, ...data });
           
           // resume tracking if already navigating or working
-          if (['navigating', 'arrived', 'in_progress'].includes(data.status)) {
+          if (['on_the_way', 'arrived', 'working'].includes(data.status)) {
              locationService.startTracking(data.workerId, doc.id);
           }
         }
@@ -56,17 +56,18 @@ const ActiveJobScreen = ({ route, navigation }) => {
     setLoading(true);
     try {
       const updateObj = { status: newStatus };
-      if (newStatus === 'navigating') updateObj.startedNavigatingAt = firestore.FieldValue.serverTimestamp();
+      if (newStatus === 'on_the_way') updateObj.startedNavigatingAt = firestore.FieldValue.serverTimestamp();
       if (newStatus === 'arrived') updateObj.arrivedAt = firestore.FieldValue.serverTimestamp();
-      if (newStatus === 'in_progress') updateObj.workStartedAt = firestore.FieldValue.serverTimestamp();
+      if (newStatus === 'working') updateObj.workStartedAt = firestore.FieldValue.serverTimestamp();
       if (newStatus === 'work_completed') {
           updateObj.completedAt = firestore.FieldValue.serverTimestamp();
+          updateObj.paymentUnlocked = true;
       }
 
       await firestore().collection('bookings').doc(bookingId).update(updateObj);
 
       // Start/Stop location tracking based on status
-      if (newStatus === 'navigating') {
+      if (newStatus === 'on_the_way') {
         const hasPermission = await locationService.requestPermission();
         if (hasPermission) {
           locationService.startTracking(bookingData?.workerId, bookingId);
@@ -83,7 +84,7 @@ const ActiveJobScreen = ({ route, navigation }) => {
             currentBookingId: null
           });
         }
-        Alert.alert('Success', 'Job completed successfully!');
+        Alert.alert('Job Completed', 'Job marked as done. Waiting for customer confirmation.');
         navigation.navigate('MainTabs');
       }
     } catch (error) {
@@ -100,18 +101,12 @@ const ActiveJobScreen = ({ route, navigation }) => {
     const lat = loc?.latitude || loc?.lat || loc?.coords?.latitude || bookingData?.userLat;
     const lng = loc?.longitude || loc?.lng || loc?.coords?.longitude || bookingData?.userLng;
 
-    // Check if values are null or undefined (allowing 0 as a valid coordinate)
     if (lat === undefined || lat === null || lng === undefined || lng === null) {
         Alert.alert('Error', 'No coordinates available for navigation');
         return;
     }
     
-    const address = bookingData?.userLocation?.fullAddress || bookingData?.userLocation?.address;
-    
     // Build complete destination address query
-    const query = encodeURIComponent(`${lat},${lng}`);
-    
-    // Opens Google Maps with directions
     const url = Platform.OS === 'android' 
       ? `google.navigation:q=${lat},${lng}&mode=d`
       : `maps://app?daddr=${lat},${lng}&t=m`;
@@ -127,7 +122,7 @@ const ActiveJobScreen = ({ route, navigation }) => {
     });
 
     if (bookingData?.status === 'accepted') {
-        updateStatus('navigating');
+        updateStatus('on_the_way');
     }
   };
 
@@ -146,7 +141,7 @@ const ActiveJobScreen = ({ route, navigation }) => {
             <Text style={styles.actionBtnText}>Start Navigating</Text>
           </TouchableOpacity>
         );
-      case 'navigating':
+      case 'on_the_way':
         return (
           <View style={styles.actionColumn}>
              <TouchableOpacity 
@@ -166,14 +161,14 @@ const ActiveJobScreen = ({ route, navigation }) => {
         return (
           <TouchableOpacity 
             style={[styles.actionBtn, { backgroundColor: '#8B5CF6' }]} 
-            onPress={() => updateStatus('in_progress')}
+            onPress={() => updateStatus('working')}
             disabled={loading}
           >
             <MaterialCommunityIcons name="play-circle" size={24} color="#FFF" />
             <Text style={styles.actionBtnText}>Start Working Now</Text>
           </TouchableOpacity>
         );
-      case 'in_progress':
+      case 'working':
         return (
           <TouchableOpacity 
             style={[styles.actionBtn, { backgroundColor: '#10B981' }]} 
@@ -192,9 +187,9 @@ const ActiveJobScreen = ({ route, navigation }) => {
   const getStatusStep = () => {
      const status = bookingData?.status || 'accepted';
      if (status === 'accepted') return 1;
-     if (status === 'navigating') return 2;
+     if (status === 'on_the_way') return 2;
      if (status === 'arrived') return 3;
-     if (status === 'in_progress') return 4;
+     if (status === 'working') return 4;
      return 5;
   };
 
@@ -221,16 +216,7 @@ const ActiveJobScreen = ({ route, navigation }) => {
          ))}
       </View>
 
-      <View style={styles.content}>
-         <View style={styles.statusIllustration}>
-            <MaterialCommunityIcons name="shield-check-outline" size={60} color="#E84545" />
-            <Text style={styles.illustrationText}>Security Tracking Enabled</Text>
-            <View style={styles.statusBadgeRow}>
-              <View style={styles.liveBadge} />
-              <Text style={styles.liveText}>Location Protection Active</Text>
-            </View>
-         </View>
-
+      <ScrollView contentContainerStyle={styles.scrollContent}>
          <View style={styles.card}>
             <View style={styles.customerRow}>
                <Image source={{ uri: 'https://avatar.iran.liara.run/public/boy' }} style={styles.customerAvatar} />
@@ -240,48 +226,68 @@ const ActiveJobScreen = ({ route, navigation }) => {
                </View>
             </View>
             <View style={styles.divider} />
-             <View style={styles.locationInfo}>
-                <MaterialCommunityIcons name="map-marker-radius" size={24} color="#E84545" />
-                <View style={{ flex: 1 }}>
-                   {bookingData?.userLocation?.flat ? (
-                     <Text style={styles.flatText}>
-                       {bookingData.userLocation.flat}
-                       {bookingData.userLocation.wing ? `, Wing ${bookingData.userLocation.wing}` : ''}
-                       {bookingData.userLocation.addressType ? ` (${bookingData.userLocation.addressType})` : ''}
-                     </Text>
-                   ) : null}
-                   
-                   <Text style={[styles.locationText, { fontWeight: '700', color: '#1F2937' }]}>
-                     {bookingData?.userLocation?.shortAddress || 'Location provided'}
-                   </Text>
-                   
-                   <Text style={styles.locationText}>
-                     {bookingData?.userLocation?.fullAddress || bookingData?.userLocation?.address || ''}
-                   </Text>
-                   
-                   {bookingData?.userLocation?.landmark ? (
-                     <Text style={styles.landmarkText}>
-                       🏛️ Near {bookingData.userLocation.landmark}
-                     </Text>
-                   ) : null}
+            
+            {/* Address Information Section */}
+            <View style={styles.locationSection}>
+              <View style={styles.sectionHeader}>
+                <MaterialCommunityIcons name="map-marker-radius" size={22} color="#E84545" />
+                <Text style={styles.sectionTitle}>Service Address</Text>
+              </View>
 
-                   <Text style={styles.coordsTextSmall}>
-                     ({bookingData?.userLocation?.latitude?.toFixed(4)}, {bookingData?.userLocation?.longitude?.toFixed(4)})
-                   </Text>
-                </View>
-             </View>
+              <View style={styles.addressContainer}>
+                {bookingData?.userLocation?.flat ? (
+                  <View style={styles.flatRow}>
+                    <Text style={styles.flatText}>
+                      {bookingData.userLocation.flat}
+                      {bookingData.userLocation.wing ? `, Wing ${bookingData.userLocation.wing}` : ''}
+                      {bookingData.userLocation.addressType ? ` (${bookingData.userLocation.addressType})` : ''}
+                    </Text>
+                  </View>
+                ) : null}
+                
+                <Text style={styles.addressMain}>
+                  {bookingData?.userLocation?.shortAddress || 'Standard Location'}
+                </Text>
+                
+                <Text style={styles.addressFull}>
+                  {bookingData?.userLocation?.fullAddress || bookingData?.userAddress || 'Address not provided'}
+                </Text>
+                
+                {bookingData?.userLocation?.landmark ? (
+                  <View style={styles.landmarkRow}>
+                    <MaterialCommunityIcons name="office-building-marker" size={16} color="#E84545" />
+                    <Text style={styles.landmark}>
+                      Near {bookingData.userLocation.landmark}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
          </View>
 
-         <View style={styles.statusCard}>
-            <Text style={styles.statusLabel}>Current Stage</Text>
-            <Text style={styles.statusValue}>
-               {bookingData?.status === 'accepted' ? 'Waiting to start' : 
-                bookingData?.status === 'navigating' ? 'On the way to customer' :
-                bookingData?.status === 'arrived' ? 'At customer location' :
-                bookingData?.status === 'in_progress' ? 'Work in progress' : 'Finishing up'}
-            </Text>
+         <View style={styles.securityBanner}>
+           <MaterialCommunityIcons name="shield-check" size={24} color="#10B981" />
+           <Text style={styles.securityText}>Active Location Security Protocol</Text>
          </View>
-      </View>
+
+         <View style={styles.newStatusCard}>
+            <View style={styles.statusAccent} />
+            <View style={styles.statusInfo}>
+                <Text style={styles.statusLabelSmall}>CURRENT STAGE</Text>
+                <Text style={styles.statusValueText}>
+                   {bookingData?.status === 'accepted' ? 'Waiting to start' : 
+                    bookingData?.status === 'on_the_way' ? 'On the way to customer' :
+                    bookingData?.status === 'arrived' ? 'At customer location' :
+                    bookingData?.status === 'working' ? 'Work in progress' : 'Finishing up'}
+                </Text>
+            </View>
+            <MaterialCommunityIcons 
+                name={bookingData?.status === 'working' ? "hammer-wrench" : "clock-check-outline"} 
+                size={28} 
+                color="#E84545" 
+            />
+         </View>
+      </ScrollView>
 
       <View style={styles.footer}>
          {loading ? <ActivityIndicator size="large" color="#E84545" /> : renderActionButton()}
@@ -304,76 +310,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#FFF'
   },
   stepDot: {
-    width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#E5E7EB',
+    width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#E5E7EB',
     alignItems: 'center', justifyContent: 'center'
   },
   stepDotActive: { backgroundColor: '#E84545', borderColor: '#E84545' },
-  stepNum: { fontSize: 12, fontWeight: '700', color: '#9CA3AF' },
+  stepNum: { fontSize: 13, fontWeight: '700', color: '#9CA3AF' },
   stepNumActive: { color: '#FFF' },
-  stepLine: { width: 40, height: 2, backgroundColor: '#E5E7EB', marginHorizontal: 4 },
+  stepLine: { width: 40, height: 3, backgroundColor: '#E5E7EB', marginHorizontal: 4, borderRadius: 2 },
   stepLineActive: { backgroundColor: '#E84545' },
 
-  content: { padding: 20 },
+  scrollContent: { padding: 20 },
   card: {
-    backgroundColor: '#FFF', borderRadius: 20, padding: 20, marginBottom: 20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3
+    backgroundColor: '#FFF', borderRadius: 24, padding: 20, marginBottom: 20,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 4
   },
   customerRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 16 },
-  customerAvatar: { width: 50, height: 50, borderRadius: 25 },
-  customerName: { fontSize: 18, fontWeight: '700', color: '#111827' },
-  serviceTag: { fontSize: 13, color: '#E84545', fontWeight: '600' },
-  divider: { height: 1, backgroundColor: '#F3F4F6', marginBottom: 16 },
-  locationInfo: { flexDirection: 'row', gap: 10 },
-  locationText: { fontSize: 14, color: '#4B5563', flex: 1, lineHeight: 20 },
-  flatText: { fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 2 },
-  landmarkText: { fontSize: 13, color: '#E84545', fontWeight: '600', marginTop: 4 },
-  coordsTextSmall: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
-  statusIllustration: {
-    height: 200,
-    backgroundColor: '#FFF',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-    elevation: 2,
-  },
-  illustrationText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginTop: 12,
-  },
-  statusBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  liveBadge: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#10B981',
-    marginRight: 6,
-  },
-  liveText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
-  },
+  customerAvatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#F3F4F6' },
+  customerName: { fontSize: 20, fontWeight: '700', color: '#111827' },
+  serviceTag: { fontSize: 14, color: '#E84545', fontWeight: '600', marginTop: 2 },
+  divider: { height: 1, backgroundColor: '#F3F4F6', marginBottom: 20 },
 
-  statusCard: {
-    backgroundColor: '#111827', borderRadius: 20, padding: 20
-  },
-  statusLabel: { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4, letterSpacing: 0.5 },
-  statusValue: { fontSize: 20, fontWeight: '700', color: '#FFF' },
+  locationSection: { gap: 15 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#1F2937', letterSpacing: 0.5 },
+  addressContainer: { backgroundColor: '#F9FAFB', padding: 16, borderRadius: 18, borderWidth: 1, borderColor: '#F3F4F6' },
+  flatRow: { marginBottom: 6 },
+  flatText: { fontSize: 15, fontWeight: '800', color: '#111827' },
+  addressMain: { fontSize: 16, fontWeight: '700', color: '#374151', marginBottom: 4 },
+  addressFull: { fontSize: 14, color: '#6B7280', lineHeight: 22 },
+  landmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, backgroundColor: '#FFF', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1, borderColor: '#FEE2E2' },
+  landmark: { fontSize: 13, color: '#E84545', fontWeight: '700' },
 
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, backgroundColor: '#FFF' },
-  actionBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12,
-    paddingVertical: 18, borderRadius: 16
+  securityBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#F0FDF4', padding: 12, borderRadius: 16, marginBottom: 20, borderWidth: 1, borderColor: '#DCFCE7' },
+  securityText: { fontSize: 13, fontWeight: '700', color: '#15803D' },
+
+  newStatusCard: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 20, 
+    padding: 20, borderWidth: 1.5, borderColor: '#FEE2E2', shadowColor: '#E84545', 
+    shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 2
   },
+  statusAccent: { width: 4, height: 40, backgroundColor: '#E84545', borderRadius: 2, marginRight: 15 },
+  statusInfo: { flex: 1 },
+  statusLabelSmall: { fontSize: 11, color: '#9CA3AF', fontWeight: '700', letterSpacing: 1 },
+  statusValueText: { fontSize: 18, fontWeight: '800', color: '#E84545', marginTop: 2 },
+
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 18, borderRadius: 16 },
   actionBtnText: { fontSize: 16, fontWeight: '800', color: '#FFF' },
   actionColumn: { gap: 12 },
   secondaryBtn: { alignItems: 'center', paddingVertical: 12 },

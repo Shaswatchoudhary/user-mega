@@ -21,6 +21,10 @@
 
 
       <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="AIzaSyBNRN1d-V25fgE7f2RBKcXqAVAHQg_J8P0" />
+
+      <meta-data
         android:name="firebase_app_check_debug_token"
         android:value="DF33FC9B-52F9-4515-B19E-E7492108FF15" />
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { LocationProvider } from './src/context/LocationContext';
@@ -10,14 +11,14 @@ import permissionService from './src/services/permissionService';
 const navigationRef = createNavigationContainerRef();
 
 function AppContent() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   React.useEffect(() => {
     notificationService.setNavigation(navigationRef);
     
     let unsubscribe;
-    if (user?._id) {
-      notificationService.setupNotifications(user._id).then(unsub => {
+    if (user?.uid || user?._id) {
+      notificationService.setupNotifications(user.uid || user._id).then(unsub => {
         unsubscribe = unsub;
       });
     }
@@ -25,16 +26,24 @@ function AppContent() {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [user?._id]);
+  }, [user?.uid, user?._id]);
 
   React.useEffect(() => {
     // Request Initial Permissions (Notification & Location)
     permissionService.requestInitialPermissions();
   }, []);
 
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' }}>
+        <ActivityIndicator size="large" color="#E84545" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer ref={navigationRef}>
-      <AppNavigator />
+      <AppNavigator user={user} />
     </NavigationContainer>
   );
 }

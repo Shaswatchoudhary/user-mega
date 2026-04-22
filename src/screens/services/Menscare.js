@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Modal,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -24,10 +25,10 @@ const Menscare = ({ navigation, route }) => {
   const [filterVisible, setFilterVisible] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  // Get category from params, default
+  // Get category from params, default to 'Self-care (Male)'
   const category = route?.params?.category || 'Self-care (Male)';
 
-  const [experts, setExperts] = useState([]);
+  const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,32 +38,42 @@ const Menscare = ({ navigation, route }) => {
   const fetchWorkers = async () => {
     try {
       setLoading(true);
-      const snapshot = await firestore()
-        .collection('workers')
-        .where('category', '==', category)
-        .where('isVerified', '==', true)
-        .where('isActive', '==', true)
-        .where('isAvailable', '==', true)
-        .get();
-
-      const mappedWorkers = snapshot.docs.map(doc => {
-        const worker = doc.data();
-        return {
-          id: doc.id,
-          name: worker.fullName || "Service Professional",
-          rating: worker.rating || 4.5,
-          reviewCount: worker.completedOrders || 0,
-          experience: `${worker.experience || 0}+ Years`,
-          rate: worker.basePrice || worker.rate || 299,
-          distance: 0,
-          verified: worker.isVerified !== false,
-          specialization: worker.category || category,
-          ...worker
-        };
-      });
-      setWorkers(mappedWorkers);
+      // Fetch all workers from API for consistent filtering and normalization
+      const response = await fetch(`${API_BASE_URL}/workers`);
+      const json = await response.json();
+      
+      if (json.success && json.data) {
+        const targetCat = category.toLowerCase().replace(/\s+/g, '');
+        
+        const mappedWorkers = json.data
+          .filter(w => {
+            if ((w.status || '').toUpperCase() !== 'ACTIVE') return false;
+            if (!w.category) return false;
+            
+            const normalizedWorkerCat = w.category.toLowerCase().replace(/\s+/g, '');
+            // Match main category or subcategories
+            return normalizedWorkerCat === targetCat || 
+                   normalizedWorkerCat.includes('menscare') || 
+                   normalizedWorkerCat.includes('malecare');
+          })
+          .map(worker => ({
+            id: worker._id,
+            name: worker.fullName || "Service Professional",
+            rating: worker.rating || 4.5,
+            reviewCount: worker.completedOrders || 0,
+            experience: `${worker.experience || 0}+ Years`,
+            rate: worker.basePrice || worker.rate || 299,
+            distance: 0.5,
+            verified: true,
+            specialization: worker.category || category,
+            image: worker.image,
+            ...worker
+          }));
+          
+        setWorkers(mappedWorkers);
+      }
     } catch (error) {
-      console.error('FULL ERROR DETAILS:', error);
+      console.error('FETCH ERROR:', error);
     } finally {
       setLoading(false);
     }
@@ -77,15 +88,23 @@ const Menscare = ({ navigation, route }) => {
     { id: 'experience', label: 'Most Experienced', icon: 'ribbon' },
   ];
 
-  const getSortedExperts = () => {
-    let sorted = [...experts];
+  const getSortedWorkers = () => {
+    let sorted = workers.filter(w => 
+      w.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      w.specialization.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     switch (selectedFilter) {
       case 'rating': sorted.sort((a, b) => b.rating - a.rating); break;
       case 'price_low': sorted.sort((a, b) => a.rate - b.rate); break;
       case 'price_high': sorted.sort((a, b) => b.rate - a.rate); break;
       case 'distance': sorted.sort((a, b) => a.distance - b.distance); break;
       case 'experience':
-        sorted.sort((a, b) => parseInt(b.experience) - parseInt(a.experience));
+        sorted.sort((a, b) => {
+          const expA = parseInt(a.experience) || 0;
+          const expB = parseInt(b.experience) || 0;
+          return expB - expA;
+        });
         break;
       default: break;
     }
@@ -99,8 +118,8 @@ const Menscare = ({ navigation, route }) => {
     });
   };
 
-  const renderExpertCard = (expert) => (
-    <View key={expert.id} style={styles.card}>
+  const renderWorkerCard = (worker) => (
+    <View key={worker.id} style={styles.card}>
       <View style={styles.cardContent}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatarPlaceholder}>
@@ -111,43 +130,43 @@ const Menscare = ({ navigation, route }) => {
         <View style={styles.mainContent}>
           <View style={styles.headerRow}>
             <View style={styles.nameSection}>
-              <Text style={styles.name}>{expert.name}</Text>
-              {expert.verified && <MaterialCommunityIcons name="shield-check" size={16} color="#10B981" />}
+              <Text style={styles.name}>{worker.name}</Text>
+              {worker.verified && <MaterialCommunityIcons name="shield-check" size={16} color="#10B981" />}
             </View>
             <View style={styles.ratingBadge}>
               <Ionicons name="star" size={12} color="#F59E0B" />
-              <Text style={styles.ratingText}>{expert.rating}</Text>
+              <Text style={styles.ratingText}>{worker.rating}</Text>
             </View>
           </View>
 
-          <Text style={styles.specialization}>{expert.specialization}</Text>
+          <Text style={styles.specialization}>{worker.specialization}</Text>
 
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
               <Ionicons name="briefcase-outline" size={14} color="#6B7280" />
-              <Text style={styles.infoText}>{expert.experience}</Text>
+              <Text style={styles.infoText}>{worker.experience}</Text>
             </View>
             <View style={styles.infoDivider} />
             <View style={styles.infoItem}>
               <Ionicons name="location-outline" size={14} color="#6B7280" />
-              <Text style={styles.infoText}>{expert.distance} km</Text>
+              <Text style={styles.infoText}>{worker.distance} km</Text>
             </View>
             <View style={styles.infoDivider} />
             <View style={styles.infoItem}>
               <Ionicons name="chatbox-outline" size={14} color="#6B7280" />
-              <Text style={styles.infoText}>{expert.reviewCount}</Text>
+              <Text style={styles.infoText}>{worker.reviewCount}</Text>
             </View>
           </View>
 
           <View style={styles.bottomRow}>
             <View style={styles.priceSection}>
               <Text style={styles.priceLabel}>Starting at</Text>
-              <Text style={styles.price}>₹{expert.rate}/session</Text>
+              <Text style={styles.price}>₹{worker.rate}/session</Text>
             </View>
 
             <TouchableOpacity
               style={styles.bookButton}
-              onPress={() => handleBookNow(expert)}
+              onPress={() => handleBookNow(worker)}
               activeOpacity={0.8}
             >
               <LinearGradient
@@ -177,7 +196,7 @@ const Menscare = ({ navigation, route }) => {
 
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Men's Self-Care</Text>
-          <Text style={styles.headerSubtitle}>{getSortedExperts().length} professionals nearby</Text>
+          <Text style={styles.headerSubtitle}>{getSortedWorkers().length} professionals nearby</Text>
         </View>
 
         <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}>
@@ -186,7 +205,6 @@ const Menscare = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Location Display Header */}
       <TouchableOpacity
         style={styles.locationDisplayRow}
         onPress={() => navigation.navigate('LocationSelection')}
@@ -198,12 +216,11 @@ const Menscare = ({ navigation, route }) => {
         <Ionicons name="chevron-forward" size={14} color="#6B7280" />
       </TouchableOpacity>
 
-      {/* Product Selection Banner */}
       {route.params?.preSelectedProduct && (
         <View style={styles.productBanner}>
           <MaterialCommunityIcons name="shopping-outline" size={18} color="#FFF" />
           <Text style={styles.productBannerText}>
-            Booking for: <Text style={{ fontWeight: 'bold' }}>{route.params.preSelectedProduct}</Text>
+             Booking for: <Text style={{ fontWeight: 'bold' }}>{route.params.preSelectedProduct}</Text>
           </Text>
           <TouchableOpacity onPress={() => navigation.setParams({ preSelectedProduct: null })}>
             <Ionicons name="close-circle" size={18} color="#FFF" />
@@ -246,7 +263,7 @@ const Menscare = ({ navigation, route }) => {
         contentContainerStyle={[styles.listContainer, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
       >
-        {getSortedExperts().map((expert) => renderExpertCard(expert))}
+        {getSortedWorkers().map((worker) => renderWorkerCard(worker))}
       </ScrollView>
 
       <Modal
@@ -269,18 +286,37 @@ const Menscare = ({ navigation, route }) => {
               {filterOptions.map((option) => (
                 <TouchableOpacity
                   key={option.id}
-                  style={[styles.filterOption, selectedFilter === option.id && styles.filterOptionSelected]}
-                  onPress={() => { setSelectedFilter(option.id); setFilterVisible(false); }}
+                  style={[
+                    styles.filterOption,
+                    selectedFilter === option.id && styles.filterOptionSelected
+                  ]}
+                  onPress={() => {
+                    setSelectedFilter(option.id);
+                    setFilterVisible(false);
+                  }}
+                  activeOpacity={0.7}
                 >
                   <View style={styles.filterOptionLeft}>
-                    <View style={[styles.filterIconContainer, selectedFilter === option.id && styles.filterIconContainerSelected]}>
-                      <Ionicons name={option.icon} size={20} color={selectedFilter === option.id ? '#E84545' : '#6B7280'} />
+                    <View style={[
+                      styles.filterIconContainer,
+                      selectedFilter === option.id && styles.filterIconContainerSelected
+                    ]}>
+                      <Ionicons
+                        name={option.icon}
+                        size={20}
+                        color={selectedFilter === option.id ? '#E84545' : '#6B7280'}
+                      />
                     </View>
-                    <Text style={[styles.filterOptionText, selectedFilter === option.id && styles.filterOptionTextSelected]}>
+                    <Text style={[
+                      styles.filterOptionText,
+                      selectedFilter === option.id && styles.filterOptionTextSelected
+                    ]}>
                       {option.label}
                     </Text>
                   </View>
-                  {selectedFilter === option.id && <Ionicons name="checkmark-circle" size={24} color="#E84545" />}
+                  {selectedFilter === option.id && (
+                    <Ionicons name="checkmark-circle" size={24} color="#E84545" />
+                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -293,13 +329,38 @@ const Menscare = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
   backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
   headerSubtitle: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  filterButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', position: 'relative' },
-  filterDot: { position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4, backgroundColor: '#E84545', borderWidth: 2, borderColor: '#FFFFFF' },
+  filterButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  filterDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E84545',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
   locationDisplayRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -316,30 +377,88 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontWeight: '500',
   },
-  searchContainer: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 12, height: 44, paddingHorizontal: 14, gap: 10 },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    height: 44,
+    paddingHorizontal: 14,
+    gap: 10,
+  },
   searchInput: { flex: 1, fontSize: 15, color: '#000' },
   activeFilterContainer: { paddingHorizontal: 16, paddingVertical: 12 },
-  filterChip: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#FEF2F2', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 6 },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
   filterChipText: { fontSize: 13, fontWeight: '600', color: '#E84545' },
   scrollView: { flex: 1 },
   listContainer: { padding: 16 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#E5E7EB', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
   cardContent: { flexDirection: 'row', padding: 16 },
   avatarContainer: { marginRight: 14 },
-  avatarPlaceholder: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#E5E7EB' },
+  avatarPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+  },
   mainContent: { flex: 1 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
   nameSection: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
   name: { fontSize: 16, fontWeight: '600', color: '#000' },
-  ratingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, gap: 4 },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF7ED',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+  },
   ratingText: { fontSize: 13, fontWeight: '600', color: '#000' },
   specialization: { fontSize: 13, color: '#6B7280', marginBottom: 12 },
   infoGrid: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 12 },
   infoItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   infoText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
   infoDivider: { width: 1, height: 12, backgroundColor: '#E5E7EB' },
-  bottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
   priceSection: { gap: 2 },
   priceLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
   price: { fontSize: 16, fontWeight: '700', color: '#000' },
@@ -349,14 +468,37 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
   modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '80%' },
-  modalHandle: { width: 40, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 8 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
   modalTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
   filterOptions: { paddingVertical: 8 },
   filterOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14 },
   filterOptionSelected: { backgroundColor: '#FEF2F2' },
   filterOptionLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  filterIconContainer: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F9FAFB', justifyContent: 'center', alignItems: 'center' },
+  filterIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   filterIconContainerSelected: { backgroundColor: '#FEE2E2' },
   filterOptionText: { fontSize: 15, color: '#374151', fontWeight: '500' },
   filterOptionTextSelected: { fontWeight: '600', color: '#E84545' },

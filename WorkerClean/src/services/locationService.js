@@ -1,4 +1,5 @@
 import { getFirestore, doc, updateDoc } from '@react-native-firebase/firestore';
+import Geolocation from '@react-native-community/geolocation';
 import { requestLocationPermission } from '../utils/locationHelper';
 
 class LocationService {
@@ -6,13 +7,7 @@ class LocationService {
     this.watchId = null;
     this.currentWorkerId = null;
     this.activeBookingId = null;
-    this.lastPosition = {
-      latitude: 16.7050,
-      longitude: 74.2433,
-      address: 'Kolhapur City Center, Maharashtra',
-      heading: 0,
-      speed: 0,
-    };
+    this.lastPosition = null;
   }
 
   async requestPermission() {

@@ -21,7 +21,7 @@ const popularServices = [
   { id: 2, name: 'Plumber', icon: 'pipe-wrench', color: '#3498DB', screen: 'WorkerList' },
   { id: 3, name: 'Carpenter', icon: 'hammer-screwdriver', color: '#E67E22', screen: 'WorkerList' },
   { id: 4, name: 'Self-Care', icon: 'face-woman-shimmer', color: '#FF6B9D', screen: 'SelfCare', hasSubcategories: true },
-  { id: 5, name: 'AcRepair', icon: 'air-conditioner', color: '#1ABC9C', screen: 'WorkerList' },
+  { id: 5, name: 'AC Repair', icon: 'air-conditioner', color: '#1ABC9C', screen: 'WorkerList' },
   { id: 6, name: 'Appliance', icon: 'washing-machine', color: '#9B59B6', screen: 'WorkerList' },
 ];
 
@@ -161,7 +161,7 @@ const bannerPromos = [
     bg: '#1ABC9C',
     image: 'https://content3.jdmagicbox.com/v2/comp/ernakulam/x7/0484px484.x484.161007111216.j2x7/catalogue/home-star-services-india-pvt-ltd-palarivattom-ernakulam-ac-repair-and-services-41xdekdexb.jpg',
     screen: 'WorkerList',
-    category: 'AcRepair'
+    category: 'AC Repair'
   },
 ];
 
@@ -176,6 +176,8 @@ const searchPlaceholders = [
 import { API_BASE_URL } from '../../constants/config';
 import { useLocation } from '../../context/LocationContext';
 import { useAuth } from '../../context/AuthContext';
+import { getUserLocation, reverseGeocode } from '../../utils/locationHelper';
+import permissionService from '../../services/permissionService';
 import { getFirestore, collection, doc, onSnapshot, query, where } from '@react-native-firebase/firestore';
 
 export default function HomeScreen({ navigation }) {
@@ -185,6 +187,7 @@ export default function HomeScreen({ navigation }) {
   const [mostBookedWorkers, setMostBookedWorkers] = useState([]);
   const {
     selectedLocation,
+    saveLocation,
     distance,
     hasActiveBooking,
     bookingStatus
@@ -213,6 +216,27 @@ export default function HomeScreen({ navigation }) {
   const scrollIntervalRef = useRef(null);
 
   useEffect(() => {
+    const initLocation = async () => {
+      const perms = await permissionService.requestInitialPermissions();
+      if (perms.location) {
+        try {
+          const coords = await getUserLocation();
+          if (coords) {
+            const addr = await reverseGeocode(coords.latitude, coords.longitude);
+            if (addr) {
+              await saveLocation({
+                ...addr,
+                shortAddress: addr.name,
+                fullAddress: addr.addressText
+              });
+            }
+          }
+        } catch (error) {
+          console.error('[HomeScreen] Initial Location Error:', error);
+        }
+      }
+    };
+    initLocation();
     fetchMostBookedWorkers();
     startAutoScroll();
     return () => stopAutoScroll();
@@ -645,7 +669,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>AC repair workers</Text>
-            <TouchableOpacity onPress={() => handleSeeAllPress('AcRepair')}>
+            <TouchableOpacity onPress={() => handleSeeAllPress('AC Repair')}>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
           </View>
@@ -660,7 +684,7 @@ export default function HomeScreen({ navigation }) {
                 key={service.id}
                 style={styles.categoryCard}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('WorkerList', { category: 'AcRepair' })}
+                onPress={() => navigation.navigate('WorkerList', { category: 'AC Repair' })}
               >
                 <Image source={{ uri: String(service.image || DEFAULT_WORKER_IMAGE) }} style={styles.categoryImage} />
                 <Text style={styles.categoryTitle}>{service.title}</Text>

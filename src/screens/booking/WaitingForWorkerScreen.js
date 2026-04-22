@@ -41,12 +41,35 @@ const WaitingForWorkerScreen = ({ route, navigation }) => {
         }
       );
 
-    // Auto-timeout after 5 minutes if no response
-    const timer = setTimeout(() => {
+    // Auto-timeout after 15 minutes if no response
+    const timer = setTimeout(async () => {
         if (bookingStatus === 'pending') {
-            handleCancel('Request timed out as the worker did not respond.');
+            try {
+                // Set booking status to 'cancelled' in Firestore
+                await firestore().collection('bookings').doc(bookingId).update({
+                  status: 'cancelled',
+                  cancelReason: 'No response from worker after 15 minutes.',
+                  updatedAt: firestore.FieldValue.serverTimestamp(),
+                });
+
+                // Set worker isAvailable back to true in Firestore
+                await firestore().collection('workers').doc(workerId).update({
+                  isAvailable: true,
+                  updatedAt: firestore.FieldValue.serverTimestamp(),
+                });
+
+                // Show alert and navigate back to home
+                Alert.alert(
+                  "No worker available", 
+                  "No worker available right now. Please try again.",
+                  [{ text: "OK", onPress: () => navigation.navigate('Home') }]
+                );
+            } catch (err) {
+                console.error('Auto-cancel error:', err);
+                navigation.navigate('Home');
+            }
         }
-    }, 300000); // 5 minutes
+    }, 900000); // 15 minutes
 
     return () => {
       unsubscribe();
