@@ -22,7 +22,7 @@ const WaitingForWorkerScreen = ({ route, navigation }) => {
             if (data.status === 'accepted') {
               // Worker accepted! Navigate to tracking screen
               Alert.alert(
-                'Booking Confirmed!', 
+                'Booking Confirmed!',
                 'The professional has accepted your request and is starting now.',
                 [{ text: 'Awesome!', onPress: () => navigation.replace('Tracking', { bookingId, workerId }) }]
               );
@@ -43,32 +43,32 @@ const WaitingForWorkerScreen = ({ route, navigation }) => {
 
     // Auto-timeout after 15 minutes if no response
     const timer = setTimeout(async () => {
-        if (bookingStatus === 'pending') {
-            try {
-                // Set booking status to 'cancelled' in Firestore
-                await firestore().collection('bookings').doc(bookingId).update({
-                  status: 'cancelled',
-                  cancelReason: 'No response from worker after 15 minutes.',
-                  updatedAt: firestore.FieldValue.serverTimestamp(),
-                });
+      if (bookingStatus === 'pending') {
+        try {
+          // Set booking status to 'cancelled' in Firestore
+          await firestore().collection('bookings').doc(bookingId).update({
+            status: 'cancelled',
+            cancelReason: 'No response from worker after 15 minutes.',
+            updatedAt: firestore.FieldValue.serverTimestamp(),
+          });
 
-                // Set worker isAvailable back to true in Firestore
-                await firestore().collection('workers').doc(workerId).update({
-                  isAvailable: true,
-                  updatedAt: firestore.FieldValue.serverTimestamp(),
-                });
+          // Set worker isAvailable back to true in Firestore
+          await firestore().collection('workers').doc(workerId).update({
+            isAvailable: true,
+            updatedAt: firestore.FieldValue.serverTimestamp(),
+          });
 
-                // Show alert and navigate back to home
-                Alert.alert(
-                  "No worker available", 
-                  "No worker available right now. Please try again.",
-                  [{ text: "OK", onPress: () => navigation.navigate('Home') }]
-                );
-            } catch (err) {
-                console.error('Auto-cancel error:', err);
-                navigation.navigate('Home');
-            }
+          // Show alert and navigate back to home
+          Alert.alert(
+            "No worker available",
+            "No worker available right now. Please try again.",
+            [{ text: "OK", onPress: () => navigation.navigate('Home') }]
+          );
+        } catch (err) {
+          console.error('Auto-cancel error:', err);
+          navigation.navigate('Home');
         }
+      }
     }, 900000); // 15 minutes
 
     return () => {
@@ -103,10 +103,10 @@ const WaitingForWorkerScreen = ({ route, navigation }) => {
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <View style={styles.pulseContainer}>
-             <ActivityIndicator size={120} color="#E84545" style={styles.loader} />
-             <View style={styles.centerIcon}>
-                <MaterialCommunityIcons name="clock-fast" size={50} color="#E84545" />
-             </View>
+            <ActivityIndicator size={120} color="#E84545" style={styles.loader} />
+            <View style={styles.centerIcon}>
+              <MaterialCommunityIcons name="clock-fast" size={50} color="#E84545" />
+            </View>
           </View>
         </View>
 
@@ -116,17 +116,17 @@ const WaitingForWorkerScreen = ({ route, navigation }) => {
         </Text>
 
         <View style={styles.infoCard}>
-           <View style={styles.infoRow}>
-              <Ionicons name="shield-checkmark" size={20} color="#10B981" />
-              <Text style={styles.infoText}>Secured Payment Process</Text>
-           </View>
-           <View style={styles.infoRow}>
-              <Ionicons name="star" size={20} color="#F59E0B" />
-              <Text style={styles.infoText}>Top-rated local experts</Text>
-           </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="shield-checkmark" size={20} color="#10B981" />
+            <Text style={styles.infoText}>Secured Payment Process</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="star" size={20} color="#F59E0B" />
+            <Text style={styles.infoText}>Top-rated local experts</Text>
+          </View>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => handleCancel()}
         >

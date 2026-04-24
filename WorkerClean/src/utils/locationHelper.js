@@ -58,37 +58,29 @@ export const getCurrentLocation = () => {
   });
 };
 
-// Reverse geocode using Google Maps API
+// Reverse geocode using OpenStreetMap Nominatim API (Free, No Key)
 export const reverseGeocode = async (latitude, longitude) => {
   try {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${config.GOOGLE_MAPS_API_KEY}`;
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'WorkerCleanApp/1.0'
+      }
+    });
     const data = await response.json();
     
-    if (data.status === 'OK' && data.results.length > 0) {
-      const result = data.results[0];
-      const addr = result.address_components;
+    if (data && data.display_name) {
+      const address = data.address || {};
       
-      let city = '';
-      let suburb = '';
-      let pincode = '';
-
-      addr.forEach(component => {
-        if (component.types.includes('locality')) city = component.long_name;
-        if (component.types.includes('postal_code')) pincode = component.long_name;
-        if (component.types.includes('sublocality') || component.types.includes('neighborhood')) suburb = component.long_name;
-      });
-
       return {
-        address: result.formatted_address,
-        city: city,
-        suburb: suburb,
-        pincode: pincode,
+        address: data.display_name,
+        city: address.city || address.town || address.village || '',
+        suburb: address.suburb || address.neighbourhood || '',
+        pincode: address.postcode || '',
       };
     }
     
-    console.error('[Geocode] API Error:', data.status, data.error_message);
     return null;
   } catch (error) {
     console.error('Reverse Geocode error:', error);

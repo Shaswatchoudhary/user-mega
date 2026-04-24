@@ -74,6 +74,33 @@ class LocationService {
   setActiveBooking(bookingId) {
     this.activeBookingId = bookingId;
   }
+
+  getCurrentLocation(callback) {
+    Geolocation.getCurrentPosition(
+      callback,
+      (error) => console.error('Get Location Error:', error),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  }
+
+  async getAddress(lat, lng) {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        { headers: { 'User-Agent': 'WorkerCleanApp/1.0' } }
+      );
+      const data = await response.json();
+      const parts = data.address || {};
+      const short = parts.suburb || parts.neighbourhood || parts.village || parts.town || parts.city || 'Current Location';
+      return {
+        full: data.display_name || 'Address detected',
+        short: short
+      };
+    } catch (e) {
+      console.error('Reverse Geocode failed:', e);
+      return { full: 'Address detected', short: 'Current Location' };
+    }
+  }
 }
 
 export default new LocationService();

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Image, Linking, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Image, Linking, Platform, ScrollView, PermissionsAndroid } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import locationService from '../../services/locationService';
+import Geolocation from '@react-native-community/geolocation';
 
 const ActiveJobScreen = ({ route, navigation }) => {
   const { bookingId, bookingData: initialData } = route.params || {};
@@ -12,6 +12,60 @@ const ActiveJobScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const [workerLocation, setWorkerLocation] = useState(null);
   const [workerAddress, setWorkerAddress] = useState('Detecting current address...');
+  const trackingInterval = useRef(null);
+
+  const requestLocationPermission = async () => {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    }
+    return true;
+  };
+
+  const startLocationTracking = (workerId, bookingId) => {
+    if (trackingInterval.current) {
+      clearInterval(trackingInterval.current);
+    }
+
+    const track = () => {
+      Geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const timestamp = firestore.FieldValue.serverTimestamp();
+          
+          const locationData = {
+            latitude,
+            longitude,
+            lastUpdated: timestamp
+          };
+
+          // Instant sync to both worker and booking docs
+          firestore().collection('workers').doc(workerId).update({
+            currentLocation: locationData,
+            status: 'ON_JOB'
+          }).catch(e => console.log('Worker location sync error:', e));
+
+          firestore().collection('bookings').doc(bookingId).update({
+            workerLocation: locationData,
+          }).catch(e => console.log('Booking location sync error:', e));
+        },
+        (error) => console.log('GPS Error:', error),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+      );
+    };
+
+    track(); // Run once immediately
+    trackingInterval.current = setInterval(track, 30000); // 30s for background sync as requested
+  };
+
+  const stopLocationTracking = () => {
+    if (trackingInterval.current) {
+      clearInterval(trackingInterval.current);
+      trackingInterval.current = null;
+    }
+  };
 
   useEffect(() => {
     if (!bookingId) return;
@@ -25,17 +79,16 @@ const ActiveJobScreen = ({ route, navigation }) => {
           
           // resume tracking if already navigating or working
           if (['on_the_way', 'arrived', 'working'].includes(data.status)) {
-             locationService.startTracking(data.workerId, doc.id);
+             startLocationTracking(data.workerId, doc.id);
           }
         }
       });
     return () => {
       unsubscribe();
-      locationService.stopTracking();
+      stopLocationTracking();
     };
   }, [bookingId]);
 
-  // Track worker's own location and address from Firestore (for consistency)
   useEffect(() => {
     if (!bookingData?.workerId) return;
 
@@ -43,10 +96,17 @@ const ActiveJobScreen = ({ route, navigation }) => {
       .collection('workers')
       .doc(bookingData.workerId)
       .onSnapshot(doc => {
-        if (doc.exists && doc.data().currentLocation) {
-          const loc = doc.data().currentLocation;
-          setWorkerLocation(loc);
-          setWorkerAddress(loc.address || 'Detecting...');
+        if (doc.exists) {
+          const data = doc.data();
+          // Support both old currentLocation object and new lat/lng fields
+          const lat = data.lat || data.currentLocation?.latitude;
+          const lng = data.lng || data.currentLocation?.longitude;
+          const address = data.currentAddress || data.currentLocation?.address;
+
+          if (lat && lng) {
+            setWorkerLocation({ latitude: lat, longitude: lng });
+            setWorkerAddress(address || 'Detecting...');
+          }
         }
       });
     return () => unsubscribe();
@@ -68,12 +128,12 @@ const ActiveJobScreen = ({ route, navigation }) => {
 
       // Start/Stop location tracking based on status
       if (newStatus === 'on_the_way') {
-        const hasPermission = await locationService.requestPermission();
+        const hasPermission = await requestLocationPermission();
         if (hasPermission) {
-          locationService.startTracking(bookingData?.workerId, bookingId);
+          startLocationTracking(bookingData?.workerId, bookingId);
         }
       } else if (newStatus === 'work_completed') {
-        locationService.stopTracking();
+        stopLocationTracking();
       }
 
       if (newStatus === 'work_completed') {
@@ -96,34 +156,40 @@ const ActiveJobScreen = ({ route, navigation }) => {
   };
 
   const handleNavigate = () => {
-    // Try to get from nested userLocation object or top-level fields
-    const loc = bookingData?.userLocation;
-    const lat = loc?.latitude || loc?.lat || loc?.coords?.latitude || bookingData?.userLat;
-    const lng = loc?.longitude || loc?.lng || loc?.coords?.longitude || bookingData?.userLng;
-
-    if (lat === undefined || lat === null || lng === undefined || lng === null) {
-        Alert.alert('Error', 'No coordinates available for navigation');
-        return;
-    }
-    
-    // Build complete destination address query
-    const url = Platform.OS === 'android' 
-      ? `google.navigation:q=${lat},${lng}&mode=d`
-      : `maps://app?daddr=${lat},${lng}&t=m`;
-      
-    const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
-    
-    Linking.canOpenURL(url).then(supported => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        Linking.openURL(webUrl);
-      }
-    });
+    const loc = bookingData?.userLocation || {};
+    const lat = loc.latitude || loc.lat || loc.coords?.latitude || bookingData?.userLat;
+    const lng = loc.longitude || loc.lng || loc.coords?.longitude || bookingData?.userLng;
 
     if (bookingData?.status === 'accepted') {
         updateStatus('on_the_way');
     }
+
+    // STEP 1 — Get worker's CURRENT GPS instantly and push to Firestore
+    Geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      
+      firestore().collection('bookings').doc(bookingId).update({
+        workerLocation: { latitude, longitude, lastUpdated: firestore.FieldValue.serverTimestamp() },
+      });
+
+      // STEP 2 — Open Google Maps with route
+      const destLat = lat;
+      const destLng = lng;
+      const url = `google.navigation:q=${destLat},${destLng}&mode=d`;
+      const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
+      
+      Linking.canOpenURL(url).then(supported => {
+        Linking.openURL(supported ? url : webUrl);
+      });
+
+      // Start the 30s background sync interval
+      startLocationTracking(bookingData?.workerId, bookingId);
+    }, err => {
+      console.log('Immediate GPS Error:', err);
+      // Fallback to just opening maps if GPS fails
+      const url = `google.navigation:q=${lat},${lng}&mode=d`;
+      Linking.openURL(url);
+    }, { enableHighAccuracy: true, timeout: 10000 });
   };
 
   const renderActionButton = () => {

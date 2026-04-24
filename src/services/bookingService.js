@@ -1,4 +1,4 @@
-import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, serverTimestamp } from '@react-native-firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
 import axios from 'axios';
 import { API_BASE_URL } from '../constants/config';
 
@@ -11,8 +11,6 @@ import { API_BASE_URL } from '../constants/config';
 export const createBookingRequest = async (bookingData) => {
   const { userId, workerId, serviceType, userLocation, price } = bookingData;
   const bookingId = `booking_${Date.now()}`;
-  const db = getFirestore();
-
   try {
     // 1. Prepare the Firestore Booking Document
     const firestoreBooking = {
@@ -28,8 +26,8 @@ export const createBookingRequest = async (bookingData) => {
       },
       workerLocation: null, // To be filled by worker on accept
       price,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      createdAt: firestore.FieldValue.serverTimestamp(),
+      updatedAt: firestore.FieldValue.serverTimestamp(),
     };
 
     // 2. Prepare the MongoDB/REST Payload
@@ -43,9 +41,8 @@ export const createBookingRequest = async (bookingData) => {
       location: userLocation.address || ""
     };
 
-    // a. Create in Firestore (Modular)
-    const bookingRef = doc(db, 'bookings', bookingId);
-    await setDoc(bookingRef, firestoreBooking);
+    // a. Create in Firestore
+    await firestore().collection('bookings').doc(bookingId).set(firestoreBooking);
 
     // b. Create in MongoDB via REST API
     try {
@@ -54,12 +51,11 @@ export const createBookingRequest = async (bookingData) => {
       console.warn('MongoDB backup failed, but Firestore is live:', mongoError.message);
     }
 
-    // c. Update Worker Status (Modular)
-    const workerRef = doc(db, 'workers', workerId);
-    await updateDoc(workerRef, {
+    // c. Update Worker Status
+    await firestore().collection('workers').doc(workerId).update({
       isAvailable: false,
       currentBookingId: bookingId,
-      updatedAt: serverTimestamp()
+      updatedAt: firestore.FieldValue.serverTimestamp()
     });
 
     return { success: true, bookingId };
@@ -74,11 +70,10 @@ export const createBookingRequest = async (bookingData) => {
  * Listens to a booking status in real-time (Modular API).
  */
 export const subscribeToBookingStatus = (bookingId, onStatusChange) => {
-  const db = getFirestore();
-  const bookingRef = doc(db, 'bookings', bookingId);
+  const bookingRef = firestore().collection('bookings').doc(bookingId);
   
-  return onSnapshot(bookingRef, (docSnap) => {
-    if (docSnap.exists()) {
+  return bookingRef.onSnapshot((docSnap) => {
+    if (docSnap.exists) {
       onStatusChange(docSnap.data());
     }
   });
@@ -88,22 +83,20 @@ export const subscribeToBookingStatus = (bookingId, onStatusChange) => {
  * Cancels a booking (on timeout or user request) (Modular API).
  */
 export const cancelBooking = async (bookingId, workerId) => {
-  const db = getFirestore();
-  
   try {
     // Update booking status
-    const bookingRef = doc(db, 'bookings', bookingId);
-    await updateDoc(bookingRef, {
+    const bookingRef = firestore().collection('bookings').doc(bookingId);
+    await bookingRef.update({
       status: "rejected",
-      updatedAt: serverTimestamp()
+      updatedAt: firestore.FieldValue.serverTimestamp()
     });
 
     // Make worker available again
-    const workerRef = doc(db, 'workers', workerId);
-    await updateDoc(workerRef, {
+    const workerRef = firestore().collection('workers').doc(workerId);
+    await workerRef.update({
       isAvailable: true,
       currentBookingId: null,
-      updatedAt: serverTimestamp()
+      updatedAt: firestore.FieldValue.serverTimestamp()
     });
 
     return { success: true };

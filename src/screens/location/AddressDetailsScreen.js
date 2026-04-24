@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useAuth } from '../../context/AuthContext';
+import firestore from '@react-native-firebase/firestore';
 
 const ADDRESS_TYPES = [
   { id: 'Home', icon: 'home-outline', activeIcon: 'home' },
@@ -14,6 +16,7 @@ const ADDRESS_TYPES = [
 
 const AddressDetailsScreen = ({ navigation, route }) => {
   const { location, onLocationSelected } = route.params;
+  const { user } = useAuth();
   
   const [flat, setFlat] = useState('');
   const [wing, setWing] = useState('');
@@ -21,7 +24,7 @@ const AddressDetailsScreen = ({ navigation, route }) => {
   const [addressType, setAddressType] = useState('Home');
   const [focusedField, setFocusedField] = useState(null);
 
-  const saveAddress = () => {
+  const saveAddress = async () => {
     if (!flat) {
       Alert.alert('Required', 'Please enter flat/house number to proceed.');
       return;
@@ -36,6 +39,23 @@ const AddressDetailsScreen = ({ navigation, route }) => {
       displayAddress: `${flat}${wing ? ', Wing ' + wing : ''}, ${location.shortAddress}`,
       fullAddress: `${flat}${wing ? ', Wing ' + wing : ''}${landmark ? ', Near ' + landmark : ''}, ${location.fullAddress}`,
     };
+
+    if (user?.uid) {
+      try {
+        const addressKey = addressType.toLowerCase();
+        await firestore()
+          .collection('users')
+          .doc(user.uid)
+          .set({
+            savedAddresses: {
+              [addressKey]: completeAddress
+            },
+            lastUsedAddress: completeAddress
+          }, { merge: true });
+      } catch (error) {
+        console.error('Error saving address to Firestore:', error);
+      }
+    }
 
     onLocationSelected(completeAddress);
     navigation.popToTop();

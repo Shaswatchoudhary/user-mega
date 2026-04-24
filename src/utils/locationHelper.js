@@ -54,12 +54,12 @@ export const getUserLocation = () => {
   });
 };
 
-// Centralized Reverse Geocoding using Google Maps API
+// Centralized Reverse Geocoding with Fallback
 export const reverseGeocode = async (latitude, longitude) => {
   try {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`;
-    
-    const response = await fetch(url);
+    // 1. Try Google Maps API first
+    const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`;
+    const response = await fetch(googleUrl);
     const data = await response.json();
     
     if (data.status === 'OK' && data.results.length > 0) {
@@ -87,7 +87,32 @@ export const reverseGeocode = async (latitude, longitude) => {
       };
     }
     
-    console.error('[Geocode] API Error:', data.status, data.error_message);
+    console.warn('[Geocode] Google API failed (Check Key Restrictions):', data.status, data.error_message);
+    
+    // 2. Fallback to OpenStreetMap (Nominatim) - Free and no key required
+    console.log('[Geocode] Falling back to OpenStreetMap...');
+    const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+    const osmResponse = await fetch(osmUrl, {
+        headers: { 'User-Agent': 'WorkiesApp' }
+    });
+    const osmData = await osmResponse.json();
+
+    if (osmData && osmData.address) {
+      const addr = osmData.address;
+      const city = addr.city || addr.town || addr.village || addr.suburb || '';
+      const area = addr.suburb || addr.neighbourhood || addr.road || '';
+      
+      return {
+        addressText: osmData.display_name,
+        name: area || city || 'Detected Location',
+        subtitle: `${city}${addr.postcode ? ', ' + addr.postcode : ''}`,
+        city: city,
+        pincode: addr.postcode || '',
+        latitude,
+        longitude
+      };
+    }
+
     return null;
   } catch (error) {
     console.error('Reverse Geocode Error:', error);

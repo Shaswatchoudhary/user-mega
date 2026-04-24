@@ -17,7 +17,7 @@ import axios from 'axios';
 import config from '../../constants/config';
 
 const ProfileScreen = ({ navigation }) => {
-  const { user, workerData, logout } = useAuth();
+  const { workerUser, workerProfile, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const topMenuItems = [
@@ -59,10 +59,11 @@ const ProfileScreen = ({ navigation }) => {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || !workerProfile) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E84545" />
+        <Text style={{ marginTop: 10, color: '#666' }}>Fetching Profile...</Text>
       </View>
     );
   }
@@ -79,14 +80,14 @@ const ProfileScreen = ({ navigation }) => {
           {/* Profile Header */}
           <View style={styles.profileHeader}>
             <View style={styles.profileInfo}>
-              <Text style={styles.fullName}>{workerData?.fullName || user?.fullName || 'Worker'}</Text>
+              <Text style={styles.fullName}>{workerProfile?.name || workerProfile?.fullName || 'Worker'}</Text>
               <View style={styles.statusBadge}>
-                <View style={[styles.statusDot, { backgroundColor: workerData?.status === 'ACTIVE' ? '#10B981' : '#F59E0B' }]} />
-                <Text style={styles.statusText}>{workerData?.status?.replace('_', ' ') || 'UNDER REVIEW'}</Text>
+                <View style={[styles.statusDot, { backgroundColor: workerProfile?.status === 'ACTIVE' ? '#10B981' : '#F59E0B' }]} />
+                <Text style={styles.statusText}>{workerProfile?.status?.replace('_', ' ') || 'UNDER REVIEW'}</Text>
               </View>
-              <Text style={styles.categoryTitle}>{workerData?.category || 'General Professional'}</Text>
-              <Text style={styles.experienceText}>{workerData?.experience || 0} Years Experience</Text>
-              <Text style={styles.phoneNumber}>{user?.phone || user?.phoneNumber || 'No phone number'}</Text>
+              <Text style={styles.categoryTitle}>{workerProfile?.serviceType || workerProfile?.category || 'General Professional'}</Text>
+              <Text style={styles.experienceText}>{workerProfile?.experience || 0} Years Experience</Text>
+              <Text style={styles.phoneNumber}>{workerProfile?.phone || workerUser?.phoneNumber || 'No phone number'}</Text>
             </View>
             <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
               <Icon name="edit" size={24} color="#E84545" />
@@ -96,27 +97,27 @@ const ProfileScreen = ({ navigation }) => {
           {/* Stats Summary */}
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{workerData?.rating || '0.0'}</Text>
+              <Text style={styles.statValue}>{workerProfile?.rating || '0.0'}</Text>
               <Text style={styles.statLabel}>Rating</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{workerData?.completedOrders || 0}</Text>
+              <Text style={styles.statValue}>{workerProfile?.completedJobs || workerProfile?.completedOrders || 0}</Text>
               <Text style={styles.statLabel}>Jobs Done</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>₹{workerData?.earningsMonth || 0}</Text>
+              <Text style={styles.statValue}>₹{workerProfile?.earningsMonth || 0}</Text>
               <Text style={styles.statLabel}>This Month</Text>
             </View>
           </View>
 
           {/* Specialized Skills */}
-          {workerData?.skills && workerData.skills.length > 0 && (
+          {workerProfile?.skills && workerProfile.skills.length > 0 && (
             <View style={styles.skillsProfileContainer}>
               <Text style={styles.skillsTitle}>Specialized Skills</Text>
               <View style={styles.skillsChipRow}>
-                {workerData.skills.map((skill, index) => (
+                {workerProfile.skills.map((skill, index) => (
                   <View key={index} style={styles.skillChip}>
                     <Text style={styles.skillChipText}>{skill}</Text>
                   </View>
@@ -126,10 +127,10 @@ const ProfileScreen = ({ navigation }) => {
           )}
 
           {/* About Section */}
-          {workerData?.summary && (
+          {(workerProfile?.summary || workerProfile?.about) && (
             <View style={styles.summaryContainer}>
               <Text style={styles.summaryTitle}>Professional Summary</Text>
-              <Text style={styles.summaryText}>{workerData.summary}</Text>
+              <Text style={styles.summaryText}>{workerProfile.summary || workerProfile.about}</Text>
             </View>
           )}
 

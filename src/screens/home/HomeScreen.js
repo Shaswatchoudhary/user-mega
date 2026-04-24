@@ -178,7 +178,7 @@ import { useLocation } from '../../context/LocationContext';
 import { useAuth } from '../../context/AuthContext';
 import { getUserLocation, reverseGeocode } from '../../utils/locationHelper';
 import permissionService from '../../services/permissionService';
-import { getFirestore, collection, doc, onSnapshot, query, where } from '@react-native-firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
 
 export default function HomeScreen({ navigation }) {
   const [placeholder, setPlaceholder] = useState(searchPlaceholders[0]);
@@ -217,6 +217,17 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     const initLocation = async () => {
+      // 1. If location already exists in context, don't re-detect
+      if (selectedLocation?.latitude) return;
+
+      // 2. Check for last used address from user profile
+      if (user?.lastUsedAddress) {
+        console.log('[HomeScreen] Using last used address from profile');
+        saveLocation(user.lastUsedAddress);
+        return;
+      }
+
+      // 3. Fallback to GPS
       const perms = await permissionService.requestInitialPermissions();
       if (perms.location) {
         try {
@@ -240,7 +251,7 @@ export default function HomeScreen({ navigation }) {
     fetchMostBookedWorkers();
     startAutoScroll();
     return () => stopAutoScroll();
-  }, [mostBookedWorkers.length]);
+  }, [user?.lastUsedAddress, selectedLocation?.latitude, mostBookedWorkers.length]);
 
   const startAutoScroll = () => {
     if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
@@ -344,11 +355,12 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     if (!user?._id) return;
 
-    const db = getFirestore();
-    const notificationsCol = collection(db, 'users', user._id, 'notifications');
-    const q = query(notificationsCol, where('isRead', '==', false));
-
-    const unsubscribe = onSnapshot(q, querySnapshot => {
+    const unsubscribe = firestore()
+      .collection('users')
+      .doc(user._id)
+      .collection('notifications')
+      .where('isRead', '==', false)
+      .onSnapshot(querySnapshot => {
         setUnreadCount(querySnapshot?.size || 0);
       }, error => {
         console.error('[HomeScreen] Error listening to notifications:', error.message);

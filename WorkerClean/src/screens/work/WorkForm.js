@@ -160,14 +160,27 @@ const WorkForm = ({ navigation, route }) => {
       }
 
       Geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
           console.log('[WorkForm] Location Found:', latitude, longitude);
           setLatitude(latitude);
           setLongitude(longitude);
           
-          const addr = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-          setAddress(prev => prev ? `${prev} (GPS: ${addr})` : `Location: ${addr}`);
+          // Use our LocationService to get human readable address
+          try {
+            // First show coordinates
+            setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+            
+            // Then fetch real address
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+              { headers: { 'User-Agent': 'WorkerCleanApp/1.0' } }
+            );
+            const data = await response.json();
+            setAddress(data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          } catch (e) {
+            console.error('Reverse Geocode failed:', e);
+          }
           setIsLocating(false);
         },
         (error) => {

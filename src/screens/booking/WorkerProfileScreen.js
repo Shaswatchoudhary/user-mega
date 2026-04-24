@@ -95,10 +95,14 @@ const WorkerProfileScreen = () => {
         updatedAt: firestore.FieldValue.serverTimestamp(),
       });
 
-      // Navigate to the waiting screen
-      navigation.navigate('WaitingForWorker', {
+      // Navigate to the payment screen
+      navigation.navigate('Payment', {
         bookingId: bookingRef.id,
-        workerId: worker.id || worker._id,
+        worker: worker,
+        totalAmount: selectedService?.price || 249,
+        selectedServices: [selectedService],
+        selectedDate: new Date().toLocaleDateString(),
+        isPrePayment: true
       });
 
     } catch (error) {

@@ -18,17 +18,17 @@ import axios from 'axios';
 import config from '../../constants/config';
 
 const EditProfileScreen = ({ navigation }) => {
-  const { user, workerData, login } = useAuth();
-  const [name, setName] = useState(workerData?.fullName || user?.fullName || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState(user?.phone || user?.phoneNumber || '');
+  const { workerUser, workerProfile, login } = useAuth();
+  const [name, setName] = useState(workerProfile?.name || workerProfile?.fullName || workerUser?.displayName || '');
+  const [email, setEmail] = useState(workerUser?.email || workerProfile?.email || '');
+  const [phone, setPhone] = useState(workerProfile?.phone || workerUser?.phone || workerUser?.phoneNumber || '');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setName(workerData?.fullName || user?.fullName || '');
-    setEmail(user?.email || '');
-    setPhone(user?.phone || user?.phoneNumber || '');
-  }, [user, workerData]);
+    setName(workerProfile?.name || workerProfile?.fullName || workerUser?.displayName || '');
+    setEmail(workerUser?.email || workerProfile?.email || '');
+    setPhone(workerProfile?.phone || workerUser?.phone || workerUser?.phoneNumber || '');
+  }, [workerUser, workerProfile]);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -41,7 +41,7 @@ const EditProfileScreen = ({ navigation }) => {
     setIsLoading(true);
 
     try {
-      const response = await axios.patch(`${config.WORKER_API_BASE_URL}/profile/${workerData?._id}`, {
+      const response = await axios.patch(`${config.WORKER_API_BASE_URL}/profile/${workerProfile?.id || workerProfile?._id}`, {
         fullName: name.trim(),
         email: email.trim(),
       });

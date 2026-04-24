@@ -36,7 +36,7 @@ export default function PaymentScreen({ navigation, route }) {
   const [promoApplied, setPromoApplied] = useState(null);
   const [promoError, setPromoError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [paymentUnlocked, setPaymentUnlocked] = useState(!bookingId); // Unlocked if no bookingId (standard flow)
+  const [paymentUnlocked, setPaymentUnlocked] = useState(!bookingId || route.params?.isPrePayment); // Unlocked if no bookingId (standard flow) or is pre-payment flow
   const [workTimes, setWorkTimes] = useState(null);
 
   // Countdown logic for cash booking
@@ -124,19 +124,32 @@ export default function PaymentScreen({ navigation, route }) {
       }
 
       if (bookingId) {
-        // Update existing booking
-        await firestore().collection('bookings').doc(bookingId).update({
-          paymentStatus: 'completed',
-          status: 'completed'
-        });
-        
-        // Navigation to Rating
-        navigation.replace('BookingStatus', {
-          worker: worker,
-          service: selectedServices?.[0]?.name || "Home Service",
-          date: selectedDate,
-          isPaymentComplete: true
-        });
+        if (route.params?.isPrePayment) {
+          // Pre-service payment: Update payment status and wait for worker
+          await firestore().collection('bookings').doc(bookingId).update({
+            paymentStatus: 'completed',
+            updatedAt: firestore.FieldValue.serverTimestamp(),
+          });
+
+          navigation.replace('WaitingForWorker', {
+            bookingId: bookingId,
+            workerId: worker.id || worker._id || worker.uid
+          });
+        } else {
+          // Post-service payment (ticket closure): Update both payment and booking status
+          await firestore().collection('bookings').doc(bookingId).update({
+            paymentStatus: 'completed',
+            status: 'completed'
+          });
+          
+          // Navigation to Rating/Status
+          navigation.replace('BookingStatus', {
+            worker: worker,
+            service: selectedServices?.[0]?.name || "Home Service",
+            date: selectedDate,
+            isPaymentComplete: true
+          });
+        }
       } else {
         // Legacy flow: create new booking
         const payload = {

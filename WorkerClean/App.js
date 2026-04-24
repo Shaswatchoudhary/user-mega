@@ -11,14 +11,14 @@ import permissionService from './src/services/permissionService';
 const navigationRef = createNavigationContainerRef();
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { workerUser, loading } = useAuth();
 
   React.useEffect(() => {
     notificationService.setNavigation(navigationRef);
     
     let unsubscribe;
-    if (user?.uid || user?._id) {
-      notificationService.setupNotifications(user.uid || user._id).then(unsub => {
+    if (workerUser?.uid) {
+      notificationService.setupNotifications(workerUser.uid).then(unsub => {
         unsubscribe = unsub;
       });
     }
@@ -26,7 +26,7 @@ function AppContent() {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [user?.uid, user?._id]);
+  }, [workerUser?.uid]);
 
   React.useEffect(() => {
     // Request Initial Permissions (Notification & Location)
@@ -43,7 +43,7 @@ function AppContent() {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      <AppNavigator user={user} />
+      <AppNavigator user={workerUser} />
     </NavigationContainer>
   );
 }

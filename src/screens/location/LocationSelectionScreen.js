@@ -17,30 +17,43 @@ import Feather from 'react-native-vector-icons/Feather';
 import { getUserLocation, reverseGeocode } from '../../utils/locationHelper';
 import { useLocation } from '../../context/LocationContext';
 import permissionService from '../../services/permissionService';
+import { useAuth } from '../../context/AuthContext';
+import firestore from '@react-native-firebase/firestore';
 
-// Mock data for saved addresses
-const MOCK_LOCATIONS = [
-  {
-    id: '1',
-    name: 'Home',
-    address: 'Ruikar Colony, Kolhapur, Maharashtra',
-    type: 'home',
-    coords: { latitude: 16.7050, longitude: 74.2433 }
-  },
-  {
-    id: '2',
-    name: 'Office',
-    address: 'Cybercity, Magarpatta, Pune',
-    type: 'work',
-    coords: { latitude: 18.5246, longitude: 73.9259 }
-  }
-];
 
 export default function LocationSelectionScreen({ navigation }) {
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [savedAddresses, setSavedAddresses] = useState([]);
   const { saveLocation } = useLocation();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const unsubscribe = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .onSnapshot(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.savedAddresses) {
+            const list = Object.entries(data.savedAddresses).map(([key, value]) => ({
+              id: key,
+              name: key.charAt(0).toUpperCase() + key.slice(1),
+              address: value.displayAddress || value.fullAddress,
+              type: key,
+              coords: { latitude: value.latitude, longitude: value.longitude },
+              ...value
+            }));
+            setSavedAddresses(list);
+          }
+        }
+      }, err => console.log('Saved addresses listener error:', err));
+
+    return () => unsubscribe();
+  }, [user?.uid]);
 
   // Handled by permissionService
   const requestPermission = async () => {
@@ -204,25 +217,29 @@ export default function LocationSelectionScreen({ navigation }) {
           /* Recent / Saved Locations */
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>SAVED ADDRESSES</Text>
-            {MOCK_LOCATIONS.map((loc) => (
-              <TouchableOpacity
-                key={loc.id}
-                style={styles.locationItem}
-                onPress={() => handleSelectLocation(loc)}
-              >
-                <View style={styles.locationIconContainer}>
-                  <Ionicons
-                    name={loc.type === 'home' ? 'home-outline' : loc.type === 'work' ? 'briefcase-outline' : 'location-outline'}
-                    size={20}
-                    color="#666"
-                  />
-                </View>
-                <View style={styles.locationTextContainer}>
-                  <Text style={styles.locationName}>{loc.name}</Text>
-                  <Text style={styles.locationAddress}>{loc.address}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            {savedAddresses.length > 0 ? (
+              savedAddresses.map((loc) => (
+                <TouchableOpacity
+                  key={loc.id}
+                  style={styles.locationItem}
+                  onPress={() => handleSelectLocation(loc)}
+                >
+                  <View style={styles.locationIconContainer}>
+                    <Ionicons
+                      name={loc.type === 'home' ? 'home-outline' : loc.type === 'work' ? 'briefcase-outline' : 'location-outline'}
+                      size={20}
+                      color="#E84545"
+                    />
+                  </View>
+                  <View style={styles.locationTextContainer}>
+                    <Text style={styles.locationName}>{loc.name}</Text>
+                    <Text style={styles.locationAddress}>{loc.address}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.noSavedText}>No saved addresses yet</Text>
+            )}
           </View>
         )}
 
@@ -351,5 +368,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#888',
     fontFamily: 'Poppins-Regular',
+  },
+  noSavedText: {
+    fontSize: 14,
+    color: '#999',
+    fontFamily: 'Poppins-Regular',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 10,
   },
 });

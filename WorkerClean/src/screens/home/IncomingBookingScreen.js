@@ -9,9 +9,9 @@ import LinearGradient from 'react-native-linear-gradient';
 
 const IncomingBookingScreen = ({ route, navigation }) => {
   const { bookingId, bookingData } = route.params;
-  const { workerData, user } = useAuth();
+  const { workerUser, workerProfile } = useAuth();
   
-  const workerId = workerData?.id || workerData?._id || user?.uid;
+  const workerId = workerProfile?.id || workerProfile?._id || workerUser?.uid;
 
   useEffect(() => {
     // Real-time listener: Close the screen if the booking gets cancelled by the user

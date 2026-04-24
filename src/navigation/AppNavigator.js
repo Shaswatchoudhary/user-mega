@@ -30,6 +30,7 @@ import NotificationScreen from '../screens/notifications/NotificationScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import WaitingForWorkerScreen from '../screens/booking/WaitingForWorkerScreen';
 import WorkerListScreen from '../screens/services/WorkerListScreen';
+import FeedbackScreen from '../screens/FeedbackScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -73,6 +74,7 @@ export default function AppNavigator() {
       <Stack.Screen name="BookingSummary" component={BookingSummaryScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="WaitingForWorker" component={WaitingForWorkerScreen} />
+      <Stack.Screen name="FeedbackScreen" component={FeedbackScreen} options={{ headerShown: false }} />
 
     </Stack.Navigator>
   );

@@ -14,9 +14,12 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useLocation } from '../../context/LocationContext';
 import { getCurrentLocation, reverseGeocode } from '../../utils/locationHelper';
+import { useAuth } from '../../context/AuthContext';
+import firestore from '@react-native-firebase/firestore';
 
 export default function LocationScreen({ navigation }) {
   const { saveLocation, selectedLocation } = useLocation();
+  const { user, workerProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [detectedAddress, setDetectedAddress] = useState(null);
@@ -41,15 +44,36 @@ export default function LocationScreen({ navigation }) {
     }
   };
 
-  const handleConfirmLocation = () => {
+  const handleConfirmLocation = async () => {
     if (detectedAddress) {
-      saveLocation({
+      const finalLoc = {
         name: detectedAddress.city || detectedAddress.suburb || 'My Location',
         address: detectedAddress.address,
         latitude: detectedAddress.latitude,
         longitude: detectedAddress.longitude,
         shortAddress: detectedAddress.city || detectedAddress.suburb,
-      });
+      };
+
+      saveLocation(finalLoc);
+
+      // Save to Firestore for persistence
+      const targetId = workerProfile?.id || user?.uid;
+      if (targetId) {
+        try {
+          await firestore()
+            .collection('workers')
+            .doc(targetId)
+            .set({
+              baseLocation: finalLoc,
+              currentLocation: finalLoc,
+              lastUsedAddress: finalLoc,
+              lastLocationUpdate: firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        } catch (error) {
+          console.error('Worker location save error:', error);
+        }
+      }
+
       navigation.goBack();
     }
   };

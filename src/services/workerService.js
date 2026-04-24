@@ -1,4 +1,4 @@
-import { getFirestore, collection, query, where, getDocs, doc, getDoc } from '@react-native-firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
 import axios from 'axios';
 import { API_BASE_URL } from '../constants/config';
 
@@ -29,11 +29,9 @@ export const fetchWorkers = async (category = null) => {
  */
 export const getWorkerRealtimeData = async (workerId) => {
   try {
-    const db = getFirestore();
-    const workerRef = doc(db, 'workers', workerId);
-    const workerSnap = await getDoc(workerRef);
+    const workerSnap = await firestore().collection('workers').doc(workerId).get();
     
-    if (workerSnap.exists()) {
+    if (workerSnap.exists) {
       return { success: true, data: workerSnap.data() };
     }
     return { success: false, error: 'Worker not found' };

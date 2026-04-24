@@ -13,7 +13,8 @@ import { useAuth } from '../../context/AuthContext';
 import LinearGradient from 'react-native-linear-gradient';
 
 const ProfessionalDetailsScreen = ({ navigation }) => {
-  const { workerData } = useAuth();
+  const { workerProfile } = useAuth();
+  const workerData = workerProfile; // maintain local variable name for simplicity
 
   const maskInfo = (info, start = 0, end = 0) => {
     if (!info) return 'Not Provided';
