@@ -13,12 +13,51 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
+import firestore from '@react-native-firebase/firestore';
 import axios from 'axios';
 import config from '../../constants/config';
 
 const ProfileScreen = ({ navigation }) => {
-  const { workerUser, workerProfile, logout } = useAuth();
+  const { workerUser, workerProfile, logout, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [stats, setStats] = useState({
+    completed: 0,
+    monthEarnings: 0
+  });
+
+  const workerId = workerProfile?.id || workerProfile?._id || workerUser?.uid;
+
+  useEffect(() => {
+    if (!workerId) return;
+
+    // Real-time stats listener
+    const unsubscribe = firestore()
+      .collection('bookings')
+      .where('workerId', '==', workerId)
+      .onSnapshot(snap => {
+        if (!snap) return;
+        const all = snap.docs.map(d => d.data());
+        const completed = all.filter(b => b.status === 'completed' || b.status === 'work_completed');
+        
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const monthEarnings = completed
+          .filter(b => {
+            const date = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+            return date >= startOfMonth;
+          })
+          .reduce((sum, b) => sum + (Number(b.price) || 0), 0);
+
+        setStats({
+          completed: completed.length,
+          monthEarnings: monthEarnings
+        });
+      }, err => console.log('[ProfileScreen] Stats listener error:', err));
+
+    return () => unsubscribe();
+  }, [workerId]);
 
   const topMenuItems = [
     { id: 1, icon: 'description', label: 'My Jobs', screen: 'Job' },
@@ -59,7 +98,7 @@ const ProfileScreen = ({ navigation }) => {
     );
   };
 
-  if (isLoading || !workerProfile) {
+  if (isLoading || loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E84545" />
@@ -87,7 +126,12 @@ const ProfileScreen = ({ navigation }) => {
               </View>
               <Text style={styles.categoryTitle}>{workerProfile?.serviceType || workerProfile?.category || 'General Professional'}</Text>
               <Text style={styles.experienceText}>{workerProfile?.experience || 0} Years Experience</Text>
-              <Text style={styles.phoneNumber}>{workerProfile?.phone || workerUser?.phoneNumber || 'No phone number'}</Text>
+              <Text style={styles.phoneNumber}>
+                {workerProfile?.phone || 
+                 workerProfile?.phoneNumber || 
+                 workerUser?.phoneNumber || 
+                 'No phone number'}
+              </Text>
             </View>
             <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
               <Icon name="edit" size={24} color="#E84545" />
@@ -102,12 +146,12 @@ const ProfileScreen = ({ navigation }) => {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{workerProfile?.completedJobs || workerProfile?.completedOrders || 0}</Text>
+              <Text style={styles.statValue}>{stats.completed || 0}</Text>
               <Text style={styles.statLabel}>Jobs Done</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>₹{workerProfile?.earningsMonth || 0}</Text>
+              <Text style={styles.statValue}>₹{stats.monthEarnings || 0}</Text>
               <Text style={styles.statLabel}>This Month</Text>
             </View>
           </View>

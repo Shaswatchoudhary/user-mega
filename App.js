@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, LogBox } from 'react-native';
+
+// Silence Firebase deprecation warnings
+LogBox.ignoreLogs([
+  'This method is deprecated',
+  'React Native Firebase namespaced API',
+  'Unsupported field value: undefined'
+]);
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { LocationProvider } from './src/context/LocationContext';

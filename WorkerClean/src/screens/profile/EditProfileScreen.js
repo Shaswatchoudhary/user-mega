@@ -18,7 +18,7 @@ import axios from 'axios';
 import config from '../../constants/config';
 
 const EditProfileScreen = ({ navigation }) => {
-  const { workerUser, workerProfile, login } = useAuth();
+  const { workerUser, user, workerProfile, login } = useAuth();
   const [name, setName] = useState(workerProfile?.name || workerProfile?.fullName || workerUser?.displayName || '');
   const [email, setEmail] = useState(workerUser?.email || workerProfile?.email || '');
   const [phone, setPhone] = useState(workerProfile?.phone || workerUser?.phone || workerUser?.phoneNumber || '');

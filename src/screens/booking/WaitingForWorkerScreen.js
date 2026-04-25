@@ -4,9 +4,26 @@ import firestore from '@react-native-firebase/firestore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import CustomModal from '../../components/CustomModal';
+
 const WaitingForWorkerScreen = ({ route, navigation }) => {
   const { bookingId, workerId } = route.params;
   const [bookingStatus, setBookingStatus] = useState('pending');
+  
+  // Custom Modal State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    type: 'success',
+    title: '',
+    message: '',
+    primaryLabel: 'Got it',
+    onPrimary: () => setModalVisible(false),
+  });
+
+  const showModal = (config) => {
+    setModalConfig(config);
+    setModalVisible(true);
+  };
 
   useEffect(() => {
     // Listener for real-time status updates on the booking document
@@ -20,19 +37,29 @@ const WaitingForWorkerScreen = ({ route, navigation }) => {
             setBookingStatus(data.status);
 
             if (data.status === 'accepted') {
-              // Worker accepted! Navigate to tracking screen
-              Alert.alert(
-                'Booking Confirmed!',
-                'The professional has accepted your request and is starting now.',
-                [{ text: 'Awesome!', onPress: () => navigation.replace('Tracking', { bookingId, workerId }) }]
-              );
+              // Worker accepted!
+              showModal({
+                type: 'success',
+                title: 'Booking Confirmed',
+                message: 'Your professional has accepted the request and is on the way to your location.',
+                primaryLabel: 'Track Order',
+                onPrimary: () => {
+                  setModalVisible(false);
+                  navigation.replace('Tracking', { bookingId, workerId });
+                }
+              });
             } else if (data.status === 'rejected') {
               // Worker rejected
-              Alert.alert(
-                'Worker Unavailable',
-                'The professional declined the request. Please try another professional.',
-                [{ text: 'Try Again', onPress: () => navigation.goBack() }]
-              );
+              showModal({
+                type: 'error',
+                title: 'Request Declined',
+                message: 'The professional is unavailable. Please try another professional.',
+                primaryLabel: 'Go Back',
+                onPrimary: () => {
+                  setModalVisible(false);
+                  navigation.goBack();
+                }
+              });
             }
           }
         },
@@ -59,14 +86,19 @@ const WaitingForWorkerScreen = ({ route, navigation }) => {
           });
 
           // Show alert and navigate back to home
-          Alert.alert(
-            "No worker available",
-            "No worker available right now. Please try again.",
-            [{ text: "OK", onPress: () => navigation.navigate('Home') }]
-          );
+          showModal({
+            type: 'warning',
+            title: 'No Response',
+            message: 'The professional did not respond in time. Please try booking again.',
+            primaryLabel: 'Try Again',
+            onPrimary: () => {
+              setModalVisible(false);
+              navigation.navigate('MainTabs');
+            }
+          });
         } catch (err) {
           console.error('Auto-cancel error:', err);
-          navigation.navigate('Home');
+          navigation.navigate('MainTabs');
         }
       }
     }, 900000); // 15 minutes
@@ -127,12 +159,22 @@ const WaitingForWorkerScreen = ({ route, navigation }) => {
         </View>
 
         <TouchableOpacity
+          activeOpacity={0.8}
           style={styles.cancelButton}
           onPress={() => handleCancel()}
         >
           <Text style={styles.cancelText}>Cancel Request</Text>
         </TouchableOpacity>
       </View>
+
+      <CustomModal
+        visible={modalVisible}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        primaryLabel={modalConfig.primaryLabel}
+        onPrimary={modalConfig.onPrimary}
+      />
     </SafeAreaView>
   );
 };

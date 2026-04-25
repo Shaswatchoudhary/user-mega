@@ -96,73 +96,84 @@ const IncomingBookingScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-           <Ionicons name="close-circle-outline" size={28} color="#1F2937" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
+           <Ionicons name="close" size={26} color="#1E293B" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Incoming Request</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-         <View style={styles.statusBadge}>
-            <View style={styles.pulseDot} />
-            <Text style={styles.statusText}>URGENT REQUEST</Text>
+         {/* Urgent Badge */}
+         <View style={styles.urgentBadge}>
+            <View style={styles.urgentDot} />
+            <Text style={styles.urgentText}>URGENT REQUEST</Text>
          </View>
 
-         <View style={styles.mainInfo}>
-            <Text style={styles.serviceType}>{bookingData?.serviceType || 'Service Professional'}</Text>
-            <View style={styles.priceRow}>
+         {/* Title & Price */}
+         <View style={styles.mainHeader}>
+            <Text style={styles.serviceTitle}>{bookingData?.serviceType || 'Professional Service'}</Text>
+            <View style={styles.earningsContainer}>
                <Text style={styles.earningsLabel}>Potential Earnings</Text>
-               <Text style={styles.earningsValue}>₹{bookingData?.price || 399}</Text>
+               <Text style={styles.earningsValue}>₹{bookingData?.price || 249}</Text>
             </View>
          </View>
 
-         <View style={styles.card}>
-            <Text style={styles.sectionLabel}>CUSTOMER INFORMATION</Text>
+         <View style={styles.divider} />
+
+         {/* Customer Info Card */}
+         <View style={styles.infoCard}>
+            <Text style={styles.cardLabel}>CUSTOMER INFORMATION</Text>
             <View style={styles.infoRow}>
-               <View style={styles.iconCircle}>
-                  <Ionicons name="person" size={20} color="#E84545" />
+               <View style={styles.userIconBg}>
+                  <Ionicons name="person" size={24} color="#E84545" />
                </View>
                <View>
-                  <Text style={styles.customerName}>{bookingData?.userName || 'Customer'}</Text>
-                  <Text style={styles.customerSub}>Recent Booking User</Text>
+                  <Text style={styles.infoName}>{bookingData?.userName || 'Customer'}</Text>
+                  <Text style={styles.infoSub}>Recent Booking User</Text>
                </View>
             </View>
          </View>
 
-         <View style={styles.card}>
-            <Text style={styles.sectionLabel}>SERVICE LOCATION</Text>
+         {/* Service Location Card */}
+         <View style={styles.infoCard}>
+            <Text style={styles.cardLabel}>SERVICE LOCATION</Text>
             <View style={styles.locationRow}>
-               <MaterialCommunityIcons name="map-marker-radius" size={28} color="#E84545" />
+               <View style={styles.locIconBg}>
+                  <Ionicons name="location" size={24} color="#E84545" />
+               </View>
                <View style={{ flex: 1 }}>
-                  <Text style={styles.addressTitle}>{bookingData?.userLocation?.shortAddress || 'Main Address'}</Text>
-                  <Text style={styles.addressDetail}>
-                    {bookingData?.userAddress || 'Detailed location provided upon acceptance.'}
+                  <Text style={styles.locName}>{bookingData?.userLocation?.shortAddress || bookingData?.userLocation?.name || 'Service Site'}</Text>
+                  <Text style={styles.locAddress}>
+                    {bookingData?.userAddress || 'Exact location will be shared after acceptance.'}
                   </Text>
                </View>
             </View>
          </View>
 
-         <View style={styles.card}>
-            <Text style={styles.sectionLabel}>NOTE FROM CUSTOMER</Text>
+         {/* Note Card */}
+         <View style={styles.infoCard}>
+            <Text style={styles.cardLabel}>NOTE FROM CUSTOMER</Text>
             <Text style={styles.noteText}>
-               "Please arrive as soon as possible. {bookingData?.problemDescription || 'Everything needs careful attention.'}"
+               "{bookingData?.problemDescription || 'Please arrive as soon as possible. Everything needs careful attention.'}"
             </Text>
          </View>
       </ScrollView>
 
+      {/* Footer Buttons */}
       <View style={styles.footer}>
-         <TouchableOpacity style={styles.rejectBtn} onPress={handleReject}>
-            <Text style={styles.rejectText}>Decline</Text>
+         <TouchableOpacity style={styles.declineBtn} onPress={handleReject}>
+            <Text style={styles.declineText}>Decline</Text>
          </TouchableOpacity>
          <TouchableOpacity style={styles.acceptBtn} onPress={handleAccept}>
             <LinearGradient
-                colors={['#E84545', '#B22222']}
-                style={styles.btnGradient}
+                colors={['#EF4444', '#DC2626']}
+                style={styles.acceptGradient}
             >
                 <Text style={styles.acceptText}>Accept Job</Text>
-                <Ionicons name="checkmark-done-circle" size={20} color="#FFF" />
+                <Ionicons name="checkmark-circle" size={22} color="#FFF" />
             </LinearGradient>
          </TouchableOpacity>
       </View>
@@ -176,45 +187,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     padding: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9'
   },
-  backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1E293B', fontFamily: 'Poppins-Bold' },
+  closeButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: '700', color: '#1E293B', fontFamily: 'Poppins-Bold' },
   scrollContent: { padding: 20, paddingBottom: 120 },
-  statusBadge: {
+  urgentBadge: {
     flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
-    backgroundColor: '#FFE4E6', paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: 10, marginBottom: 20, gap: 8
+    backgroundColor: '#FFF1F2', paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8, marginBottom: 20, gap: 8
   },
-  pulseDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E11D48' },
-  statusText: { fontSize: 12, fontWeight: '800', color: '#E11D48', letterSpacing: 1 },
-  mainInfo: { marginBottom: 24, paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
-  serviceType: { fontSize: 34, fontWeight: '800', color: '#0F172A', marginBottom: 10, fontFamily: 'Poppins-ExtraBold' },
-  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  earningsLabel: { fontSize: 14, color: '#64748B', fontFamily: 'Poppins-Regular' },
-  earningsValue: { fontSize: 28, fontWeight: '800', color: '#10B981', fontFamily: 'Poppins-Bold' },
-  card: {
-    backgroundColor: '#FFF', padding: 20, borderRadius: 20, marginBottom: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2,
+  urgentDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#E11D48' },
+  urgentText: { fontSize: 10, fontWeight: '800', color: '#E11D48', letterSpacing: 1.5, fontFamily: 'Poppins-Bold' },
+  mainHeader: { marginBottom: 24 },
+  serviceTitle: { fontSize: 36, fontWeight: '800', color: '#0F172A', marginBottom: 12, fontFamily: 'Poppins-ExtraBold' },
+  earningsContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  earningsLabel: { fontSize: 15, color: '#64748B', fontFamily: 'Poppins-Medium' },
+  earningsValue: { fontSize: 32, fontWeight: '800', color: '#10B981', fontFamily: 'Poppins-Bold' },
+  divider: { height: 1, backgroundColor: '#F1F5F9', marginBottom: 24 },
+  infoCard: {
+    backgroundColor: '#FFF', padding: 20, borderRadius: 24, marginBottom: 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 12, elevation: 3,
     borderWidth: 1, borderColor: '#F1F5F9'
   },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#94A3B8', marginBottom: 16, letterSpacing: 1.5 },
+  cardLabel: { fontSize: 10, fontWeight: '700', color: '#94A3B8', marginBottom: 16, letterSpacing: 1.5, fontFamily: 'Poppins-Bold' },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  iconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFF1F2', justifyContent: 'center', alignItems: 'center' },
-  customerName: { fontSize: 17, fontWeight: '700', color: '#1E293B', fontFamily: 'Poppins-Bold' },
-  customerSub: { fontSize: 13, color: '#64748B' },
-  locationRow: { flexDirection: 'row', gap: 12 },
-  addressTitle: { fontSize: 16, fontWeight: '700', color: '#1E293B', marginBottom: 4 },
-  addressDetail: { fontSize: 14, color: '#64748B', lineHeight: 20 },
-  noteText: { fontSize: 15, color: '#475569', fontStyle: 'italic', lineHeight: 22 },
+  userIconBg: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFF1F2', justifyContent: 'center', alignItems: 'center' },
+  infoName: { fontSize: 18, fontWeight: '700', color: '#1E293B', fontFamily: 'Poppins-Bold' },
+  infoSub: { fontSize: 14, color: '#64748B', fontFamily: 'Poppins-Regular' },
+  locationRow: { flexDirection: 'row', gap: 16 },
+  locIconBg: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFF1F2', justifyContent: 'center', alignItems: 'center' },
+  locName: { fontSize: 18, fontWeight: '700', color: '#1E293B', marginBottom: 6, fontFamily: 'Poppins-Bold' },
+  locAddress: { fontSize: 14, color: '#64748B', lineHeight: 22, fontFamily: 'Poppins-Regular' },
+  noteText: { fontSize: 15, color: '#475569', fontStyle: 'italic', lineHeight: 24, fontFamily: 'Poppins-Regular' },
   footer: { 
     position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#FFF',
     padding: 20, flexDirection: 'row', gap: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9',
     paddingBottom: 34
   },
-  rejectBtn: { flex: 1, height: 56, borderRadius: 16, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
-  acceptBtn: { flex: 2, height: 56, borderRadius: 16, overflow: 'hidden' },
-  btnGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  rejectText: { color: '#64748B', fontWeight: '700', fontSize: 16 },
-  acceptText: { color: '#FFF', fontWeight: '700', fontSize: 16 }
+  declineBtn: { flex: 1, height: 58, borderRadius: 18, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
+  acceptBtn: { flex: 2, height: 58, borderRadius: 18, overflow: 'hidden' },
+  acceptGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  declineText: { color: '#64748B', fontWeight: '700', fontSize: 16, fontFamily: 'Poppins-Bold' },
+  acceptText: { color: '#FFF', fontWeight: '700', fontSize: 16, fontFamily: 'Poppins-Bold' }
 });
 
 export default IncomingBookingScreen;

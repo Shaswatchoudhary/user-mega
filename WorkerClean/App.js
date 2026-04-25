@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { LocationProvider } from './src/context/LocationContext';
@@ -11,7 +11,7 @@ import permissionService from './src/services/permissionService';
 const navigationRef = createNavigationContainerRef();
 
 function AppContent() {
-  const { workerUser, loading } = useAuth();
+  const { workerUser, workerProfile, loading } = useAuth();
 
   React.useEffect(() => {
     notificationService.setNavigation(navigationRef);

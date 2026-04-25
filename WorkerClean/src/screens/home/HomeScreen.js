@@ -198,7 +198,7 @@ export default function HomeScreen({ navigation }) {
     };
   }, [workerId]);
 
-  if (loading || !workerProfile) {
+  if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' }}>
         <ActivityIndicator size="large" color="#E84545" />
@@ -310,17 +310,42 @@ export default function HomeScreen({ navigation }) {
         {newRequests.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>New Requests</Text>
+              <Text style={styles.sectionTitle}>New Job Requests</Text>
               <View style={styles.badge}><Text style={styles.badgeText}>{newRequests.length}</Text></View>
             </View>
             {newRequests.map((req) => (
-              <TouchableOpacity key={req.id} style={styles.requestCard} onPress={() => navigation.navigate('IncomingBooking', { bookingId: req.id, bookingData: req })}>
-                <View style={styles.cardIcon}><MaterialCommunityIcons name="briefcase-plus" size={24} color="#E84545" /></View>
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle}>{req.serviceType}</Text>
-                  <Text style={styles.cardSub} numberOfLines={1}>📍 {req.userLocation?.address || req.userAddress || 'Location provided'}</Text>
+              <TouchableOpacity 
+                key={req.id} 
+                style={styles.pendingRequestCard} 
+                onPress={() => navigation.navigate('IncomingBooking', { bookingId: req.id, bookingData: req })}
+                activeOpacity={0.9}
+              >
+                <View style={styles.pendingHeader}>
+                  <View style={styles.pendingBadge}>
+                    <View style={styles.orangeDot} />
+                    <Text style={styles.pendingBadgeText}>PENDING REQUEST</Text>
+                  </View>
+                  <Text style={styles.pendingPrice}>₹{req.price || 249}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+
+                <Text style={styles.pendingServiceTitle}>{req.serviceType || 'Service Professional'}</Text>
+
+                <View style={styles.pendingDetailRow}>
+                  <Ionicons name="person" size={18} color="#64748B" />
+                  <Text style={styles.pendingDetailLabel}>Customer</Text>
+                </View>
+
+                <View style={[styles.pendingDetailRow, { alignItems: 'flex-start' }]}>
+                  <Ionicons name="location" size={18} color="#EF4444" />
+                  <Text style={styles.pendingAddressText} numberOfLines={2}>
+                    {req.userLocation?.address || req.userAddress || 'Fetching address...'}
+                  </Text>
+                </View>
+
+                <View style={styles.viewJobBtn}>
+                  <Text style={styles.viewJobBtnText}>View Full Details</Text>
+                  <Ionicons name="arrow-forward" size={16} color="#E84545" />
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -395,11 +420,18 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937' },
   badge: { backgroundColor: '#1A1A1A', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   badgeText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
-  requestCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 16, borderRadius: 16, marginBottom: 12, elevation: 1 },
-  cardIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  cardContent: { flex: 1 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1F2937' },
-  cardSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  pendingRequestCard: { backgroundColor: '#FFF', padding: 18, borderRadius: 24, marginBottom: 16, elevation: 3, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, borderWidth: 1, borderColor: '#F1F5F9' },
+  pendingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  pendingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, gap: 6 },
+  orangeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#F97316' },
+  pendingBadgeText: { fontSize: 10, fontWeight: '800', color: '#F97316', letterSpacing: 0.5 },
+  pendingPrice: { fontSize: 22, fontWeight: '900', color: '#1E293B', fontFamily: 'Poppins-Bold' },
+  pendingServiceTitle: { fontSize: 20, fontWeight: '800', color: '#1E293B', marginBottom: 14, fontFamily: 'Poppins-Bold' },
+  pendingDetailRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  pendingDetailLabel: { fontSize: 15, color: '#1E293B', fontWeight: '700', fontFamily: 'Poppins-Bold' },
+  pendingAddressText: { flex: 1, fontSize: 14, color: '#64748B', lineHeight: 20, fontWeight: '500' },
+  viewJobBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 16, paddingVertical: 12, backgroundColor: '#F8FAFC', borderRadius: 14, borderWidth: 1, borderColor: '#F1F5F9' },
+  viewJobBtnText: { fontSize: 14, fontWeight: '700', color: '#E84545' },
   activeCard: { backgroundColor: '#FFF', padding: 16, borderRadius: 16, marginBottom: 12, elevation: 3 },
   activeCardTop: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
   pulseDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10B981' },

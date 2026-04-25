@@ -24,14 +24,34 @@ const EditProfileScreen = ({ navigation }) => {
   const { user, login } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState(user?.phone || '');
+  const [phone, setPhone] = useState(user?.phoneNumber || user?.phone || '');
+  const [mongoId, setMongoId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const loadFromStorage = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('user');
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          setMongoId(parsed._id || parsed.id || null);
+          if (!name && parsed.name) setName(parsed.name);
+          if (!phone && (parsed.phone || parsed.phoneNumber)) {
+            setPhone(parsed.phone || parsed.phoneNumber);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading user from storage:', e);
+      }
+    };
+    loadFromStorage();
+  }, []);
 
   useEffect(() => {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
-      setPhone(user.phone || '');
+      setPhone(user.phoneNumber || user.phone || '');
     }
   }, [user]);
 
@@ -44,7 +64,7 @@ const EditProfileScreen = ({ navigation }) => {
     setIsLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/users/update`, {
-        userId: user?._id || user?.id,
+        userId: mongoId || user?.uid || user?._id || user?.id,
         name: name.trim(),
         email: email.trim(),
       });

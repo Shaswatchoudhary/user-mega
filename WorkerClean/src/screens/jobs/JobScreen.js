@@ -90,70 +90,47 @@ const JobScreen = ({ navigation }) => {
     const isAccepted = item.status === 'accepted';
 
     return (
-      <View key={item.id} style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={[styles.statusBadge, { backgroundColor: isPending ? '#FFF7ED' : '#EFF6FF' }]}>
-            <View style={[styles.statusDot, { backgroundColor: isPending ? '#F97316' : '#3B82F6' }]} />
-            <Text style={[styles.statusText, { color: isPending ? '#F97316' : '#3B82F6' }]}>
+      <TouchableOpacity 
+        key={item.id} 
+        style={styles.pendingRequestCard} 
+        onPress={() => {
+          if (isPending) {
+            navigation.navigate('IncomingBooking', { bookingId: item.id, bookingData: item });
+          } else {
+            navigation.navigate('ActiveJob', { bookingId: item.id, bookingData: item });
+          }
+        }}
+        activeOpacity={0.9}
+      >
+        <View style={styles.pendingHeader}>
+          <View style={[styles.pendingBadge, { backgroundColor: isPending ? '#FFF7ED' : '#EFF6FF' }]}>
+            <View style={[styles.orangeDot, { backgroundColor: isPending ? '#F97316' : '#3B82F6' }]} />
+            <Text style={[styles.pendingBadgeText, { color: isPending ? '#F97316' : '#3B82F6' }]}>
               {isPending ? 'PENDING REQUEST' : 'ACCEPTED JOB'}
             </Text>
           </View>
-          <Text style={styles.priceText}>₹{item.price || item.totalPrice || 0}</Text>
+          <Text style={styles.pendingPrice}>₹{item.price || item.totalPrice || 249}</Text>
         </View>
 
-        <Text style={styles.serviceTitle}>{item.serviceType || 'General Service'}</Text>
-        
-        <View style={styles.infoRow}>
-          <Ionicons name="person" size={16} color="#6B7280" />
-          <Text style={styles.infoText}>{item.userName || 'Customer'}</Text>
+        <Text style={styles.pendingServiceTitle}>{item.serviceType || 'Service Professional'}</Text>
+
+        <View style={styles.pendingDetailRow}>
+          <Ionicons name="person" size={18} color="#64748B" />
+          <Text style={styles.pendingDetailLabel}>Customer</Text>
         </View>
 
-        <View style={styles.infoRow}>
-          <Ionicons name="location" size={16} color="#E84545" />
-          <Text style={styles.addressText} numberOfLines={2}>
-            {item.userLocation?.fullAddress || item.userAddress || 'Address not provided'}
+        <View style={[styles.pendingDetailRow, { alignItems: 'flex-start' }]}>
+          <Ionicons name="location" size={18} color="#EF4444" />
+          <Text style={styles.pendingAddressText} numberOfLines={2}>
+            {item.userLocation?.fullAddress || item.userAddress || 'Fetching address...'}
           </Text>
         </View>
 
-        <View style={styles.divider} />
-
-        <View style={styles.buttonRow}>
-          {isPending ? (
-            <>
-              <TouchableOpacity 
-                style={styles.rejectBtn} 
-                onPress={() => handleReject(item.id)}
-              >
-                <Text style={styles.rejectBtnText}>Reject</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={{ flex: 1 }} 
-                onPress={() => handleAccept(item.id)}
-              >
-                <LinearGradient
-                  colors={['#10B981', '#059669']}
-                  style={styles.acceptBtn}
-                >
-                  <Text style={styles.acceptBtnText}>Accept Job</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity 
-              style={{ flex: 1 }} 
-              onPress={() => navigation.navigate('ActiveJob', { bookingId: item.id, bookingData: item })}
-            >
-              <LinearGradient
-                colors={['#E84545', '#1A1A1A']}
-                style={styles.viewBtn}
-              >
-                <Text style={styles.viewBtnText}>View Job Details</Text>
-                <Ionicons name="arrow-forward" size={18} color="#FFF" />
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
+        <View style={styles.viewJobBtn}>
+          <Text style={styles.viewJobBtnText}>{isPending ? 'View Full Details' : 'Continue Job'}</Text>
+          <Ionicons name="arrow-forward" size={16} color="#E84545" />
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -201,29 +178,18 @@ const styles = StyleSheet.create({
   emptySubtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', marginTop: 8 },
 
   scrollContent: { padding: 16 },
-  card: {
-    backgroundColor: '#FFF', borderRadius: 20, padding: 16, marginBottom: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3
-  },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  statusText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  priceText: { fontSize: 20, fontWeight: '800', color: '#111827' },
-  
-  serviceTitle: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 12 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
-  infoText: { fontSize: 14, fontWeight: '600', color: '#374151' },
-  addressText: { fontSize: 14, color: '#6B7280', flex: 1, lineHeight: 20 },
-  
-  divider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 16 },
-  buttonRow: { flexDirection: 'row', gap: 12 },
-  rejectBtn: { flex: 0.5, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: '#FEE2E2' },
-  rejectBtnText: { color: '#EF4444', fontWeight: '700' },
-  acceptBtn: { height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  acceptBtnText: { color: '#FFF', fontWeight: '700' },
-  viewBtn: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 12, gap: 8 },
-  viewBtnText: { color: '#FFF', fontWeight: '700' }
+  pendingRequestCard: { backgroundColor: '#FFF', padding: 18, borderRadius: 24, marginBottom: 16, elevation: 3, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, borderWidth: 1, borderColor: '#F1F5F9' },
+  pendingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  pendingBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, gap: 6 },
+  orangeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#F97316' },
+  pendingBadgeText: { fontSize: 10, fontWeight: '800', color: '#F97316', letterSpacing: 0.5 },
+  pendingPrice: { fontSize: 22, fontWeight: '900', color: '#1E293B', fontFamily: 'Poppins-Bold' },
+  pendingServiceTitle: { fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 14, fontFamily: 'Poppins-Bold' },
+  pendingDetailRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  pendingDetailLabel: { fontSize: 15, color: '#1E293B', fontWeight: '700', fontFamily: 'Poppins-Bold' },
+  pendingAddressText: { flex: 1, fontSize: 14, color: '#64748B', lineHeight: 20, fontWeight: '500' },
+  viewJobBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 16, paddingVertical: 12, backgroundColor: '#F8FAFC', borderRadius: 14, borderWidth: 1, borderColor: '#F1F5F9' },
+  viewJobBtnText: { fontSize: 14, fontWeight: '700', color: '#E84545' },
 });
 
 export default JobScreen;

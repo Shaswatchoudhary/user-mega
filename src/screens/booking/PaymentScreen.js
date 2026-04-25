@@ -8,9 +8,11 @@ import {
   TextInput,
   Alert,
   Platform,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -194,116 +196,177 @@ export default function PaymentScreen({ navigation, route }) {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Worker Summary Section */}
+        <View style={styles.workerSummary}>
+          <View style={styles.workerAvatar}>
+            <Text style={styles.workerAvatarText}>
+              {(worker?.name || 'W')[0].toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.workerDetails}>
+            <Text style={styles.workerName}>{worker?.name || 'Your Professional'}</Text>
+            <View style={styles.serviceTag}>
+              <Text style={styles.serviceTagText}>{selectedServices?.[0]?.name || worker?.serviceType || 'Home Service'}</Text>
+            </View>
+          </View>
+          <View style={styles.dateInfo}>
+            <Text style={styles.dateLabel}>Date</Text>
+            <Text style={styles.dateValue}>{selectedDate || 'Today'}</Text>
+          </View>
+        </View>
+
         {/* Ticket Lock Notice */}
         {!paymentUnlocked && (
           <View style={styles.lockNotice}>
-            <Ionicons name="lock-closed" size={20} color="#854d0e" />
-            <Text style={styles.lockText}>Payment is locked until the service ticket is closed.</Text>
+            <View style={styles.lockIconBg}>
+              <Ionicons name="lock-closed" size={18} color="#854d0e" />
+            </View>
+            <View style={styles.lockContent}>
+              <Text style={styles.lockTitle}>Payment is Locked</Text>
+              <Text style={styles.lockText}>Unlocked once the professional closes the service ticket.</Text>
+            </View>
           </View>
         )}
 
-        {/* Amount Card */}
+        {/* Amount Card - Premium Gradient */}
         <LinearGradient
-          colors={paymentUnlocked ? [colors.accent, '#8B0D16'] : ['#94A3B8', '#64748B']}
+          colors={paymentUnlocked ? ['#E84545', '#B32D2D'] : ['#94A3B8', '#64748B']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.amountCard}
         >
-          <Text style={styles.amountLabel}>Amount to Pay</Text>
-          <Text style={styles.amountValue}>₹{finalAmount}</Text>
-          {discount > 0 && <Text style={styles.savedText}>You saved ₹{discount}!</Text>}
+          <View style={styles.amountInner}>
+            <View>
+              <Text style={styles.amountLabel}>Total Payable</Text>
+              <Text style={styles.amountValue}>₹{finalAmount}</Text>
+            </View>
+            <View style={styles.amountIconCircle}>
+              <MaterialCommunityIcons name="wallet-outline" size={32} color="#FFF" />
+            </View>
+          </View>
+          {discount > 0 && (
+            <View style={styles.savedBadge}>
+              <MaterialCommunityIcons name="check-decagram" size={14} color="#FFF" />
+              <Text style={styles.savedText}>You saved ₹{discount} today</Text>
+            </View>
+          )}
         </LinearGradient>
 
         {/* Work Duration Info */}
         {duration && (
           <View style={styles.durationCard}>
-            <MaterialCommunityIcons name="clock-check-outline" size={24} color={colors.accent} />
+            <View style={styles.durationIconBox}>
+              <MaterialCommunityIcons name="clock-outline" size={22} color={colors.accent} />
+            </View>
             <View style={styles.durationInfo}>
-              <Text style={styles.durationLabel}>Total Work Duration</Text>
+              <Text style={styles.durationLabel}>Service Duration</Text>
               <Text style={styles.durationValue}>{duration}</Text>
             </View>
           </View>
         )}
 
-        {/* Promo Code */}
+        {/* Payment Methods Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Promo Code</Text>
-          <View style={styles.promoInputRow}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Select Payment Method</Text>
+            <Text style={styles.sectionSubtitle}>Choose how you want to pay</Text>
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={[
+              styles.methodCard,
+              selectedMethod === '1' && styles.methodCardActive,
+              !paymentUnlocked && styles.methodCardDisabled
+            ]}
+            onPress={() => paymentUnlocked && setSelectedMethod('1')}
+            disabled={!paymentUnlocked}
+          >
+            <View style={[styles.methodIconBox, selectedMethod === '1' && styles.methodIconBoxActive]}>
+              <MaterialCommunityIcons 
+                name="cash-multiple" 
+                size={24} 
+                color={selectedMethod === '1' ? '#FFF' : colors.accent} 
+              />
+            </View>
+            <View style={styles.methodCardInfo}>
+              <View style={styles.methodTitleRow}>
+                <Text style={styles.methodName}>Cash After Service</Text>
+                {selectedMethod === '1' && (
+                  <View style={styles.selectedBadge}>
+                    <Ionicons name="checkmark-circle" size={16} color={colors.accent} />
+                  </View>
+                )}
+              </View>
+              <Text style={styles.methodDesc}>Pay directly to the professional in person</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={[styles.methodCard, styles.methodCardDisabled, { opacity: 0.5 }]}>
+            <View style={styles.methodIconBox}>
+              <MaterialCommunityIcons name="credit-card-outline" size={24} color="#94A3B8" />
+            </View>
+            <View style={styles.methodCardInfo}>
+              <Text style={[styles.methodName, { color: '#94A3B8' }]}>Online / UPI</Text>
+              <Text style={styles.methodDesc}>Coming soon to your area</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Promo Code Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Offers & Benefits</Text>
+          <View style={styles.promoContainer}>
+            <MaterialCommunityIcons name="ticket-percent-outline" size={24} color={colors.accent} />
             <TextInput
-              style={styles.promoInput}
-              placeholder="Enter promo code"
+              style={styles.promoTextInput}
+              placeholder="Enter coupon code"
               value={promoCode}
               onChangeText={setPromoCode}
               autoCapitalize="characters"
               editable={paymentUnlocked}
+              placeholderTextColor="#94A3B8"
             />
             <TouchableOpacity
-              style={[styles.applyBtn, (!promoCode || !paymentUnlocked) && styles.applyBtnDisabled]}
               onPress={handleApplyPromo}
               disabled={!promoCode || !paymentUnlocked}
+              style={[styles.applyButton, (!promoCode || !paymentUnlocked) && styles.applyButtonDisabled]}
             >
-              <Text style={styles.applyBtnText}>Apply</Text>
+              <Text style={styles.applyButtonText}>Apply</Text>
             </TouchableOpacity>
           </View>
-          {promoError ? <Text style={styles.errorText}>{promoError}</Text> : null}
-          {promoApplied && <Text style={styles.successText}>Code {promoApplied.code} applied!</Text>}
+          {promoError ? <Text style={styles.promoError}>{promoError}</Text> : null}
+          {promoApplied && <Text style={styles.promoSuccess}>✓ Coupon {promoApplied.code} applied!</Text>}
         </View>
 
-        {/* Payment Methods */}
+        {/* Detailed Bill Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Payment Method</Text>
-          <TouchableOpacity
-            style={[styles.methodRow, selectedMethod === '1' && styles.methodSelected, !paymentUnlocked && { opacity: 0.6 }]}
-            onPress={() => paymentUnlocked && setSelectedMethod('1')}
-            disabled={!paymentUnlocked}
-          >
-            <View style={styles.methodIconContainer}>
-              <Ionicons name="cash-outline" size={24} color={colors.accent} />
-            </View>
-            <View style={styles.methodInfo}>
-              <View style={styles.methodTitleRow}>
-                <Text style={styles.methodText}>Cash on Service</Text>
-                <View style={styles.defaultBadge}>
-                  <Text style={styles.defaultBadgeText}>Default</Text>
-                </View>
-              </View>
-              <Text style={styles.methodDescription}>Pay directly to the professional after service</Text>
-            </View>
-            <View style={styles.methodRadio}>
-              <Ionicons 
-                name={selectedMethod === '1' ? "radio-button-on" : "radio-button-off"} 
-                size={22} 
-                color={selectedMethod === '1' ? colors.accent : "#DDD"} 
-              />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.methodRow} disabled={true}>
-            <Ionicons name="card-outline" size={24} color="#999" />
-            <Text style={[styles.methodText, { color: '#999' }]}>Online Payment (Disabled)</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Price Breakdown */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Price Breakdown</Text>
-          <Card style={styles.whiteCard}>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Service Total</Text>
-              <Text style={styles.priceValue}>₹{initialAmount}</Text>
+          <Text style={styles.sectionTitle}>Bill Summary</Text>
+          <View style={styles.billCard}>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Service Fee</Text>
+              <Text style={styles.billValue}>₹{initialAmount}</Text>
             </View>
             {discount > 0 && (
-              <View style={styles.priceRow}>
-                <Text style={[styles.priceLabel, { color: colors.success }]}>Discount</Text>
-                <Text style={[styles.priceValue, { color: colors.success }]}>- ₹{discount}</Text>
+              <View style={styles.billRow}>
+                <Text style={[styles.billLabel, { color: '#10B981' }]}>Coupon Discount</Text>
+                <Text style={[styles.billValue, { color: '#10B981' }]}>-₹{discount}</Text>
               </View>
             )}
-            <View style={[styles.priceRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>₹{finalAmount}</Text>
+            <View style={styles.billRow}>
+              <Text style={styles.billLabel}>Convenience Fee</Text>
+              <Text style={styles.billValue}>FREE</Text>
             </View>
-          </Card>
+            <View style={styles.billDivider} />
+            <View style={styles.totalRow}>
+              <View>
+                <Text style={styles.totalLabel}>Total Payable</Text>
+                <Text style={styles.inclusiveText}>Incl. all taxes</Text>
+              </View>
+              <Text style={styles.totalAmount}>₹{finalAmount}</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
 
@@ -335,287 +398,399 @@ export default function PaymentScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5F5" },
+  container: { flex: 1, backgroundColor: "#FFF" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#FFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#EFEFEF"
   },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: "#1A1A1A", fontFamily: 'Poppins-Bold' },
-  backButton: { width: 40, height: 40, justifyContent: "center" },
+  headerTitle: { 
+    fontSize: 18, 
+    fontWeight: '800', 
+    color: "#1A1A1A",
+    letterSpacing: -0.5,
+  },
+  backButton: { 
+    width: 40, 
+    height: 40, 
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: 'center',
+  },
   scrollView: { flex: 1 },
   scrollContent: { padding: 20 },
+  
+  // Worker Summary
+  workerSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  workerAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: '#E84545',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  workerAvatarText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  workerDetails: {
+    flex: 1,
+  },
+  workerName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  serviceTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  serviceTagText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#E84545',
+  },
+  dateInfo: {
+    alignItems: 'flex-end',
+  },
+  dateLabel: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginBottom: 2,
+  },
+  dateValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+
   lockNotice: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fefce8',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 20,
+    backgroundColor: '#FFFBEB',
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#fef08a',
-    gap: 10,
+    borderColor: '#FEF3C7',
+    gap: 12,
   },
-  lockText: {
-    fontSize: 13,
-    color: '#854d0e',
-    fontFamily: 'Poppins-Medium',
+  lockIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#FEF3C7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lockContent: {
     flex: 1,
   },
+  lockTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 2,
+  },
+  lockText: {
+    fontSize: 11,
+    color: '#B45309',
+    lineHeight: 16,
+  },
+
   amountCard: {
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    padding: 24,
+    borderRadius: 24,
     marginBottom: 24,
+    elevation: 8,
     shadowColor: '#E84545',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 20,
-    elevation: 8,
+  },
+  amountInner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   amountLabel: {
     fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
-    fontFamily: 'Poppins-Medium',
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
     marginBottom: 4,
   },
   amountValue: {
-    fontSize: 42,
-    fontWeight: "800",
-    color: "#FFF",
-    fontFamily: 'Poppins-Bold',
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#FFF',
+    letterSpacing: -1,
+  },
+  amountIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  savedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginTop: 16,
+    gap: 6,
   },
   savedText: {
     fontSize: 12,
-    color: "#FFF",
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginTop: 12,
-    overflow: 'hidden',
-    fontFamily: 'Poppins-Medium',
+    fontWeight: '700',
+    color: '#FFF',
   },
+
   durationCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
-    gap: 16,
+    borderColor: '#F1F5F9',
+    gap: 14,
+  },
+  durationIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   durationInfo: {
     flex: 1,
   },
   durationLabel: {
-    fontSize: 12,
-    color: '#666',
-    fontFamily: 'Poppins-Regular',
+    fontSize: 11,
+    color: '#64748B',
+    marginBottom: 2,
   },
   durationValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    fontFamily: 'Poppins-Bold',
-  },
-  section: { 
-    marginBottom: 24,
-    paddingHorizontal: 4,
-  },
-  sectionTitle: { 
     fontSize: 16,
-    fontWeight: "700", 
-    color: "#1A1A1A", 
-    marginBottom: 12,
-    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '700',
+    color: '#1E293B',
   },
-  promoInputRow: { 
-    flexDirection: "row", 
+
+  section: {
+    marginBottom: 28,
+  },
+  sectionHeader: {
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#1E293B',
+    letterSpacing: -0.3,
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+
+  methodCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 12 
-  },
-  promoInput: { 
-    flex: 1, 
-    backgroundColor: "#FFF", 
-    padding: 14, 
-    borderRadius: 12, 
-    borderWidth: 1.5, 
-    borderColor: "#EEE",
-    fontSize: 15,
-    color: '#000',
-    fontFamily: 'Poppins-Regular',
-  },
-  applyBtn: { 
-    backgroundColor: colors.accent, 
-    paddingHorizontal: 24, 
-    height: 54,
-    justifyContent: "center", 
-    borderRadius: 12,
-  },
-  applyBtnDisabled: { opacity: 0.5 },
-  applyBtnText: { 
-    color: "#FFF", 
-    fontWeight: "700",
-    fontSize: 14,
-    fontFamily: 'Poppins-Bold',
-  },
-  methodRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "#FFF",
-    padding: 16,
-    borderRadius: 16,
+    backgroundColor: '#FFF',
+    padding: 18,
+    borderRadius: 20,
     marginBottom: 12,
-    borderWidth: 1.5,
-    borderColor: "#F0F0F0",
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 2,
+    borderColor: '#F1F5F9',
   },
-  methodSelected: { 
-    borderColor: colors.accent, 
-    backgroundColor: "#FFF9F9",
+  methodCardActive: {
+    borderColor: '#E84545',
+    backgroundColor: '#FFF9F9',
   },
-  methodIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#F9F9F9',
+  methodCardDisabled: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#F1F5F9',
+  },
+  methodIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
-  methodInfo: { 
-    flex: 1, 
-    marginTop: 2,
+  methodIconBoxActive: {
+    backgroundColor: '#E84545',
+  },
+  methodCardInfo: {
+    flex: 1,
   },
   methodTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
-  methodText: { 
+  methodName: {
     fontSize: 15,
-    fontWeight: "700", 
-    color: "#1A1A1A",
-    fontFamily: 'Poppins-Bold',
-  },
-  defaultBadge: {
-    backgroundColor: '#FFF0F0',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginLeft: 8,
-  },
-  defaultBadgeText: {
-    fontSize: 10,
     fontWeight: '700',
-    color: colors.accent,
-    textTransform: 'uppercase',
+    color: '#1E293B',
   },
-  methodDescription: {
+  methodDesc: {
     fontSize: 12,
-    color: '#666',
-    fontFamily: 'Poppins-Regular',
-    marginTop: 4,
+    color: '#64748B',
+    lineHeight: 18,
   },
-  methodRadio: {
-    marginLeft: 12,
-    marginTop: 10,
+
+  promoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 56,
+    borderWidth: 1.5,
+    borderColor: '#F1F5F9',
+    gap: 12,
   },
-  whiteCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 20,
+  promoTextInput: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  applyButton: {
+    backgroundColor: '#E84545',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  applyButtonDisabled: {
+    backgroundColor: '#94A3B8',
+    opacity: 0.5,
+  },
+  applyButtonText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  promoError: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginTop: 6,
+    marginLeft: 4,
+    fontWeight: '600',
+  },
+  promoSuccess: {
+    color: '#10B981',
+    fontSize: 12,
+    marginTop: 6,
+    marginLeft: 4,
+    fontWeight: '600',
+  },
+
+  billCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+    borderColor: '#F1F5F9',
   },
-  priceRow: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
+  billRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  billLabel: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  billValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  billDivider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 16,
+    borderStyle: 'dashed',
+    borderRadius: 1,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-  },
-  priceLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontFamily: 'Poppins-Regular',
-  },
-  priceValue: {
-    fontSize: 14,
-    color: '#1A1A1A',
-    fontWeight: '600',
-    fontFamily: 'Poppins-SemiBold',
-  },
-  totalRow: { 
-    borderTopWidth: 1, 
-    borderTopColor: "#F0F0F0", 
-    marginTop: 12, 
-    paddingTop: 16,
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    fontFamily: 'Poppins-Bold',
-  },
-  totalValue: {
-    fontSize: 22,
     fontWeight: '800',
-    color: colors.accent,
-    fontFamily: 'Poppins-Bold',
+    color: '#1E293B',
   },
+  inclusiveText: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  totalAmount: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#E84545',
+    letterSpacing: -0.5,
+  },
+
   bottomBar: {
-    padding: 24,
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
+    paddingHorizontal: 24,
+    paddingTop: 16,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
   },
-  confirmingView: { 
-    alignItems: "center",
-    paddingVertical: 10,
+  confirmingView: {
+    alignItems: 'center',
+    paddingVertical: 12,
   },
-  confirmingText: { 
+  confirmingText: {
     fontSize: 18,
-    fontWeight: '700',
-    color: colors.accent,
-    fontFamily: 'Poppins-Bold',
+    fontWeight: '800',
+    color: '#E84545',
+    marginBottom: 4,
   },
-  cancelLink: { 
-    color: "#666", 
-    marginTop: 8, 
-    textDecorationLine: "underline",
-    fontFamily: 'Poppins-Medium',
-  },
-  errorText: { 
-    color: colors.error, 
-    fontSize: 12, 
-    marginTop: 6,
-    marginLeft: 4,
-    fontFamily: 'Poppins-Regular',
-  },
-  successText: { 
-    color: colors.success, 
-    fontSize: 12, 
-    marginTop: 6,
-    marginLeft: 4,
-    fontFamily: 'Poppins-Regular',
+  cancelLink: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });

@@ -1,10 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity,
-         Animated, ActivityIndicator, Linking, Alert } from 'react-native';
-import MapView, { Marker, Polyline, 
-                  PROVIDER_GOOGLE } from 'react-native-maps';
+import {
+  View, Text, StyleSheet, TouchableOpacity,
+  Animated, ActivityIndicator, Linking, Alert,
+  Modal, TextInput, KeyboardAvoidingView, Platform
+} from 'react-native';
+import MapView, {
+  Marker, Polyline,
+  PROVIDER_GOOGLE
+} from 'react-native-maps';
 import firestore from '@react-native-firebase/firestore';
-import { GOOGLE_MAPS_API_KEY } from "../../constants/config";
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GOOGLE_MAPS_API_KEY, API_BASE_URL } from "../../constants/config";
 
 const TrackingScreen = ({ route, navigation }) => {
   const { bookingId, workerId } = route.params;
@@ -24,6 +31,10 @@ const TrackingScreen = ({ route, navigation }) => {
   const [workerData, setWorkerData] = useState(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isLocatingWorker, setIsLocatingWorker] = useState(true);
+  const [userId, setUserId] = useState(null);
+
+  // Issue Modal State
+  const [showIssueModal, setShowIssueModal] = useState(false);
 
   // ━━━━━━━━━━━━━━━━━━━━━
   // FETCH BOOKING DATA
@@ -36,6 +47,7 @@ const TrackingScreen = ({ route, navigation }) => {
         if (doc.exists) {
           const data = doc.data();
           setBookingStatus(data.status);
+          setUserId(data.userId || null);
 
           if (data.userLocation) {
             setUserLocation({
@@ -46,8 +58,8 @@ const TrackingScreen = ({ route, navigation }) => {
           }
 
           if (data.workerLocation) {
-             const newLoc = { latitude: data.workerLocation.latitude, longitude: data.workerLocation.longitude };
-             updateWorkerPosition(newLoc);
+            const newLoc = { latitude: data.workerLocation.latitude, longitude: data.workerLocation.longitude };
+            updateWorkerPosition(newLoc);
           }
 
           if (data.status === 'work_completed') {
@@ -84,16 +96,16 @@ const TrackingScreen = ({ route, navigation }) => {
       .onSnapshot(doc => {
         if (doc.exists) {
           const data = doc.data();
-          console.log('Worker doc data:', JSON.stringify(data.currentLocation));
-          
+          // Removed frequent coordinate logging to improve performance
+
           if (data.currentLocation) {
             // Validate coordinates are reasonable
             const lat = data.currentLocation.latitude;
             const lng = data.currentLocation.longitude;
-            
+
             // Check if coordinates are in India (rough bounds)
             const isValidIndia = lat > 8 && lat < 37 && lng > 68 && lng < 97;
-            
+
             if (!isValidIndia) {
               console.warn('Invalid coordinates received:', lat, lng);
               return; // Skip invalid coordinates
@@ -110,7 +122,7 @@ const TrackingScreen = ({ route, navigation }) => {
 
   const updateWorkerPosition = (newLoc) => {
     setIsLocatingWorker(false);
-    
+
     // ZOMATO ALGORITHM
     if (workerLocationRef.current) {
       smoothlyMoveMarker(workerLocationRef.current, newLoc, 28000);
@@ -118,7 +130,7 @@ const TrackingScreen = ({ route, navigation }) => {
       setWorkerLocation(newLoc);
       setDisplayLocation(newLoc);
     }
-    
+
     workerLocationRef.current = newLoc;
     setWorkerLocation(newLoc);
 
@@ -273,11 +285,11 @@ const TrackingScreen = ({ route, navigation }) => {
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI/180) *
-      Math.cos(lat2 * Math.PI/180) *
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
   // ━━━━━━━━━━━━━━━━━━━━━
@@ -298,7 +310,7 @@ const TrackingScreen = ({ route, navigation }) => {
   // RENDER
   // ━━━━━━━━━━━━━━━━━━━━━
   const getStatusStep = () => {
-    switch(bookingStatus) {
+    switch (bookingStatus) {
       case 'accepted': return 0;
       case 'on_the_way': return 1;
       case 'arrived': return 2;
@@ -309,31 +321,38 @@ const TrackingScreen = ({ route, navigation }) => {
 
   const handleCloseJob = async () => {
     try {
-      // Update booking in Firestore
-      await firestore()
-        .collection('bookings')
-        .doc(bookingId)
-        .update({
+      // 1. Check if document exists in Firestore first to avoid [firestore/not-found]
+      const docRef = firestore().collection('bookings').doc(bookingId);
+      const docSnap = await docRef.get();
+
+      if (docSnap.exists) {
+        // Update booking in Firestore (Legacy/Mirror)
+        await docRef.update({
           status: 'completed',
           ticketStatus: 'closed',
           workEndTime: firestore.FieldValue.serverTimestamp(),
           paymentUnlocked: true,
         });
-      
-      // Free up worker
-      await firestore()
-        .collection('workers')
-        .doc(workerId)
-        .update({
-          isAvailable: true,
-          currentBookingId: null,
-          currentLocation: null,
-          isOnWay: false,
-        });
-      
+
+        // Free up worker in Firestore
+        await firestore()
+          .collection('workers')
+          .doc(workerId)
+          .update({
+            isAvailable: true,
+            currentBookingId: null,
+            currentLocation: null,
+            isOnWay: false,
+          });
+      } else {
+        console.log('[DEBUG] Booking document not found in Firestore. Skipping Firestore update (MongoDB ID likely used).');
+        // If it's a MongoDB ID, the backend has already handled the status update
+        // when the worker marked it as completed.
+      }
+
       // Close modal first
       setShowCompletionModal(false);
-      
+
       // Navigate to feedback screen
       navigation.replace('FeedbackScreen', {
         bookingId,
@@ -341,20 +360,21 @@ const TrackingScreen = ({ route, navigation }) => {
         workerName: workerData?.name || 'Worker',
         workerService: workerData?.serviceType || 'Service',
       });
-      
+
     } catch (error) {
       console.error('Close job error:', error);
-      Alert.alert('Error', 'Could not close job. Please try again.');
+      // Fallback: just close modal and navigate to feedback
+      setShowCompletionModal(false);
+      navigation.replace('FeedbackScreen', {
+        bookingId,
+        workerId,
+      });
     }
   };
 
   const handleRaiseIssue = () => {
     setShowCompletionModal(false);
-    Alert.alert(
-      'Raise Issue',
-      'Our support team will contact you within 24 hours.',
-      [{ text: 'OK', onPress: () => navigation.replace('MainTabs') }]
-    );
+    setShowIssueModal(true);
   };
 
   return (
@@ -430,10 +450,10 @@ const TrackingScreen = ({ route, navigation }) => {
           <Text style={styles.headerTitle}>Track Order</Text>
           <Text style={styles.headerStatus}>
             {bookingStatus === 'accepted' ? 'Worker Accepted' :
-             bookingStatus === 'on_the_way' ? 'On the way' :
-             bookingStatus === 'arrived' ? 'Worker Arrived' :
-             bookingStatus === 'working' ? 'Work in Progress' :
-             'Processing'}
+              bookingStatus === 'on_the_way' ? 'On the way' :
+                bookingStatus === 'arrived' ? 'Worker Arrived' :
+                  bookingStatus === 'working' ? 'Work in Progress' :
+                    'Processing'}
           </Text>
         </View>
 
@@ -483,14 +503,14 @@ const TrackingScreen = ({ route, navigation }) => {
                   {
                     backgroundColor:
                       bookingStatus === 'arrived' ||
-                      bookingStatus === 'working'
-                      ? '#10B981' : '#F59E0B'
+                        bookingStatus === 'working'
+                        ? '#10B981' : '#F59E0B'
                   }
                 ]} />
                 <Text style={styles.etaLabel}>
                   {bookingStatus === 'arrived' ? 'Arrived' :
-                   bookingStatus === 'working' ? 'Working' :
-                   'On Way'}
+                    bookingStatus === 'working' ? 'Working' :
+                      'On Way'}
                 </Text>
               </View>
             </>
@@ -629,9 +649,176 @@ const TrackingScreen = ({ route, navigation }) => {
           </View>
         </View>
       )}
+
+      {/* RAISE ISSUE MODAL - Isolated component to prevent typing lag */}
+      <IssueReportModal
+        visible={showIssueModal}
+        onClose={() => setShowIssueModal(false)}
+        bookingId={bookingId}
+        workerId={workerId}
+        workerData={workerData}
+        userId={userId}
+        navigation={navigation}
+      />
     </View>
   );
 };
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// OPTIMIZED ISSUE MODAL COMPONENT (Prevents Main Screen Re-renders)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const IssueReportModal = React.memo(({ visible, onClose, bookingId, workerId, workerData, userId, navigation }) => {
+  const [issueText, setIssueText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!issueText.trim()) {
+      Alert.alert('Required', 'Please describe your problem before submitting.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      let userName = 'User';
+      let mongoUserId = userId;
+      try {
+        const storedUser = await AsyncStorage.getItem('user');
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          userName = parsed.name || 'User';
+          mongoUserId = parsed._id || parsed.id || userId;
+        }
+      } catch (e) {
+        console.log('Error fetching user for report:', e);
+      }
+
+      const ticketData = {
+        bookingId: String(bookingId || 'N/A'),
+        workerId: String(workerId || 'N/A'),
+        userId: String(mongoUserId || userId || 'N/A'),
+        userName: String(userName || 'User'),
+        workerName: String(workerData?.name || 'Unknown'),
+        description: String(issueText || ''),
+        subject: String(`Issue with ${workerData?.name || 'Professional'}`),
+        status: 'open',
+        priority: 'medium',
+        category: String(workerData?.specialization || 'General'),
+        createdAt: new Date().toISOString(),
+      };
+
+      // 1. Backend API Call
+      try {
+        await axios.post(`${API_BASE_URL}/users/report`, ticketData);
+      } catch (apiError) {
+        console.log('API Sync Warning:', apiError.message);
+      }
+
+      // 2. Firestore Backup
+      const db = firestore();
+      await db.collection('support_tickets').add({
+        ...ticketData,
+        createdAt: firestore.FieldValue.serverTimestamp(),
+      });
+
+      // 3. Update Booking State
+      if (bookingId) {
+        await db.collection('bookings').doc(bookingId).update({
+          hasIssue: true,
+          issueDescription: issueText,
+        });
+      }
+
+      setIsSubmitted(true);
+      setTimeout(() => {
+        onClose();
+        setIsSubmitted(false);
+        setIssueText('');
+        navigation.replace('MainTabs');
+      }, 2500);
+    } catch (error) {
+      console.error('Issue submission failed:', error);
+      Alert.alert('Error', 'Submission failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.modalOverlay}
+      >
+        <View style={styles.modalCard}>
+          <View style={styles.dragHandle} />
+
+          <View style={styles.issueHeader}>
+            <Text style={styles.issueTitle}>Report a Problem</Text>
+            <TouchableOpacity onPress={onClose} disabled={isSubmitting}>
+              <Text style={styles.closeBtn}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {!isSubmitted ? (
+            <>
+              <Text style={styles.issueSubtitle}>
+                Tell us what went wrong with {workerData?.name || 'the service'}. We'll investigate immediately.
+              </Text>
+
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.issueInput}
+                  placeholder="Describe your issue here..."
+                  placeholderTextColor="#94A3B8"
+                  value={issueText}
+                  onChangeText={setIssueText}
+                  multiline
+                  autoFocus
+                  textAlignVertical="top"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.submitIssueBtn, isSubmitting && { opacity: 0.7 }]}
+                onPress={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.submitIssueBtnText}>Submit Report</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.cancelIssueBtn}
+                onPress={onClose}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.cancelIssueBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={styles.successFeedbackContainer}>
+              <View style={styles.successRingLarge}>
+                <View style={styles.successTickContainerLarge}>
+                  <View style={[styles.tickShortLarge, { transform: [{ rotate: '45deg' }], left: 18, bottom: 22 }]} />
+                  <View style={[styles.tickLongLarge, { transform: [{ rotate: '-45deg' }], left: 24, bottom: 26 }]} />
+                </View>
+              </View>
+              <Text style={styles.successTitle}>Issue Reported!</Text>
+              <Text style={styles.successSubtitle}>
+                We have received your concern. Our support team will contact you shortly.
+              </Text>
+              <ActivityIndicator color="#E84545" style={{ marginTop: 20 }} />
+            </View>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -932,6 +1119,108 @@ const styles = StyleSheet.create({
   reportProblemText: {
     color: '#64748B', fontSize: 15,
     fontWeight: '600',
+  },
+  // Issue Modal Styles
+  issueTitle: {
+    fontSize: 22, fontWeight: '800',
+    color: '#1A1A1A', marginBottom: 6,
+  },
+  issueSubtitle: {
+    fontSize: 14, color: '#64748B',
+    marginBottom: 24, textAlign: 'center',
+    paddingHorizontal: 10,
+  },
+  inputContainer: {
+    width: '100%',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 24,
+  },
+  issueInput: {
+    fontSize: 15,
+    color: '#1E293B',
+    minHeight: 120,
+    fontWeight: '500',
+  },
+  submitIssueBtn: {
+    width: '100%',
+    backgroundColor: '#E84545',
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#E84545',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  submitIssueBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  cancelIssueBtn: {
+    width: '100%',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  cancelIssueBtnText: {
+    color: '#64748B',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  successFeedbackContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  successRingLarge: {
+    width: 80, height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: '#22C55E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  successTickContainerLarge: {
+    width: 40, height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tickShortLarge: {
+    position: 'absolute',
+    width: 12, height: 3,
+    backgroundColor: '#22C55E',
+    borderRadius: 2,
+    transform: [
+      { rotate: '45deg' },
+      { translateX: -6 },
+      { translateY: 4 }
+    ],
+  },
+  tickLongLarge: {
+    position: 'absolute',
+    width: 24, height: 3,
+    backgroundColor: '#22C55E',
+    borderRadius: 2,
+    transform: [
+      { rotate: '-55deg' },
+      { translateX: 4 },
+      { translateY: -1 }
+    ],
+  },
+  successTitle: {
+    fontSize: 24, fontWeight: '800',
+    color: '#1A1A1A', marginBottom: 8,
+  },
+  successSubtitle: {
+    fontSize: 15, color: '#64748B',
+    textAlign: 'center', lineHeight: 22,
+    paddingHorizontal: 20,
   },
 });
 

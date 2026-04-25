@@ -165,8 +165,8 @@ class NotificationService {
   handleNotificationTap(remoteMessage) {
     const data = remoteMessage?.data || {};
     if (this.navigation) {
-      if (data.type === 'booking') {
-        this.navigation.navigate('Bookings', { bookingId: data.bookingId });
+      if (data.type === 'booking' || data.type === 'job_closed') {
+        this.navigation.navigate('Notifications');
       } else {
         this.navigation.navigate('Notifications');
       }
