@@ -30,6 +30,7 @@ const OtpScreen = ({ navigation }) => {
   const [canResend, setCanResend] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const phoneInputRef = useRef(null);
 
   const otpInputs = useRef([]);
@@ -94,6 +95,7 @@ const OtpScreen = ({ navigation }) => {
 
         // Auto-focus first OTP input
         setTimeout(() => {
+          setFocusedIndex(0);
           otpInputs.current[0]?.focus();
         }, 100);
       } else {
@@ -121,7 +123,10 @@ const OtpScreen = ({ navigation }) => {
           setCanResend(false);
           setOtp(['', '', '', '', '', '']);
           setIsLoading(false);
-          setTimeout(() => otpInputs.current[0]?.focus(), 100);
+          setTimeout(() => {
+            setFocusedIndex(0);
+            otpInputs.current[0]?.focus();
+          }, 100);
         } else {
           setIsLoading(false);
           const errorCode = result.code ? ` (${result.code})` : '';
@@ -157,6 +162,7 @@ const OtpScreen = ({ navigation }) => {
 
       // Auto-focus next input
       if (cleaned && index < 5) {
+        setFocusedIndex(index + 1);
         otpInputs.current[index + 1]?.focus();
       }
 
@@ -172,6 +178,7 @@ const OtpScreen = ({ navigation }) => {
 
   const handleOtpKeyPress = (e, index) => {
     if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+      setFocusedIndex(index - 1);
       otpInputs.current[index - 1]?.focus();
     }
   };
@@ -320,15 +327,19 @@ const OtpScreen = ({ navigation }) => {
                     style={[
                       styles.otpBox,
                       digit ? styles.otpBoxFilled : null,
+                      focusedIndex === index ? styles.otpBoxFocused : null,
                       isLoading && styles.otpBoxDisabled
                     ]}
                     value={digit}
                     onChangeText={(text) => handleOtpChange(text, index)}
                     onKeyPress={(e) => handleOtpKeyPress(e, index)}
+                    onFocus={() => setFocusedIndex(index)}
+                    onBlur={() => setFocusedIndex(-1)}
                     keyboardType="number-pad"
                     maxLength={1}
                     selectTextOnFocus
                     editable={!isLoading}
+                    selectionColor="#E84545"
                   />
                 ))}
               </View>
@@ -495,24 +506,36 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
+    gap: 10,
     marginTop: 32,
+    width: '100%',
   },
   otpBox: {
-    width: 65,
-    height: 70,
+    width: 48,
+    height: 62,
     backgroundColor: 'white',
     borderRadius: 12,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: '#EAEAEA',
     textAlign: 'center',
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#333',
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: 'Poppins-Bold',
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    // Elevation for Android
+    elevation: 2,
+  },
+  otpBoxFocused: {
+    borderColor: '#E84545',
+    backgroundColor: '#FFF8F8', // Very light red tint
   },
   otpBoxFilled: {
-    borderColor: '#E84545',
+    borderColor: '#EAEAEA', // Keep it neutral if filled but not focused
   },
   otpBoxDisabled: {
     backgroundColor: '#F3F4F6',
@@ -522,17 +545,17 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   resendText: {
-    fontSize: 14,
-    color: '#888',
+    fontSize: 15,
+    color: '#94A3B8',
     fontFamily: 'Poppins-Regular',
   },
   resendLink: {
     fontWeight: '600',
-    color: '#E84545',
+    color: '#64748B',
     fontFamily: 'Poppins-SemiBold',
   },
   resendLinkDisabled: {
-    color: '#9CA3AF',
+    color: '#94A3B8',
   },
   ctaContainer: {
     width: '100%',
