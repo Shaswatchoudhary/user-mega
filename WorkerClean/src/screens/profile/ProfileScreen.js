@@ -14,6 +14,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 import axios from 'axios';
 import config from '../../constants/config';
 
@@ -119,18 +120,15 @@ const ProfileScreen = ({ navigation }) => {
           {/* Profile Header */}
           <View style={styles.profileHeader}>
             <View style={styles.profileInfo}>
-              <Text style={styles.fullName}>{workerProfile?.name || workerProfile?.fullName || 'Worker'}</Text>
+              <Text style={styles.fullName}>{workerProfile?.fullName || workerProfile?.name || workerUser?.displayName || 'Worker'}</Text>
               <View style={styles.statusBadge}>
                 <View style={[styles.statusDot, { backgroundColor: workerProfile?.status === 'ACTIVE' ? '#10B981' : '#F59E0B' }]} />
-                <Text style={styles.statusText}>{workerProfile?.status?.replace('_', ' ') || 'UNDER REVIEW'}</Text>
+                <Text style={styles.statusText}>{workerProfile?.status || 'UNDER_REVIEW'}</Text>
               </View>
-              <Text style={styles.categoryTitle}>{workerProfile?.serviceType || workerProfile?.category || 'General Professional'}</Text>
-              <Text style={styles.experienceText}>{workerProfile?.experience || 0} Years Experience</Text>
+              <Text style={styles.categoryTitle}>{workerProfile?.serviceType || workerProfile?.category || 'Professional'}</Text>
+              <Text style={styles.experienceText}>{workerProfile?.experience ? `${workerProfile.experience} Years` : 'Not set'}</Text>
               <Text style={styles.phoneNumber}>
-                {workerProfile?.phone || 
-                 workerProfile?.phoneNumber || 
-                 workerUser?.phoneNumber || 
-                 'No phone number'}
+                {workerProfile?.phone || auth().currentUser?.phoneNumber || 'No phone'}
               </Text>
             </View>
             <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
@@ -141,7 +139,7 @@ const ProfileScreen = ({ navigation }) => {
           {/* Stats Summary */}
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{workerProfile?.rating || '0.0'}</Text>
+              <Text style={styles.statValue}>{workerProfile?.rating || 0}</Text>
               <Text style={styles.statLabel}>Rating</Text>
             </View>
             <View style={styles.statDivider} />

@@ -10,25 +10,64 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import config from '../../constants/config';
+import { launchImageLibrary } from 'react-native-image-picker';
+import storage from '@react-native-firebase/storage';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 const EditProfileScreen = ({ navigation }) => {
-  const { workerUser, user, workerProfile, login } = useAuth();
+  const { workerUser, user, workerProfile, login, refreshProfile } = useAuth();
   const [name, setName] = useState(workerProfile?.name || workerProfile?.fullName || workerUser?.displayName || '');
   const [email, setEmail] = useState(workerUser?.email || workerProfile?.email || '');
   const [phone, setPhone] = useState(workerProfile?.phone || workerUser?.phone || workerUser?.phoneNumber || '');
   const [isLoading, setIsLoading] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState(workerProfile?.photo || workerProfile?.profilePhoto || null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     setName(workerProfile?.name || workerProfile?.fullName || workerUser?.displayName || '');
     setEmail(workerUser?.email || workerProfile?.email || '');
     setPhone(workerProfile?.phone || workerUser?.phone || workerUser?.phoneNumber || '');
+    setProfilePhoto(workerProfile?.photo || workerProfile?.profilePhoto || null);
   }, [workerUser, workerProfile]);
+
+  const handlePickPhoto = () => {
+    launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, async (response) => {
+      if (!response.didCancel && response.assets?.[0]) {
+        const asset = response.assets[0];
+        setUploading(true);
+        try {
+          const uid = auth().currentUser?.uid;
+          if (!uid) {
+            Alert.alert('Error', 'User not authenticated');
+            return;
+          }
+          const ref = storage().ref(`workers/${uid}/profile_photo.jpg`);
+          await ref.putFile(asset.uri);
+          const url = await ref.getDownloadURL();
+          setProfilePhoto(url);
+          // Save to Firestore immediately
+          await firestore().collection('workers').doc(uid).update({ 
+            photo: url,
+            profilePhoto: url // Keep both for compatibility
+          });
+          Alert.alert('Success', 'Profile photo updated!');
+        } catch (e) {
+          console.error('Photo upload failed:', e);
+          Alert.alert('Error', 'Failed to upload photo. Try again.');
+        } finally {
+          setUploading(false);
+        }
+      }
+    });
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -36,8 +75,6 @@ const EditProfileScreen = ({ navigation }) => {
       return;
     }
 
-    setIsLoading(true);
-    
     setIsLoading(true);
 
     try {
@@ -50,6 +87,11 @@ const EditProfileScreen = ({ navigation }) => {
         // Update Auth Context with new worker data
         if (login) {
           login(user, response.data.data);
+        }
+
+        // Re-fetch from Firestore to ensure photo and other fields are updated in context
+        if (refreshProfile) {
+          await refreshProfile();
         }
         
         setIsLoading(false);
@@ -85,18 +127,27 @@ const EditProfileScreen = ({ navigation }) => {
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Avatar Section */}
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarWrapper}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {name ? name.charAt(0).toUpperCase() : 'W'}
-                </Text>
+          <View style={styles.photoContainer}>
+            <TouchableOpacity onPress={handlePickPhoto} disabled={uploading}>
+              {profilePhoto ? (
+                <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <Text style={styles.photoInitial}>
+                    {workerProfile?.fullName?.[0]?.toUpperCase() || workerProfile?.name?.[0]?.toUpperCase() || 'W'}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.cameraIcon}>
+                {uploading 
+                  ? <ActivityIndicator size="small" color="#FFF" />
+                  : <MaterialCommunityIcons name="camera" size={18} color="#FFF" />
+                }
               </View>
-              <TouchableOpacity style={styles.editAvatarButton} onPress={() => Alert.alert('Photo', 'Profile photo update coming soon!')}>
-                <MaterialCommunityIcons name="camera-outline" size={20} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.avatarSubtext}>Professional Profile Photo</Text>
+            </TouchableOpacity>
+            <Text style={styles.photoLabel}>
+              {uploading ? 'Uploading...' : 'Professional Profile Photo'}
+            </Text>
           </View>
 
           {/* Form Section */}
@@ -193,44 +244,48 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
   },
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: 32,
+  photoContainer: { 
+    alignItems: 'center', 
+    marginBottom: 32 
   },
-  avatarWrapper: {
-    position: 'relative',
+  profilePhoto: { 
+    width: 100, 
+    height: 100, 
+    borderRadius: 50, 
+    borderWidth: 3, 
+    borderColor: '#E84545' 
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#111827',
-    justifyContent: 'center',
-    alignItems: 'center',
+  photoPlaceholder: { 
+    width: 100, 
+    height: 100, 
+    borderRadius: 50, 
+    backgroundColor: '#1E293B', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
   },
-  avatarText: {
-    color: '#FFF',
-    fontSize: 40,
-    fontWeight: 'bold',
+  photoInitial: { 
+    fontSize: 40, 
+    fontWeight: '800', 
+    color: '#FFFFFF' 
   },
-  editAvatarButton: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#E84545',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
+  cameraIcon: { 
+    position: 'absolute', 
+    bottom: 0, 
+    right: 0, 
+    width: 32, 
+    height: 32, 
+    borderRadius: 16, 
+    backgroundColor: '#E84545', 
+    justifyContent: 'center', 
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FFF',
+    borderColor: '#FFF'
   },
-  avatarSubtext: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 12,
-    fontWeight: '500',
+  photoLabel: { 
+    fontSize: 13, 
+    color: '#64748B', 
+    marginTop: 8, 
+    fontWeight: '600' 
   },
   form: {
     flex: 1,

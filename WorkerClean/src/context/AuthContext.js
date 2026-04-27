@@ -11,26 +11,69 @@ export const AuthProvider = ({ children }) => {
 
   const fetchWorkerProfile = async (uid) => {
     try {
+      // METHOD 1: Direct UID lookup
       const doc = await firestore().collection('workers').doc(uid).get();
       if (doc.exists) {
-        setWorkerProfile({ id: doc.id, uid, ...doc.data() });
+        const data = { id: doc.id, uid, ...doc.data() };
+        setWorkerProfile(data);
+        console.log('[Auth] Profile found by UID:', data.fullName);
         return;
       }
-      // Fallback: search by phone number
+
+      // METHOD 2: Search by phone number
       const phone = auth().currentUser?.phoneNumber;
       if (phone) {
-        const snap = await firestore()
+        // Normalize phone: remove all non-digits and take last 10
+        const normalizedPhone = phone.replace(/\D/g, '').slice(-10);
+        console.log('[Auth] Attempting phone lookup for:', normalizedPhone);
+        
+        let snap = await firestore()
           .collection('workers')
-          .where('phone', '==', phone.replace('+91', ''))
+          .where('phone', '==', normalizedPhone)
           .limit(1)
           .get();
+        
+        if (snap.empty) {
+          // Try with full string just in case
+          snap = await firestore()
+            .collection('workers')
+            .where('phone', '==', phone)
+            .limit(1)
+            .get();
+        }
+
         if (!snap.empty) {
           const d = snap.docs[0];
-          setWorkerProfile({ id: d.id, uid, ...d.data() });
+          const data = { id: d.id, uid, ...d.data() };
+          setWorkerProfile(data);
+          console.log('[Auth] Profile found by phone:', data.fullName || data.name);
+          
+          // Fix: update Firestore document to use correct UID as ID
+          try {
+            await firestore().collection('workers').doc(uid).set(d.data(), { merge: true });
+          } catch (e) {}
+          return;
         }
       }
+
+      // METHOD 3: Search by firebaseUid field
+      const snap2 = await firestore()
+        .collection('workers')
+        .where('firebaseUid', '==', uid)
+        .limit(1)
+        .get();
+      
+      if (!snap2.empty) {
+        const d = snap2.docs[0];
+        const data = { id: d.id, uid, ...d.data() };
+        setWorkerProfile(data);
+        console.log('[Auth] Profile found by firebaseUid:', data.fullName || data.name);
+        return;
+      }
+
+      console.log('[Auth] No worker profile found for uid:', uid);
     } catch (e) {
-      console.error('fetchWorkerProfile error:', e);
+      console.error('[Auth] fetchWorkerProfile error:', e);
     }
   };
 
@@ -67,6 +110,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshProfile = async () => {
+    if (!auth().currentUser?.uid) return;
+    const doc = await firestore()
+      .collection('workers')
+      .doc(auth().currentUser.uid)
+      .get();
+    if (doc.exists) {
+      setWorkerProfile({ id: doc.id, uid: auth().currentUser.uid, ...doc.data() });
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user: workerUser,
@@ -77,7 +131,7 @@ export const AuthProvider = ({ children }) => {
       login,
       logout,
       signOut: logout,
-      refreshProfile: () => workerUser?.uid && fetchWorkerProfile(workerUser.uid),
+      refreshProfile,
     }}>
       {children}
     </AuthContext.Provider>

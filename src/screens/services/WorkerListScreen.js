@@ -111,7 +111,7 @@ const WorkerListScreen = ({ navigation, route }) => {
       <View style={styles.cardContent}>
         <View style={styles.avatarContainer}>
           <Image 
-            source={{ uri: worker.photo || 'https://avatar.iran.liara.run/public/job/operator/male' }} 
+            source={{ uri: worker.photo || worker.profilePhoto || 'https://avatar.iran.liara.run/public/job/operator/male' }} 
             style={styles.avatar} 
           />
           {worker.isAvailable && <View style={styles.onlineDot} />}

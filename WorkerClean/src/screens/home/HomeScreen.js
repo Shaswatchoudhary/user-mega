@@ -248,7 +248,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.profileImage}
             />
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{workerProfile?.name || workerProfile?.fullName || 'Worker'}</Text>
+              <Text style={styles.profileName}>{workerProfile?.fullName || workerProfile?.name || workerUser?.displayName || 'Worker'}</Text>
               <Text style={styles.profileCategory}>{workerProfile?.serviceType || workerProfile?.category || 'Professional'}</Text>
               <View style={styles.ratingRow}>
                 <Ionicons name="star" size={16} color="#F59E0B" />

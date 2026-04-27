@@ -194,7 +194,14 @@ const Workers = () => {
              {/* Modal Header */}
              <div className="p-8 border-b border-border flex justify-between items-center bg-surface-light/30">
                 <div className="flex items-center space-x-6">
-                   <Avatar src={selectedWorker.profileImage} initials={selectedWorker.fullName} size="xl" ringColor="ring-accent-red/20" />
+                   {selectedWorker.photo ? (
+                     <img src={selectedWorker.photo} 
+                          style={{ width: 80, height: 80, borderRadius: 40, objectFit: 'cover', border: '3px solid #E84545' }}
+                          alt="Profile" 
+                     />
+                   ) : (
+                     <Avatar src={selectedWorker.profileImage} initials={selectedWorker.fullName} size="xl" ringColor="ring-accent-red/20" />
+                   )}
                    <div>
                      <div className="flex items-center space-x-3">
                         <h2 className="text-3xl font-black text-text-primary tracking-tighter uppercase font-outfit">{selectedWorker.fullName}</h2>
@@ -219,7 +226,7 @@ const Workers = () => {
                            <ShieldCheck size={16} className="mr-2 text-accent-red" />
                            Identity & Documentation
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                            <div className="p-6 bg-surface-light rounded-3xl border border-border">
                                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2">Aadhaar Number</p>
                                <p className="text-lg font-black text-text-primary tracking-tight">{selectedWorker.aadhaar || 'NOT PROVIDED'}</p>
@@ -228,6 +235,68 @@ const Workers = () => {
                                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-2">PAN Number</p>
                                <p className="text-lg font-black text-text-primary tracking-tight uppercase">{selectedWorker.pan || 'NOT PROVIDED'}</p>
                            </div>
+                        </div>
+
+                        {/* Document Verification Section */}
+                        <div className="document-section mt-10 p-8 bg-surface-light rounded-[2.5rem] border border-border">
+                          <h3 className="text-xs font-black text-text-primary uppercase tracking-[0.2em] mb-8">Document Verification</h3>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {selectedWorker.documents?.aadhaarFront && (
+                              <div className="doc-item">
+                                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-3">Aadhaar Card (Front)</p>
+                                <img src={selectedWorker.documents.aadhaarFront} 
+                                     alt="Aadhaar Front"
+                                     className="hover:scale-[1.02] transition-transform shadow-lg"
+                                     style={{ width: '100%', maxWidth: 400, borderRadius: 16, cursor: 'pointer', border: '1px solid #E5E7EB' }}
+                                     onClick={() => window.open(selectedWorker.documents.aadhaarFront, '_blank')}
+                                />
+                              </div>
+                            )}
+
+                            {selectedWorker.documents?.aadhaarBack && (
+                              <div className="doc-item">
+                                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-3">Aadhaar Card (Back)</p>
+                                <img src={selectedWorker.documents.aadhaarBack}
+                                     alt="Aadhaar Back"
+                                     className="hover:scale-[1.02] transition-transform shadow-lg"
+                                     style={{ width: '100%', maxWidth: 400, borderRadius: 16, cursor: 'pointer', border: '1px solid #E5E7EB' }}
+                                     onClick={() => window.open(selectedWorker.documents.aadhaarBack, '_blank')}
+                                />
+                              </div>
+                            )}
+
+                            {selectedWorker.documents?.pan && (
+                              <div className="doc-item">
+                                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-3">PAN Card</p>
+                                <img src={selectedWorker.documents.pan}
+                                     alt="PAN Card"
+                                     className="hover:scale-[1.02] transition-transform shadow-lg"
+                                     style={{ width: '100%', maxWidth: 400, borderRadius: 16, cursor: 'pointer', border: '1px solid #E5E7EB' }}
+                                     onClick={() => window.open(selectedWorker.documents.pan, '_blank')}
+                                />
+                              </div>
+                            )}
+
+                            {selectedWorker.documents?.bankDoc && (
+                              <div className="doc-item">
+                                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-3">Bank Passbook / Cheque</p>
+                                <img src={selectedWorker.documents.bankDoc}
+                                     alt="Bank Document"
+                                     className="hover:scale-[1.02] transition-transform shadow-lg"
+                                     style={{ width: '100%', maxWidth: 400, borderRadius: 16, cursor: 'pointer', border: '1px solid #E5E7EB' }}
+                                     onClick={() => window.open(selectedWorker.documents.bankDoc, '_blank')}
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {!selectedWorker.documents && (
+                            <div className="flex flex-col items-center py-10 opacity-40">
+                               <AlertCircle size={40} className="mb-2" />
+                               <p className="text-[10px] font-black uppercase tracking-widest text-text-muted">No documents uploaded yet</p>
+                            </div>
+                          )}
                         </div>
                       </div>
 

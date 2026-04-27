@@ -11,14 +11,19 @@ import {
   Platform,
   ActivityIndicator,
   Linking,
-  PermissionsAndroid
+  PermissionsAndroid,
+  Image
 } from 'react-native';
-import { MapPin, Check, ChevronLeft } from 'lucide-react-native';
+import { MapPin, Check, ChevronLeft, Camera, Upload } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import config from '../../constants/config';
 import { useAuth } from '../../context/AuthContext';
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+import auth from '@react-native-firebase/auth';
+import Geolocation from '@react-native-community/geolocation';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const CATEGORIES = {
   'AC Repair': ['Installation', 'Gas Refilling', 'Maintenance', 'Fault Diagnosis', 'Compressor Repair'],
@@ -69,6 +74,69 @@ const WorkForm = ({ navigation, route }) => {
   const [upi, setUpi] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
+  // Document Upload State
+  const [aadhaarImage, setAadhaarImage] = useState(null);
+  const [aadhaarBackImage, setAadhaarBackImage] = useState(null);
+  const [panImage, setPanImage] = useState(null);
+  const [bankImage, setBankImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Helper: Upload Image to Firebase
+  const uploadImage = async (imageAsset, path) => {
+    if (!imageAsset?.uri) return null;
+    const ref = storage().ref(path);
+    await ref.putFile(imageAsset.uri);
+    const url = await ref.getDownloadURL();
+    return url;
+  };
+
+  // Helper: Pick Image
+  const pickImage = async (setImage) => {
+    console.log('[WorkForm] pickImage called');
+    
+    if (Platform.OS === 'android') {
+      try {
+        let permission;
+        if (Platform.Version >= 33) {
+          permission = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
+          // Fallback if READ_MEDIA_IMAGES is not available in this RN version
+          if (!permission) {
+            permission = 'android.permission.READ_MEDIA_IMAGES';
+          }
+        } else {
+          permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+        }
+          
+        console.log('[WorkForm] Requesting permission:', permission);
+        const granted = await PermissionsAndroid.request(permission);
+        console.log('[WorkForm] Permission result:', granted);
+        
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert(
+            'Permission Denied',
+            'We need storage permission to let you upload documents. Please enable it in settings.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+      } catch (err) {
+        console.warn('[WorkForm] Permission error:', err);
+      }
+    }
+
+    launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, (response) => {
+      console.log('[WorkForm] ImagePicker response:', response);
+      if (response.didCancel) {
+        console.log('[WorkForm] User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('[WorkForm] ImagePicker Error:', response.errorMessage);
+        Alert.alert('Error', response.errorMessage || 'Failed to open image library');
+      } else if (response.assets?.[0]) {
+        setImage(response.assets[0]);
+      }
+    });
+  };
+
   // Helper: Count words in summary (FIXED)
   const getWordCount = (text) => {
     if (!text || !text.trim()) return 0;
@@ -97,7 +165,7 @@ const WorkForm = ({ navigation, route }) => {
   // Field Validations
   const isStep1Valid = fullName.length >= 3 && /^[a-zA-Z\s]+$/.test(fullName) && address.length > 5;
   const aadhaarDigits = aadhaar.replace(/\s/g, '');
-  const isStep2Valid = /^\d{12}$/.test(aadhaarDigits) && /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan.toUpperCase());
+  const isStep2Valid = /^\d{12}$/.test(aadhaarDigits) && /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan.toUpperCase()) && !!aadhaarImage && !!panImage;
   const isStep3Valid = !!category && selectedSkills.length > 0;
   const isStep4Valid = experience !== '';
 
@@ -109,7 +177,8 @@ const WorkForm = ({ navigation, route }) => {
     accountNumber.length >= 9 &&
     accountsMatch &&
     /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc.toUpperCase()) &&
-    agreeTerms;
+    agreeTerms &&
+    !!bankImage;
 
   const handleNext = () => {
     if (currentStep < 5) setCurrentStep(currentStep + 1);
@@ -209,8 +278,16 @@ const WorkForm = ({ navigation, route }) => {
     }
 
     setIsLoading(true);
+    setUploading(true);
 
     try {
+      // 1. Upload Images to Firebase Storage
+      const uid = auth().currentUser?.uid || Date.now().toString();
+      const aadhaarUrl = await uploadImage(aadhaarImage, `workers/${uid}/aadhaar_front.jpg`);
+      const aadhaarBackUrl = await uploadImage(aadhaarBackImage, `workers/${uid}/aadhaar_back.jpg`);
+      const panUrl = await uploadImage(panImage, `workers/${uid}/pan.jpg`);
+      const bankUrl = await uploadImage(bankImage, `workers/${uid}/bank_doc.jpg`);
+
       const registrationData = {
         fullName: fullName.trim(),
         phone: mobile,
@@ -228,7 +305,14 @@ const WorkForm = ({ navigation, route }) => {
           bankName: bankName,
           accountNumber: accountNumber,
           ifsc: ifsc.toUpperCase()
-        }
+        },
+        documents: {
+          aadhaarFront: aadhaarUrl,
+          aadhaarBack: aadhaarBackUrl,
+          pan: panUrl,
+          bankDoc: bankUrl,
+        },
+        firebaseUid: uid
       };
 
       console.log('[WorkForm] Submitting Registration:', registrationData);
@@ -240,26 +324,30 @@ const WorkForm = ({ navigation, route }) => {
         const newWorker = response.data.data;
         
         // --- ADD TO FIRESTORE SO USERS CAN SEE THEM IN REAL TIME --- 
-        try {
-           const uid = newWorker.firebaseUid || newWorker.uid || newWorker._id;
-           await firestore().collection('workers').doc(uid).set({
-             fullName: newWorker.fullName,
-             category: newWorker.category,
-             serviceType: newWorker.category,
-             skills: newWorker.skills || [],
-             isActive: true,
-             isAvailable: true,
-             isVerified: true, // Auto-verify for demo purposes
-             rating: newWorker.rating || 4.0,
-             experience: newWorker.experience || 4,
-             basePrice: newWorker.basePrice || 399,
-             lat: newWorker.location?.coordinates?.[1] || registrationData.lat,
-             lng: newWorker.location?.coordinates?.[0] || registrationData.lng,
-             phone: newWorker.phone || registrationData.phone,
-             syncedAt: firestore.FieldValue.serverTimestamp()
-           }, { merge: true });
-        } catch(fsError) {
-           console.log("Failed to sync to firestore:", fsError);
+        const uid = auth().currentUser?.uid;
+        if (uid) {
+          try {
+            await firestore().collection('workers').doc(uid).set({
+              fullName: registrationData.fullName,
+              phone: registrationData.phone,
+              category: registrationData.category,
+              serviceType: registrationData.category,
+              skills: registrationData.skills || [],
+              experience: registrationData.experience || 0,
+              isActive: false,
+              isAvailable: false,
+              isVerified: false,
+              rating: 4.0,
+              basePrice: 399,
+              lat: registrationData.lat || 0,
+              lng: registrationData.lng || 0,
+              firebaseUid: uid,
+              status: 'UNDER_REVIEW',
+              createdAt: firestore.FieldValue.serverTimestamp(),
+            }, { merge: true });
+          } catch (fsError) {
+            console.log("Failed to sync to firestore:", fsError);
+          }
         }
         
         if (setWorkerData) {
@@ -267,14 +355,17 @@ const WorkForm = ({ navigation, route }) => {
         }
         
         setIsLoading(false);
+        setUploading(false);
         navigation.replace('UnderReviewScreen');
       } else {
         setIsLoading(false);
+        setUploading(false);
         Alert.alert('Registration Failed', response.data.message || 'An error occurred during registration.');
       }
     } catch (error) {
       console.error('[WorkForm] Submission Error:', error);
       setIsLoading(false);
+      setUploading(false);
       const errorMessage = error.response?.data?.message || 'Failed to connect to the server. Please check your internet connection.';
       Alert.alert('Error', errorMessage);
     }
@@ -401,6 +492,78 @@ const WorkForm = ({ navigation, route }) => {
                 maxLength={10}
               />
               <Text style={styles.hint}>Format: 5 letters, 4 digits, 1 letter</Text>
+            </View>
+
+            {/* Document Uploads */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Upload Aadhaar Card Image (Front) <Text style={{color: '#E84545'}}>*</Text></Text>
+              <TouchableOpacity 
+                style={[styles.uploadButton, aadhaarImage && styles.uploadButtonSuccess]} 
+                onPress={() => pickImage(setAadhaarImage)}
+              >
+                {aadhaarImage ? (
+                  <View style={styles.uploadInfo}>
+                    <Image source={{ uri: aadhaarImage.uri }} style={styles.thumbnail} />
+                    <View>
+                      <Text style={styles.uploadStatus}>Ready to upload</Text>
+                      <Check size={16} color="#10B981" />
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.uploadPlaceholder}>
+                    <Camera size={24} color="#E84545" />
+                    <Text style={styles.uploadText}>Upload Aadhaar Front</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              {!aadhaarImage && <Text style={styles.errorText}>Aadhaar Front Required</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Upload Aadhaar Card Image (Back)</Text>
+              <TouchableOpacity 
+                style={[styles.uploadButton, aadhaarBackImage && styles.uploadButtonSuccess]} 
+                onPress={() => pickImage(setAadhaarBackImage)}
+              >
+                {aadhaarBackImage ? (
+                  <View style={styles.uploadInfo}>
+                    <Image source={{ uri: aadhaarBackImage.uri }} style={styles.thumbnail} />
+                    <View>
+                      <Text style={styles.uploadStatus}>Ready to upload</Text>
+                      <Check size={16} color="#10B981" />
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.uploadPlaceholder}>
+                    <Camera size={24} color="#E84545" />
+                    <Text style={styles.uploadText}>Upload Aadhaar Back</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Upload PAN Card Image <Text style={{color: '#E84545'}}>*</Text></Text>
+              <TouchableOpacity 
+                style={[styles.uploadButton, panImage && styles.uploadButtonSuccess]} 
+                onPress={() => pickImage(setPanImage)}
+              >
+                {panImage ? (
+                  <View style={styles.uploadInfo}>
+                    <Image source={{ uri: panImage.uri }} style={styles.thumbnail} />
+                    <View>
+                      <Text style={styles.uploadStatus}>Ready to upload</Text>
+                      <Check size={16} color="#10B981" />
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.uploadPlaceholder}>
+                    <Camera size={24} color="#E84545" />
+                    <Text style={styles.uploadText}>Upload PAN Card</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              {!panImage && <Text style={styles.errorText}>PAN Card Required</Text>}
             </View>
           </View>
         )}
@@ -559,6 +722,30 @@ const WorkForm = ({ navigation, route }) => {
               />
             </View>
 
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Upload Bank Passbook / Cheque <Text style={{color: '#E84545'}}>*</Text></Text>
+              <TouchableOpacity 
+                style={[styles.uploadButton, bankImage && styles.uploadButtonSuccess]} 
+                onPress={() => pickImage(setBankImage)}
+              >
+                {bankImage ? (
+                  <View style={styles.uploadInfo}>
+                    <Image source={{ uri: bankImage.uri }} style={styles.thumbnail} />
+                    <View>
+                      <Text style={styles.uploadStatus}>Ready to upload</Text>
+                      <Check size={16} color="#10B981" />
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.uploadPlaceholder}>
+                    <Upload size={24} color="#E84545" />
+                    <Text style={styles.uploadText}>Upload Document</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              {!bankImage && <Text style={styles.errorText}>Bank Document Required</Text>}
+            </View>
+
             <TouchableOpacity
               style={styles.checkboxRow}
               onPress={() => setAgreeTerms(!agreeTerms)}
@@ -589,11 +776,18 @@ const WorkForm = ({ navigation, route }) => {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[styles.btn, (!isStep5Valid || isLoading) && styles.btnDisabled]}
-            disabled={!isStep5Valid || isLoading}
+            style={[styles.btn, (!isStep5Valid || isLoading || uploading) && styles.btnDisabled]}
+            disabled={!isStep5Valid || isLoading || uploading}
             onPress={handleSubmit}
           >
-            {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>Submit Application</Text>}
+            {isLoading || uploading ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <ActivityIndicator color="#FFF" />
+                <Text style={styles.btnText}>{uploading ? 'Uploading Documents...' : 'Submitting...'}</Text>
+              </View>
+            ) : (
+              <Text style={styles.btnText}>Submit Application</Text>
+            )}
           </TouchableOpacity>
         )}
       </View>
@@ -678,7 +872,58 @@ const styles = StyleSheet.create({
   btnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   centerContent: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   title: { fontSize: 24, fontWeight: '700', color: '#000', textAlign: 'center' },
-  subtitle: { fontSize: 16, color: '#6B7280', textAlign: 'center', marginTop: 10 }
+  subtitle: { fontSize: 16, color: '#6B7280', textAlign: 'center', marginTop: 10 },
+  
+  // Upload Styles
+  uploadButton: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#E84545',
+    borderRadius: 8,
+    padding: 16,
+    backgroundColor: '#FFF5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 100,
+  },
+  uploadButtonSuccess: {
+    borderColor: '#10B981',
+    backgroundColor: '#F0FDF4',
+    borderStyle: 'solid',
+  },
+  uploadPlaceholder: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  uploadText: {
+    fontSize: 14,
+    color: '#E84545',
+    fontWeight: '600',
+  },
+  uploadInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: '#EEE',
+  },
+  uploadStatus: {
+    fontSize: 14,
+    color: '#10B981',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#E84545',
+    marginTop: 4,
+    fontWeight: '500',
+  }
 });
 
 export default WorkForm;
