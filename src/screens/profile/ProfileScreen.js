@@ -115,7 +115,7 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* App Version */}
-          <Text style={styles.versionText}>Workies v2.2.0</Text>
+          <Text style={styles.versionText}>WorkEase v1.0.0</Text>
         </ScrollView>
       </SafeAreaView>
     </View>

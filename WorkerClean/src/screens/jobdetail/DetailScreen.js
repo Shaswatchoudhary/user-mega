@@ -8,7 +8,11 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
+import axios from 'axios';
+import config from '../../constants/config';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
@@ -26,11 +30,35 @@ const DetailScreen = ({ navigation, route }) => {
     setAcceptModalVisible(true);
   };
 
-  const confirmAcceptance = () => {
+  const [isAccepting, setIsAccepting] = useState(false);
+
+  const confirmAcceptance = async () => {
     setAcceptModalVisible(false);
-    setJobAccepted(true);
-    // In a real app, you'd call a backend API here
-    Alert.alert('Success', 'Job accepted successfully! You can now proceed.');
+    setIsAccepting(true);
+    
+    try {
+      const bookingId = job.mongoId || job.id;
+      if (!bookingId) {
+        throw new Error('Booking ID not found');
+      }
+
+      // 1. Call Backend API
+      const response = await axios.patch(`${config.API_BASE_URL}/booking/${bookingId}/status`, {
+        status: 'accepted'
+      });
+
+      if (response.data.success) {
+        setJobAccepted(true);
+        Alert.alert('Success', 'Job accepted successfully! You can now proceed.');
+      } else {
+        throw new Error(response.data.message || 'Failed to accept job');
+      }
+    } catch (error) {
+      console.error('Job acceptance error:', error);
+      Alert.alert('Error', error.message || 'Failed to connect to the server');
+    } finally {
+      setIsAccepting(false);
+    }
   };
 
   const handleStartJob = () => {
@@ -322,15 +350,25 @@ const DetailScreen = ({ navigation, route }) => {
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
         {!jobAccepted ? (
-          <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptJob}>
+          <TouchableOpacity 
+            style={[styles.acceptButton, isAccepting && { opacity: 0.8 }]} 
+            onPress={handleAcceptJob}
+            disabled={isAccepting}
+          >
             <LinearGradient
               colors={['#E84545', '#1A1A1A']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.acceptButtonGradient}
             >
-              <MaterialCommunityIcons name="check" size={24} color="#FFFFFF" />
-              <Text style={styles.acceptButtonText}>Accept This Job</Text>
+              {isAccepting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <>
+                  <MaterialCommunityIcons name="check" size={24} color="#FFFFFF" />
+                  <Text style={styles.acceptButtonText}>Accept This Job</Text>
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
         ) : (

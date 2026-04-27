@@ -117,7 +117,7 @@ const WorkerProfileScreen = () => {
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <Image 
-            source={{ uri: worker.photo || worker.profilePhoto || 'https://avatar.iran.liara.run/public/job/operator/male' }} 
+            source={{ uri: worker.photo || worker.image || 'https://avatar.iran.liara.run/public/job/operator/male' }} 
             style={styles.heroImage} 
           />
           <LinearGradient
