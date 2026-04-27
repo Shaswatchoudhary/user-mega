@@ -194,6 +194,18 @@ const WorkerListScreen = ({ navigation, route }) => {
           />
         </View>
       </View>
+      
+      {route.params?.preSelectedProduct && (
+        <View style={styles.productBanner}>
+          <MaterialCommunityIcons name="shopping-outline" size={18} color="#FFF" />
+          <Text style={styles.productBannerText}>
+             Booking for: <Text style={{ fontWeight: 'bold' }}>{route.params.preSelectedProduct}</Text>
+          </Text>
+          <TouchableOpacity onPress={() => navigation.setParams({ preSelectedProduct: null })}>
+            <Ionicons name="close-circle" size={18} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {!isAuthReady ? (
         <View style={styles.loaderContainer}>
@@ -263,6 +275,20 @@ const styles = StyleSheet.create({
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginTop: 16, fontFamily: 'Poppins-Bold' },
   emptySubtitle: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginTop: 8, lineHeight: 22, fontFamily: 'Poppins-Regular' },
+  productBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#334155',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 10,
+  },
+  productBannerText: {
+    flex: 1,
+    color: '#FFF',
+    fontSize: 13,
+    fontFamily: 'Poppins-Medium',
+  },
 });
 
 export default WorkerListScreen;

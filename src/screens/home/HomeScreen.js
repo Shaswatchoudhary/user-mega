@@ -385,9 +385,9 @@ export default function HomeScreen({ navigation }) {
   const handleSelfCareSubcategoryPress = (subcategory) => {
     setShowSelfCareModal(false);
     if (subcategory === 'men') {
-      navigation.navigate('Menscare');
+      navigation.navigate('WorkerList', { category: "Men's Self Care" });
     } else if (subcategory === 'women') {
-      navigation.navigate('Womenscare');
+      navigation.navigate('WorkerList', { category: "Women's Self Care" });
     }
   };
 
