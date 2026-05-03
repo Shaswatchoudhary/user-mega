@@ -29,10 +29,12 @@ const Login = () => {
     }
   };
 
-  const verifySecurityCode = (e) => {
+  const verifySecurityCode = async (e) => {
     e.preventDefault();
     if (securityCode === ADMIN_SECRET_CODE) {
       // Success - Save to session/local storage
+      const token = await auth.currentUser.getIdToken();
+      localStorage.setItem('admin_token', token);
       localStorage.setItem('admin_auth', 'true');
       navigate('/');
     } else {

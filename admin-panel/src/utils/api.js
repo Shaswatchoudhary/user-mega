@@ -10,4 +10,15 @@ const api = axios.create({
   },
 });
 
+// Add a request interceptor to include the auth token
+api.interceptors.request.use(async (config) => {
+  const auth = localStorage.getItem('admin_token'); // We need to save this on login
+  if (auth) {
+    config.headers.Authorization = `Bearer ${auth}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
 export default api;

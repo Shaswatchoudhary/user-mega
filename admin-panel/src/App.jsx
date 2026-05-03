@@ -13,11 +13,13 @@ import Settings from './pages/Settings';
 import Tracker from './pages/Tracker';
 import Issues from './pages/Issues';
 import ProtectedRoute from './components/ProtectedRoute';
+import SessionManager from './components/SessionManager';
 
 function App() {
   return (
     <Router>
-      <div className="flex flex-col bg-background min-h-screen text-text-primary">
+      <SessionManager>
+        <div className="flex flex-col bg-background min-h-screen text-text-primary">
         <Navbar />
         <main className="flex-1 w-full max-w-[1600px] mx-auto pt-28 pb-10 px-8">
           <Routes>
@@ -33,7 +35,8 @@ function App() {
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           </Routes>
         </main>
-      </div>
+        </div>
+      </SessionManager>
     </Router>
   );
 }

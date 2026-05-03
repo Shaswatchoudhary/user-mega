@@ -79,9 +79,7 @@ const Settings = () => {
 
   const sections = [
     { title: 'General Preferences', icon: <Monitor /> },
-    { title: 'Security & Access', icon: <Shield /> },
-    { title: 'Notifications', icon: <Bell /> },
-    { title: 'Data Management', icon: <Database /> }
+    { title: 'Notifications', icon: <Bell /> }
   ];
 
   return (
@@ -149,7 +147,7 @@ const Settings = () => {
         </div>
 
         <div className="lg:col-span-2 space-y-8">
-           <div className="card !p-10 border border-border bg-white rounded-3xl shadow-premium">
+           <div className="card !p-10 border border-border bg-white rounded-3xl shadow-premium min-h-[400px]">
               <div className="flex justify-between items-center mb-10 pb-6 border-b border-border">
                  <h3 className="text-xl font-black text-text-primary tracking-tight uppercase font-outfit">{activeSection}</h3>
                  <span className="text-[10px] font-black text-text-primary uppercase tracking-widest flex items-center">
@@ -216,38 +214,6 @@ const Settings = () => {
                 </div>
               )}
 
-              {activeSection === 'Security & Access' && (
-                <div className="space-y-12 animate-in slide-in-from-bottom-2 duration-500">
-                  <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                         <div>
-                            <p className="text-sm font-black text-text-primary uppercase tracking-tight">Two-Factor Authentication</p>
-                            <p className="text-[10px] text-text-muted mt-1 uppercase tracking-widest leading-none">Add an extra layer of security to your admin account</p>
-                         </div>
-                         <div className="flex items-center space-x-4">
-                            <span className="text-xs font-black text-accent-red">{settings.twoFactorAuth ? 'Active' : 'Disabled'}</span>
-                            <button 
-                              onClick={() => setSettings({...settings, twoFactorAuth: !settings.twoFactorAuth})}
-                              className={`w-12 h-6 rounded-full relative p-1 transition-all ${settings.twoFactorAuth ? 'bg-accent-red shadow-red-glow' : 'bg-surface-light border border-border'}`}
-                            >
-                               <div className={`w-4 h-4 bg-white rounded-full transition-all ${settings.twoFactorAuth ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                            </button>
-                         </div>
-                      </div>
-                   </div>
-                   <div className="p-8 bg-surface-light rounded-3xl border border-border flex items-center justify-between group hover:border-accent-red/20 transition-all">
-                     <div className="flex items-center space-x-4">
-                       <Lock size={20} className="text-accent-red" />
-                       <div>
-                         <p className="text-xs font-black text-text-primary uppercase tracking-tight">Management Credentials</p>
-                         <p className="text-[9px] text-text-muted uppercase tracking-widest">Last changed 42 days ago</p>
-                       </div>
-                     </div>
-                     <button className="text-[10px] font-black text-accent-red uppercase tracking-widest hover:underline px-4 py-2 bg-white rounded-xl border border-border shadow-sm">Update Key</button>
-                   </div>
-                </div>
-              )}
-
               {activeSection === 'Notifications' && (
                 <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -277,7 +243,7 @@ const Settings = () => {
                     </div>
                   </div>
                   <div className="p-8 bg-surface-light rounded-3xl border border-border space-y-4">
-                    <p className="text-[10px] font-black text-accent-red uppercase tracking-widest border-b border-white/40 pb-3">Administrative Alerts</p>
+                    <p className="text-[10px] font-black text-accent-red uppercase tracking-widest border-b border-border pb-3">Administrative Alerts</p>
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-xs font-black text-text-primary uppercase tracking-tight">Critical Security Alerts</span>
                       <span className="px-3 py-1 bg-accent-red text-white text-[9px] font-black uppercase rounded-lg shadow-red-glow">Mandatory</span>
@@ -285,64 +251,6 @@ const Settings = () => {
                   </div>
                 </div>
               )}
-
-              {activeSection === 'Data Management' && (
-                <div className="space-y-12 animate-in slide-in-from-bottom-2 duration-500">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-4">
-                        <p className="text-sm font-black text-text-primary uppercase tracking-tight">Backup Frequency</p>
-                        <select 
-                          className="w-full bg-surface-light border border-border rounded-xl p-4 text-xs font-black uppercase tracking-widest outline-none focus:border-accent-red transition-all"
-                          value={settings.backupInterval}
-                          onChange={(e) => setSettings({...settings, backupInterval: e.target.value})}
-                        >
-                          <option>Hourly</option>
-                          <option>Daily</option>
-                          <option>Weekly</option>
-                        </select>
-                     </div>
-                     <div className="space-y-4">
-                        <p className="text-sm font-black text-text-primary uppercase tracking-tight">Log Retention (Days)</p>
-                        <input 
-                          type="number" 
-                          className="w-full bg-surface-light border border-border rounded-xl p-4 text-xs font-black uppercase tracking-widest outline-none focus:border-accent-red transition-all"
-                          value={settings.apiLogsRetention}
-                          onChange={(e) => setSettings({...settings, apiLogsRetention: parseInt(e.target.value)})}
-                        />
-                     </div>
-                   </div>
-                   <div className="p-8 bg-surface-light rounded-3xl border border-border flex items-center justify-between group hover:border-accent-red/20 transition-all">
-                     <div className="flex items-center space-x-4">
-                       <Database size={20} className="text-accent-red" />
-                       <div>
-                         <p className="text-xs font-black text-text-primary uppercase tracking-tight">Core Database Archive</p>
-                         <p className="text-[9px] text-text-muted uppercase tracking-widest">Last Backup: Yesterday at 23:45</p>
-                       </div>
-                     </div>
-                     <button className="text-[10px] font-black text-accent-red uppercase tracking-widest px-4 py-2 bg-white rounded-xl border border-border shadow-sm flex items-center hover:bg-accent-red hover:text-white transition-all">
-                       <Download size={12} className="mr-1" /> Download
-                     </button>
-                   </div>
-                </div>
-              )}
-           </div>
-
-           <div className="p-10 bg-reddish-900/[0.03] rounded-[2.5rem] border border-reddish-900/10 flex items-center justify-between shadow-premium transition-all hover:border-danger/30">
-              <div className="flex items-center space-x-6">
-                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-accent-red shadow-premium">
-                    <ShieldAlert size={28} />
-                 </div>
-                 <div>
-                    <h3 className="text-xl font-black text-text-primary uppercase tracking-tight font-outfit">Emergency Reset</h3>
-                    <p className="text-[11px] text-text-muted mt-1 uppercase tracking-widest font-medium">Re-initialize core system parameters to factory default.</p>
-                 </div>
-              </div>
-              <button 
-                className="px-8 py-4 bg-white border border-danger/20 text-danger text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-danger hover:text-white transition-all shadow-sm"
-                onClick={() => alert("CONFIRMATION REQUIRED: This action cannot be undone.")}
-              >
-                Reset System
-              </button>
            </div>
         </div>
       </div>

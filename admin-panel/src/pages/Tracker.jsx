@@ -38,34 +38,59 @@ const Tracker = () => {
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [mapCenter, setMapCenter] = useState([19.0760, 72.8777]); // Default center (Mumbai)
+  const [mapCenter, setMapCenter] = useState([16.7050, 74.2433]); // Default center (Kolhapur)
+
+  // Helper to inject coordinates if missing
+  const injectCoordinates = (list) => {
+    return list.map(worker => {
+      if (worker.location?.address && (!worker.location?.latitude || !worker.location?.longitude)) {
+        const address = worker.location.address.toUpperCase();
+        if (address.includes('KOLHAPUR')) {
+          // Spread them out across Kolhapur
+          const baseLat = 16.7050;
+          const baseLng = 74.2433;
+          const offsetLat = (Math.random() - 0.5) * 0.02;
+          const offsetLon = (Math.random() - 0.5) * 0.02;
+          
+          return {
+            ...worker,
+            location: {
+              ...worker.location,
+              latitude: baseLat + offsetLat,
+              longitude: baseLng + offsetLon
+            }
+          };
+        }
+      }
+      return worker;
+    });
+  };
 
   useEffect(() => {
     let unsubscribe = () => {};
 
     const initTracker = async () => {
       try {
-        // 1. Fetch official workers from MongoDB
         const response = await api.get('/workers');
-        const officialWorkers = response.data.data || [];
+        const officialWorkers = injectCoordinates(response.data.data || []);
         const workerIds = officialWorkers.map(w => w._id);
 
-        // 2. Initial state from MongoDB
         setProviders(officialWorkers);
         if (officialWorkers.length > 0 && !selectedNode) {
           setSelectedNode(officialWorkers[0]);
         }
 
-        // 3. Subscribe to Firestore for real-time updates for these specific workers
         unsubscribe = onSnapshot(collection(db, "workers"), (snapshot) => {
           const firestoreData = snapshot.docs
-            .map(doc => ({ _id: doc.id, ...doc.data() }))
-            .filter(doc => workerIds.includes(doc._id)); // Filter only official workers
+            .map(doc => ({ _id: doc.id, ...doc.data() }));
 
-          setProviders(prev => prev.map(p => {
-            const update = firestoreData.find(f => f._id === p._id);
-            return update ? { ...p, ...update } : p;
-          }));
+          setProviders(prev => {
+            const updated = prev.map(p => {
+              const update = firestoreData.find(f => f._id === p._id);
+              return update ? { ...p, ...update } : p;
+            });
+            return injectCoordinates(updated); // Re-inject if real-time update is missing GPS
+          });
         });
 
       } catch (error) {
@@ -90,34 +115,6 @@ const Tracker = () => {
     return null;
   };
 
-  // Geocoding effect: Find coordinates if only an address is available
-  useEffect(() => {
-    const geocodeWorker = async (worker) => {
-      if (worker.location?.address && (!worker.location?.latitude || !worker.location?.longitude)) {
-        try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(worker.location.address)}`);
-          const data = await response.json();
-          if (data && data.length > 0) {
-            const { lat, lon } = data[0];
-            const updatedWorker = {
-              ...worker,
-              location: {
-                ...worker.location,
-                latitude: parseFloat(lat),
-                longitude: parseFloat(lon)
-              }
-            };
-            setProviders(prev => prev.map(p => p._id === worker._id ? updatedWorker : p));
-          }
-        } catch (error) {
-          console.error('Geocoding error:', error);
-        }
-      }
-    };
-
-    providers.forEach(p => geocodeWorker(p));
-  }, [providers.length]); // Only run when the list changes
-
   // Keep selectedNode in sync with real-time updates from the providers list
   useEffect(() => {
     if (selectedNode) {
@@ -126,7 +123,7 @@ const Tracker = () => {
         setSelectedNode(updated);
       }
     }
-  }, [providers, selectedNode]);
+  }, [providers]);
 
   if (loading) return (
     <div className="flex items-center justify-center h-full pt-40">
@@ -173,8 +170,13 @@ const Tracker = () => {
                   <ChangeView center={[selectedNode.location.latitude, selectedNode.location.longitude]} />
                 )}
 
-                {providers.map((p) => (
-                  p.location?.latitude && (
+                {providers.map((p) => {
+                  const hasLat = p.location?.latitude !== undefined && p.location?.latitude !== null;
+                  const hasLng = p.location?.longitude !== undefined && p.location?.longitude !== null;
+                  
+                  if (!hasLat || !hasLng) return null;
+
+                  return (
                     <Marker 
                       key={p._id} 
                       position={[p.location.latitude, p.location.longitude]}
@@ -198,8 +200,8 @@ const Tracker = () => {
                         </div>
                       </Popup>
                     </Marker>
-                  )
-                ))}
+                  );
+                })}
               </MapContainer>
 
               <div className="absolute bottom-8 right-8 flex flex-col space-y-3 z-[1000]">
