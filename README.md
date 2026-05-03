@@ -6,6 +6,22 @@ WorkEase is a premium, all-in-one home services platform designed to connect use
 [![Firebase](https://img.shields.io/badge/Firebase-Auth_&_DB-orange.svg?style=flat-square&logo=firebase)](https://firebase.google.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
+## 🏗 System Architecture
+WorkEase utilizes a **Hybrid Multi-Database Architecture** for maximum performance and real-time reliability:
+- **Primary Database**: MongoDB (Node.js/Express API) for core relational data, user profiles, and persistent records.
+- **Real-time Engine**: Firebase Firestore for live field tracking, service monitoring, and instant support ticket synchronization.
+
+## 📱 Platforms
+### 1. User/Worker Mobile App (React Native)
+- Real-time service booking and GPS tracking.
+- Secure OTP-based authentication.
+- Premium, high-converting UI/UX.
+
+### 2. Admin Hub (React + Vite)
+- **Live Field Tracking**: Real-time Leaflet GIS integration with automatic geocoding.
+- **Dynamic Monitoring**: Centralized dashboard for platform growth, system load, and activity auditing.
+- **Dual-Layer Security**: Google Auth combined with a secondary administrative secret code.
+
 ## 🌟 Key Features
 
 ### 🔍 Smart Service Discovery

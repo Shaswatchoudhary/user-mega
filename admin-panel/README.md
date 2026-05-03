@@ -1,16 +1,39 @@
-# React + Vite
+# WorkEase Admin Hub 🚀
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Premium administrative control center for the WorkEase platform. Built with a focus on high-performance monitoring, secure data management, and a high-end glassmorphic aesthetic.
 
-Currently, two official plugins are available:
+## 🛠 Tech Stack
+- **Frontend**: React.js 19 + Vite 8
+- **Styling**: Tailwind CSS 3.4 (Custom Design System)
+- **Data Architecture**: Hybrid (MongoDB REST API + Firebase Firestore)
+- **Real-time Engine**: Firebase Web SDK
+- **Icons**: Lucide-React
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🔐 Security Architecture
+The Admin Hub implements a mandatory **Two-Step Identity Verification** flow:
+1. **Google OAuth**: Primary identity verification via Firebase Auth.
+2. **Platform Secret Code**: Secondary verification layer for high-privilege access.
+3. **Route Protection**: All administrative routes are wrapped in a `ProtectedRoute` layer that validates session integrity in `localStorage`.
 
-## React Compiler
+## 🛰 Core Features
+- **Field Tracker**: Real-time Leaflet GIS tracking with automatic geocoding and live pulse markers.
+- **Dynamic Dashboard**: Multi-collection activity feed merging bookings, users, and worker logs.
+- **User/Worker Registry**: Full CRUD operations with detailed side-drawer profiles and verification workflows.
+- **Reporting System**: Integrated Firestore-based support ticket management.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Getting Started
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Setup Firebase**:
+   Configure `src/config/firebase.js` with your project credentials.
+3. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🎨 Design Principles
+- **Contrast**: High-contrast Cardinal Red (`#C41E3A`) on deep Reddish-Black (`#1A1110`).
+- **Depth**: Glassmorphism, subtle gradients, and premium shadows.
+- **Typography**: `Outfit` for headings and `Jakarta Sans` for data precision.

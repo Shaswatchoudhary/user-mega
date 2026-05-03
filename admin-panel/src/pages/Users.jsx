@@ -21,10 +21,16 @@ import Avatar from '../components/Avatar';
 import EmptyState from '../components/EmptyState';
 import StatCard from '../components/StatCard';
 
+import ActionModal from '../components/ActionModal';
+
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [actionTarget, setActionTarget] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -40,6 +46,21 @@ const Users = () => {
     fetchUsers();
   }, []);
 
+  const handleViewAccount = (user) => {
+    setSelectedUser(user);
+    setIsDrawerOpen(true);
+  };
+
+  const handleFlagClick = (user) => {
+    setActionTarget(user);
+    setIsActionModalOpen(true);
+  };
+
+  const handleConfirmFlag = () => {
+    // Logic to flag user in backend would go here
+    console.log(`Flagged user: ${actionTarget._id}`);
+  };
+
   const filteredUsers = users.filter(u => 
     u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -53,8 +74,70 @@ const Users = () => {
   );
 
   return (
-    <div className="animate-in slide-in-from-right-10 duration-1000">
+    <div className="animate-in slide-in-from-right-10 duration-1000 relative">
       
+      {/* Action Confirmation Modal */}
+      <ActionModal 
+        isOpen={isActionModalOpen}
+        onClose={() => setIsActionModalOpen(false)}
+        onConfirm={handleConfirmFlag}
+        title="Flag For Review"
+        message={`Are you sure you want to flag ${actionTarget?.name || 'this user'}? This will notify the compliance team for an immediate account audit.`}
+        type="danger"
+      />
+
+      {/* Side Drawer */}
+      <div className={`fixed inset-y-0 right-0 w-[450px] bg-white shadow-2xl z-[100] transform transition-transform duration-500 ease-in-out border-l border-border ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {selectedUser && (
+          <div className="h-full flex flex-col p-10">
+            <div className="flex justify-between items-center mb-12">
+              <h2 className="text-xl font-black text-text-primary uppercase tracking-tight font-outfit">User Profile</h2>
+              <button onClick={() => setIsDrawerOpen(false)} className="text-text-muted hover:text-accent-red p-2">
+                <ArrowRight size={24} />
+              </button>
+            </div>
+            
+            <div className="flex flex-col items-center mb-12">
+              <Avatar src={selectedUser.profileImage} initials={selectedUser.name} size="xl" ringColor="ring-accent-red/20" />
+              <h3 className="mt-6 text-2xl font-black text-text-primary uppercase tracking-tighter font-outfit">{selectedUser.name || 'User'}</h3>
+              <p className="text-accent-red font-black text-[10px] uppercase tracking-[0.2em] mt-2">Verified Client</p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="p-5 bg-surface-light rounded-2xl border border-border">
+                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Email Address</p>
+                <p className="text-xs font-black text-text-primary uppercase">{selectedUser.email || 'N/A'}</p>
+              </div>
+              <div className="p-5 bg-surface-light rounded-2xl border border-border">
+                <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Phone Number</p>
+                <p className="text-xs font-black text-text-primary uppercase">{selectedUser.phone || 'N/A'}</p>
+              </div>
+              
+              <div className="p-6 bg-reddish-900 rounded-[2rem] border border-white/5 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                  <Database size={60} className="text-white" />
+                </div>
+                <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Service Engagement</p>
+                <div className="flex items-end space-x-2">
+                  <p className="text-3xl font-black text-white">{selectedUser.bookingCount || 0}</p>
+                  <p className="text-[10px] font-black text-accent-red uppercase pb-1.5">Total Bookings</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto pt-10 border-t border-border flex gap-4">
+              <button className="flex-1 btn-primary !bg-accent-red !py-4 shadow-red-glow">Update Status</button>
+              <button className="flex-1 btn-secondary !py-4 text-danger border-danger hover:bg-danger/5" onClick={() => handleFlagClick(selectedUser)}>Flag Account</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Backdrop */}
+      {isDrawerOpen && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[90]" onClick={() => setIsDrawerOpen(false)}></div>
+      )}
+
       <div className="flex justify-between items-end mb-12">
         <div>
           <p className="text-accent-red font-black text-[10px] uppercase tracking-[0.4em] mb-2">Customer & Client Database</p>
@@ -79,12 +162,12 @@ const Users = () => {
           </div>
           <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Platform Users</p>
           <div className="mt-4 flex items-end space-x-3 relative z-10">
-            <h2 className="text-4xl font-black text-white">{users.length || '12,482'}</h2>
+            <h2 className="text-4xl font-black text-white">{users.length}</h2>
             <span className="text-[10px] font-bold pb-1 text-accent-red tracking-tight">+4.2% Growth</span>
           </div>
         </div>
-        <StatCard title="Joined Today" value={Math.floor(users.length * 0.05) || '142'} icon={<Calendar />} color="text-accent-red" />
-        <StatCard title="Suspended" value={29} icon={<Ban />} color="text-danger" />
+        <StatCard title="Joined Today" value="04" icon={<Calendar />} color="text-accent-red" />
+        <StatCard title="Suspended" value="00" icon={<Ban />} color="text-danger" />
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
@@ -98,7 +181,6 @@ const Users = () => {
         <div className="flex items-center space-x-3">
            <button className="px-5 py-2.5 bg-accent-red text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-red-glow transition-all">All Users</button>
            <button className="px-5 py-2.5 bg-white text-text-muted hover:text-accent-red text-[10px] font-black uppercase tracking-widest rounded-full transition-all border border-border">Active</button>
-           <button className="px-5 py-2.5 bg-white text-text-muted hover:text-accent-red text-[10px] font-black uppercase tracking-widest rounded-full transition-all border border-border">Pending</button>
         </div>
       </div>
 
@@ -130,10 +212,16 @@ const Users = () => {
             </div>
 
             <div className="flex gap-3">
-              <button className="flex-1 btn-secondary !py-3 !px-0 bg-white border-border text-text-primary hover:bg-reddish-900 hover:text-white hover:border-reddish-900 transition-all">
+              <button 
+                onClick={() => handleViewAccount(user)}
+                className="flex-1 btn-secondary !py-3 !px-0 bg-white border-border text-text-primary hover:bg-reddish-900 hover:text-white hover:border-reddish-900 transition-all"
+              >
                 View Account
               </button>
-              <button className="w-12 h-12 bg-white border border-border rounded-2xl flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger/5 transition-all">
+              <button 
+                onClick={() => handleFlagClick(user)}
+                className="w-12 h-12 bg-white border border-border rounded-2xl flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger/5 transition-all"
+              >
                 <ShieldAlert size={18} />
               </button>
             </div>
