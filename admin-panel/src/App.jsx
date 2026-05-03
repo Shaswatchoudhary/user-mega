@@ -7,12 +7,12 @@ import Workers from './pages/Workers';
 import Users from './pages/Users';
 import SystemLogs from './pages/SystemLogs';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
 
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Tracker from './pages/Tracker';
 import Issues from './pages/Issues';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -21,16 +21,16 @@ function App() {
         <Navbar />
         <main className="flex-1 w-full max-w-[1600px] mx-auto pt-28 pb-10 px-8">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/workers" element={<Workers />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/system-logs" element={<SystemLogs />} />
-            <Route path="/tracker" element={<Tracker />} />
-            <Route path="/issues" element={<Issues />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
+            
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/workers" element={<ProtectedRoute><Workers /></ProtectedRoute>} />
+            <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+            <Route path="/system-logs" element={<ProtectedRoute><SystemLogs /></ProtectedRoute>} />
+            <Route path="/tracker" element={<ProtectedRoute><Tracker /></ProtectedRoute>} />
+            <Route path="/issues" element={<ProtectedRoute><Issues /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>

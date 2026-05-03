@@ -16,7 +16,8 @@ import {
   UserCheck,
   ShieldAlert,
   ChevronRight,
-  Download
+  Download,
+  Mail
 } from 'lucide-react';
 import api from '../utils/api';
 

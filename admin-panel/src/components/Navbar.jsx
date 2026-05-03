@@ -16,10 +16,14 @@ import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const isAuthenticated = localStorage.getItem('admin_auth') === 'true';
+
+  if (!isAuthenticated) return null;
   
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('admin_auth');
     navigate('/login');
   };
 

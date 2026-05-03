@@ -1,20 +1,49 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Box, Globe } from 'lucide-react';
+import { Globe, ShieldCheck, AlertCircle } from 'lucide-react';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../config/firebase';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [step, setStep] = useState('login'); // 'login' or 'security'
+  const [securityCode, setSecurityCode] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  // THE SECRET ADMIN CODE (You can change this or fetch it from a config)
+  const ADMIN_SECRET_CODE = '858585'; 
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log('User signed in:', result.user);
+      setStep('security');
+    } catch (err) {
+      console.error('Google Sign-In Error:', err);
+      setError('Failed to authenticate with Google');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifySecurityCode = (e) => {
     e.preventDefault();
-    navigate('/');
+    if (securityCode === ADMIN_SECRET_CODE) {
+      // Success - Save to session/local storage
+      localStorage.setItem('admin_auth', 'true');
+      navigate('/');
+    } else {
+      setError('Invalid security code. Access denied.');
+      setSecurityCode('');
+    }
   };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-reddish-950 overflow-hidden">
-      {/* Reddish Background Effects */}
+      {/* Background Effects */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-accent-red/5 rounded-full blur-[120px] animate-pulse"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent-red/10 rounded-full blur-[120px] animate-pulse delay-700"></div>
       
@@ -30,69 +59,91 @@ const Login = () => {
         <div className="card-gradient group relative p-[1px] rounded-[2.5rem] overflow-hidden shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-accent-red/50 via-transparent to-accent-red/50 opacity-20 group-hover:opacity-100 transition-opacity duration-500"></div>
           <div className="relative bg-reddish-900 rounded-[calc(2.5rem-1px)] p-10 border border-white/5">
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-                  <input 
-                    type="email" 
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ADMIN@WORKEASE.COM"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-accent-red/50 transition-all text-white placeholder:text-white/10"
-                  />
+            
+            {step === 'login' ? (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="text-center mb-4">
+                  <h2 className="text-xl font-black text-white uppercase tracking-tight">Admin Access</h2>
+                  <p className="text-[10px] text-white/40 uppercase tracking-widest mt-2">Sign in to manage the platform node</p>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Password</label>
-                  <a href="#" className="text-[10px] font-black text-accent-red uppercase tracking-widest hover:underline">Forgot?</a>
+                {error && (
+                  <div className="bg-danger/10 border border-danger/20 p-4 rounded-xl flex items-center space-x-3 text-danger mb-4">
+                    <AlertCircle size={18} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">{error}</span>
+                  </div>
+                )}
+
+                <button 
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full bg-white text-reddish-950 hover:bg-white/90 py-5 rounded-2xl flex items-center justify-center space-x-3 transition-all font-black text-sm uppercase tracking-widest shadow-xl active:scale-[0.98]"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-accent-red border-t-transparent animate-spin rounded-full"></div>
+                  ) : (
+                    <Globe size={20} className="text-accent-red" />
+                  )}
+                  <span>Continue with Google</span>
+                </button>
+
+                <p className="text-[9px] text-white/20 text-center uppercase tracking-widest leading-relaxed">
+                  Platform access requires authorized <br/> corporate Google credentials
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={verifySecurityCode} className="space-y-8 animate-in fade-in zoom-in duration-500">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-accent-red/10 border border-accent-red/20 text-accent-red rounded-full flex items-center justify-center mx-auto mb-6">
+                    <ShieldCheck size={32} />
+                  </div>
+                  <h2 className="text-xl font-black text-white uppercase tracking-tight">Security Check</h2>
+                  <p className="text-[10px] text-white/40 uppercase tracking-widest mt-2">Enter the secret admin override code</p>
                 </div>
+
+                {error && (
+                  <div className="bg-danger/10 border border-danger/20 p-4 rounded-xl flex items-center justify-center space-x-3 text-danger text-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest">{error}</span>
+                  </div>
+                )}
+
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
                   <input 
                     type="password" 
                     required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-accent-red/50 transition-all font-mono text-white placeholder:text-white/10"
+                    maxLength={6}
+                    value={securityCode}
+                    onChange={(e) => setSecurityCode(e.target.value)}
+                    placeholder="••••••"
+                    autoFocus
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 text-center text-3xl font-black tracking-[0.5em] focus:outline-none focus:border-accent-red transition-all text-white placeholder:text-white/10"
                   />
                 </div>
-              </div>
 
-              <button type="submit" className="w-full btn-primary group !py-4 !bg-accent-red hover:!bg-accent-red/80 !shadow-red-glow">
-                Login to Dashboard
-                <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </form>
-
-            <div className="mt-8">
-              <div className="relative flex items-center justify-center mb-6">
-                <div className="absolute w-full h-[1px] bg-white/5"></div>
-                <span className="relative bg-reddish-900 px-4 text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">External Auth</span>
-              </div>
-
-              <div className="flex gap-4">
-                <button className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-2xl flex items-center justify-center space-x-2 transition-all">
-                  <Box size={18} className="text-white/40" />
-                  <span className="text-[9px] font-black uppercase tracking-widest">Box</span>
-                </button>
-                <button className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-2xl flex items-center justify-center space-x-2 transition-all">
-                  <Globe size={18} className="text-white/40" />
-                  <span className="text-[9px] font-black uppercase tracking-widest">Google</span>
-                </button>
-              </div>
-            </div>
+                <div className="flex gap-4 pt-2">
+                  <button 
+                    type="button"
+                    onClick={() => setStep('login')}
+                    className="flex-1 text-[10px] font-black text-white/40 uppercase tracking-widest py-4 border border-white/5 rounded-2xl hover:bg-white/5"
+                  >
+                    Back
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-[2] btn-primary !bg-accent-red hover:!bg-reddish-800 !py-4 shadow-red-glow"
+                  >
+                    Verify & Access
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
 
         <div className="mt-10 text-center">
           <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
-            New Operator? <Link to="/signup" className="text-accent-red hover:underline">Request Credentials</Link>
+            Authorized Personnel Only
           </p>
         </div>
       </div>

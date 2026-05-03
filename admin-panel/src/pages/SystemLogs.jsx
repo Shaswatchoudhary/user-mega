@@ -21,20 +21,60 @@ const SystemLogs = () => {
 
   useEffect(() => {
     const fetchLogs = async () => {
+      setLoading(true);
       try {
-        const response = await api.get('/bookings');
-        const data = response.data.data || response.data.bookings || response.data || [];
-        const normalizedLogs = (Array.isArray(data) ? data : []).map(log => ({
-          id: log._id,
-          timestamp: new Date(log.createdAt).toLocaleString(),
-          event: log.serviceName || 'Service Booking',
-          worker: log.workerName || 'Not Assigned',
-          user: log.userName || 'Guest User',
-          status: log.status || 'Pending',
-          amount: log.totalPrice || '0',
-          location: log.address || 'N/A'
-        }));
-        setLogs(normalizedLogs);
+        // 1. Fetch from MongoDB API
+        let mongoLogs = [];
+        try {
+          const response = await api.get('/bookings');
+          const data = response.data.data || response.data.bookings || response.data || [];
+          mongoLogs = (Array.isArray(data) ? data : []).map(log => ({
+            id: log._id,
+            timestamp: new Date(log.createdAt).toLocaleString(),
+            event: log.serviceType || log.category || 'Service Booking',
+            worker: log.workerId?.fullName || log.workerName || 'Not Assigned',
+            user: log.userId?.name || log.userName || 'Client',
+            status: log.status || 'Pending',
+            amount: log.totalPrice || '0',
+            location: log.address || 'N/A',
+            source: 'mongodb'
+          }));
+        } catch (err) {
+          console.error('MongoDB bookings fetch failed:', err);
+        }
+
+        // 2. Fetch from Firestore (if needed)
+        let firestoreLogs = [];
+        try {
+          // Import firebase dependencies dynamically if not available globally
+          const { getDocs, collection, query, orderBy } = await import('firebase/firestore');
+          const { db } = await import('../config/firebase');
+          
+          const bookingSnap = await getDocs(query(collection(db, 'bookings'), orderBy('createdAt', 'desc')));
+          firestoreLogs = bookingSnap.docs.map(doc => {
+            const d = doc.data();
+            return {
+              id: doc.id,
+              timestamp: d.createdAt?.toDate ? d.createdAt.toDate().toLocaleString() : new Date().toLocaleString(),
+              event: d.serviceType || d.category || 'App Booking',
+              worker: d.workerName || 'Not Assigned',
+              user: d.userName || 'App User',
+              status: d.status || 'Pending',
+              amount: d.totalPrice || '0',
+              location: d.address || 'N/A',
+              source: 'firestore'
+            };
+          });
+        } catch (err) {
+          console.error('Firestore bookings fetch failed:', err);
+        }
+
+        // Merge and sort
+        const combinedLogs = [...mongoLogs, ...firestoreLogs].sort((a, b) => {
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        });
+
+        setLogs(combinedLogs);
       } catch (error) {
         console.error('Error fetching logs:', error);
       } finally {
