@@ -13,6 +13,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Avatar from './Avatar';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -103,14 +104,19 @@ const Navbar = () => {
 
           <NavLink to="/profile" className="flex items-center space-x-3 group cursor-pointer shrink-0">
             <div className="text-right hidden xl:block">
-              <p className="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-accent-red transition-colors">Administrator</p>
-              <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Operations</p>
+              <p className="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-accent-red transition-colors">
+                {JSON.parse(localStorage.getItem('admin_profile'))?.fullName || 'Administrator'}
+              </p>
+              <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">
+                {JSON.parse(localStorage.getItem('admin_profile'))?.role || 'Operations'}
+              </p>
             </div>
-            <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-white/10 group-hover:border-accent-red transition-all shadow-soft">
-              <img 
-                src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=128&auto=format&fit=crop" 
-                alt="Profile" 
-                className="w-full h-full object-cover"
+            <div className="relative group">
+              <Avatar 
+                src={JSON.parse(localStorage.getItem('admin_profile'))?.avatar} 
+                initials={JSON.parse(localStorage.getItem('admin_profile'))?.fullName?.substring(0, 2) || 'AD'} 
+                size="md"
+                online={true}
               />
             </div>
           </NavLink>

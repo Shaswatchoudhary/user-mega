@@ -40,27 +40,33 @@ const Tracker = () => {
   const [selectedNode, setSelectedNode] = useState(null);
   const [mapCenter, setMapCenter] = useState([16.7050, 74.2433]); // Default center (Kolhapur)
 
-  // Helper to inject coordinates if missing
+  // Helper to inject coordinates if missing (Deterministic based on ID)
   const injectCoordinates = (list) => {
     return list.map(worker => {
-      if (worker.location?.address && (!worker.location?.latitude || !worker.location?.longitude)) {
-        const address = worker.location.address.toUpperCase();
-        if (address.includes('KOLHAPUR')) {
-          // Spread them out across Kolhapur
-          const baseLat = 16.7050;
-          const baseLng = 74.2433;
-          const offsetLat = (Math.random() - 0.5) * 0.02;
-          const offsetLon = (Math.random() - 0.5) * 0.02;
-          
-          return {
-            ...worker,
-            location: {
-              ...worker.location,
-              latitude: baseLat + offsetLat,
-              longitude: baseLng + offsetLon
-            }
-          };
-        }
+      // If we already have real GPS coordinates from Firestore, use them exactly
+      if (worker.location?.latitude && worker.location?.longitude && !worker.location.isFake) {
+        return worker;
+      }
+
+      // If missing GPS but has a Kolhapur address, generate a FIXED spot based on ID
+      if (worker.location?.address && worker.location.address.toUpperCase().includes('KOLHAPUR')) {
+        const baseLat = 16.7050;
+        const baseLng = 74.2433;
+        
+        // Use the ID to generate a consistent offset (so they don't jump)
+        const idHash = worker._id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const offsetLat = ((idHash % 100) / 5000) - 0.01; // Fixed offset between -0.01 and 0.01
+        const offsetLon = (((idHash * 13) % 100) / 5000) - 0.01;
+        
+        return {
+          ...worker,
+          location: {
+            ...worker.location,
+            latitude: baseLat + offsetLat,
+            longitude: baseLng + offsetLon,
+            isFake: true // Mark as synthetic so we don't overwrite real GPS later
+          }
+        };
       }
       return worker;
     });
@@ -227,10 +233,15 @@ const Tracker = () => {
                 </div>
 
                 <div className="space-y-6 mb-10">
-                   <div className="p-6 bg-surface-light rounded-3xl border border-border transition-all hover:border-accent-red/20">
+                    <div className="p-6 bg-surface-light rounded-3xl border border-border transition-all hover:border-accent-red/20">
                       <div className="flex justify-between items-start mb-2">
                         <p className="text-[9px] font-black text-text-muted uppercase tracking-widest">Live Location Registry</p>
-                        <MapPin size={16} className="text-accent-red" />
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${selectedNode.location?.isFake ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
+                            {selectedNode.location?.isFake ? 'Address Based' : 'Live GPS'}
+                          </span>
+                          <MapPin size={14} className="text-accent-red" />
+                        </div>
                       </div>
                       <p className="text-xs font-black text-text-primary uppercase leading-relaxed break-words">
                         {selectedNode.location?.address || 
@@ -242,7 +253,7 @@ const Tracker = () => {
                           <p className="text-[9px] font-black text-accent-red uppercase">Awaiting GPS Handshake</p>
                         </div>
                       )}
-                   </div>
+                    </div>
                    <div className="p-5 bg-surface-light rounded-2xl border border-border flex justify-between items-center">
                       <div>
                          <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Connection Signal</p>
