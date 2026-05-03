@@ -42,10 +42,15 @@ const Login = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-reddish-950 overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-accent-red/5 rounded-full blur-[120px] animate-pulse"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent-red/10 rounded-full blur-[120px] animate-pulse delay-700"></div>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden">
+      {/* Premium Gradient Background */}
+      <div className="absolute inset-0 bg-[#1A1A1A]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#E84545] via-[#E84545]/20 to-[#1A1A1A]"></div>
+        
+        {/* Animated Accent Blobs */}
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#E84545]/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#E84545]/10 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+      </div>
       
       <div className="relative w-full max-w-md p-10">
         <div className="flex flex-col items-center mb-10 text-center">
@@ -56,15 +61,15 @@ const Login = () => {
           <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">Platform Management Suite v1.2.0</p>
         </div>
 
-        <div className="card-gradient group relative p-[1px] rounded-[2.5rem] overflow-hidden shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-accent-red/50 via-transparent to-accent-red/50 opacity-20 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <div className="relative bg-reddish-900 rounded-[calc(2.5rem-1px)] p-10 border border-white/5">
+        <div className="group relative p-[1px] rounded-[3rem] overflow-hidden shadow-2xl backdrop-blur-md">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10 opacity-30 group-hover:opacity-60 transition-opacity duration-500"></div>
+          <div className="relative bg-white rounded-[calc(3rem-1px)] p-12 shadow-2xl">
             
             {step === 'login' ? (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="text-center mb-4">
-                  <h2 className="text-xl font-black text-white uppercase tracking-tight">Admin Access</h2>
-                  <p className="text-[10px] text-white/40 uppercase tracking-widest mt-2">Sign in to manage the platform node</p>
+                  <h2 className="text-2xl font-black text-[#1A1A1A] uppercase tracking-tight font-outfit">Admin Access</h2>
+                  <p className="text-[10px] text-[#1A1A1A]/40 font-black uppercase tracking-widest mt-2">Sign in to manage the platform node</p>
                 </div>
 
                 {error && (
@@ -78,17 +83,17 @@ const Login = () => {
                   type="button"
                   onClick={handleGoogleLogin}
                   disabled={loading}
-                  className="w-full bg-white text-reddish-950 hover:bg-white/90 py-5 rounded-2xl flex items-center justify-center space-x-3 transition-all font-black text-sm uppercase tracking-widest shadow-xl active:scale-[0.98]"
+                  className="w-full bg-[#1A1A1A] text-white hover:bg-[#1A1A1A]/90 py-5 rounded-2xl flex items-center justify-center space-x-3 transition-all font-black text-sm uppercase tracking-widest shadow-xl active:scale-[0.98]"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-accent-red border-t-transparent animate-spin rounded-full"></div>
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white animate-spin rounded-full"></div>
                   ) : (
                     <Globe size={20} className="text-accent-red" />
                   )}
                   <span>Continue with Google</span>
                 </button>
 
-                <p className="text-[9px] text-white/20 text-center uppercase tracking-widest leading-relaxed">
+                <p className="text-[9px] text-[#1A1A1A]/30 text-center font-black uppercase tracking-widest leading-relaxed">
                   Platform access requires authorized <br/> corporate Google credentials
                 </p>
               </div>
@@ -98,8 +103,8 @@ const Login = () => {
                   <div className="w-16 h-16 bg-accent-red/10 border border-accent-red/20 text-accent-red rounded-full flex items-center justify-center mx-auto mb-6">
                     <ShieldCheck size={32} />
                   </div>
-                  <h2 className="text-xl font-black text-white uppercase tracking-tight">Security Check</h2>
-                  <p className="text-[10px] text-white/40 uppercase tracking-widest mt-2">Enter the secret admin override code</p>
+                  <h2 className="text-2xl font-black text-[#1A1A1A] uppercase tracking-tight font-outfit">Security Check</h2>
+                  <p className="text-[10px] text-[#1A1A1A]/40 font-black uppercase tracking-widest mt-2">Enter the secret admin override code</p>
                 </div>
 
                 {error && (
@@ -117,7 +122,7 @@ const Login = () => {
                     onChange={(e) => setSecurityCode(e.target.value)}
                     placeholder="••••••"
                     autoFocus
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 text-center text-3xl font-black tracking-[0.5em] focus:outline-none focus:border-accent-red transition-all text-white placeholder:text-white/10"
+                    className="w-full bg-[#1A1A1A]/5 border border-[#1A1A1A]/10 rounded-2xl py-6 text-center text-3xl font-black tracking-[0.5em] focus:outline-none focus:border-accent-red transition-all text-[#1A1A1A] placeholder:text-[#1A1A1A]/10"
                   />
                 </div>
 
@@ -125,7 +130,7 @@ const Login = () => {
                   <button 
                     type="button"
                     onClick={() => setStep('login')}
-                    className="flex-1 text-[10px] font-black text-white/40 uppercase tracking-widest py-4 border border-white/5 rounded-2xl hover:bg-white/5"
+                    className="flex-1 text-[10px] font-black text-[#1A1A1A]/40 uppercase tracking-widest py-4 border border-[#1A1A1A]/5 rounded-2xl hover:bg-[#1A1A1A]/5"
                   >
                     Back
                   </button>

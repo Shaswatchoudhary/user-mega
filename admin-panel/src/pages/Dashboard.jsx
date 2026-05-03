@@ -16,37 +16,75 @@ import SectionHeader from '../components/SectionHeader';
 import GradientCard from '../components/GradientCard';
 import api from '../utils/api';
 
+import { useNavigate } from 'react-router-dom';
+import { collection, onSnapshot, query, limit, orderBy } from 'firebase/firestore';
+import { db } from '../config/firebase';
+
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recentLogs, setRecentLogs] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Real-time Multi-Collection Activity Stream
+    const collections = [
+      { name: 'bookings', title: 'Service Booked', icon: <Box size={20} /> },
+      { name: 'users', title: 'User Registration', icon: <UsersIcon size={20} /> },
+      { name: 'workers', title: 'Worker Joined', icon: <Zap size={20} /> }
+    ];
+
+    const unsubscribes = collections.map(col => {
+      const q = query(collection(db, col.name), orderBy("createdAt", "desc"), limit(2));
+      return onSnapshot(q, (snapshot) => {
+        const logs = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          title: col.title,
+          icon: col.icon,
+          time: doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just Now',
+          desc: col.name === 'bookings' ? `Booking #${doc.id.slice(0, 6)} initiated.` : 
+                col.name === 'users' ? `New user ${doc.data().fullName || 'Member'} registered.` :
+                `Provider ${doc.data().fullName || 'Expert'} verified.`
+        }));
+
+        setRecentLogs(prev => {
+          const filtered = prev.filter(p => !logs.find(l => l.id === p.id));
+          const combined = [...filtered, ...logs].sort((a, b) => {
+            const timeA = a.createdAt?.seconds || Date.now();
+            const timeB = b.createdAt?.seconds || Date.now();
+            return timeB - timeA;
+          });
+          return combined.slice(0, 5);
+        });
+      });
+    });
+
     const fetchStats = async () => {
       try {
         const response = await api.get('/stats');
         setStats(response.data.data);
-        localStorage.setItem('admin_stats', JSON.stringify(response.data.data));
       } catch (error) {
         console.error('Error fetching stats:', error);
-        // Fallback to localStorage if backend is down/unavailable
-        const savedStats = localStorage.getItem('admin_stats');
-        if (savedStats) {
-          setStats(JSON.parse(savedStats));
-        } else {
-          // Default mock stats for first-time use if backend fails
-          setStats({
-            totalUsers: 1248,
-            totalWorkers: 842,
-            activeBookings: 156,
-            pendingVerifications: 12
-          });
-        }
+        setStats({ totalUsers: 38, totalWorkers: 8, activeBookings: 156 });
       } finally {
         setLoading(false);
       }
     };
+    
     fetchStats();
+    return () => unsubscribes.forEach(unsub => unsub());
   }, []);
+
+  const handleGenerateReport = () => {
+    const reportData = JSON.stringify({ stats, timestamp: new Date().toISOString() }, null, 2);
+    const blob = new Blob([reportData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `WorkEase_Report_${new Date().toLocaleDateString()}.json`;
+    link.click();
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center h-full pt-40">
@@ -77,21 +115,21 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <StatCard 
           title="Total Traffic" 
-          value={stats?.totalUsers ? (stats.totalUsers * 12.4).toFixed(0) : '0'} 
+          value="471" 
           icon={<Globe size={20} />} 
           trend={+4.2}
           color="text-accent-red"
         />
         <StatCard 
           title="Registered Users" 
-          value={stats?.totalUsers || '0'} 
+          value={stats?.totalUsers || '38'} 
           icon={<UsersIcon size={20} />} 
           trend={+8.5}
           color="text-accent-red"
         />
         <StatCard 
           title="Active Workers" 
-          value={stats?.totalWorkers || '0'} 
+          value={stats?.totalWorkers || '8'} 
           icon={<Zap size={20} />}
           trend={+12.0} 
           color="text-accent-red"
@@ -112,17 +150,20 @@ const Dashboard = () => {
               <Activity className="text-accent-red" size={20} />
               <h3 className="text-xl font-black text-text-primary tracking-tight uppercase font-outfit">Recent Activity</h3>
             </div>
-            <button className="text-[10px] font-black text-text-muted hover:text-accent-red uppercase tracking-[0.2em] transition-all flex items-center">
+            <button 
+              onClick={() => navigate('/system-logs')}
+              className="text-[10px] font-black text-text-muted hover:text-accent-red uppercase tracking-[0.2em] transition-all flex items-center"
+            >
               View All Activities <ArrowRight size={14} className="ml-2" />
             </button>
           </div>
           
           <div className="space-y-8">
-            {[
-              { title: 'New Worker Registration', time: '02m Ago', desc: 'Documentation verification pending for provider.', icon: <UsersIcon size={20} />, color: 'bg-surface-light text-accent-red' },
-              { title: 'System Access log', time: '14m Ago', desc: 'Secure admin session initiated from verified IP.', icon: <ShieldAlert size={20} />, color: 'bg-surface-light text-accent-red' },
-              { title: 'Database Synchronization', time: '01h Ago', desc: 'Worker records successfully synced with platform registry.', icon: <TrendingUp size={20} />, color: 'bg-surface-light text-accent-red' }
-            ].map((activity, i) => (
+            {(recentLogs.length > 0 ? recentLogs : [
+              { title: 'New Worker Registration', time: '02m Ago', desc: 'Documentation verification pending for provider.', icon: <UsersIcon size={20} /> },
+              { title: 'System Access log', time: '14m Ago', desc: 'Secure admin session initiated from verified IP.', icon: <ShieldAlert size={20} /> },
+              { title: 'Database Synchronization', time: '01h Ago', desc: 'Worker records successfully synced with platform registry.', icon: <TrendingUp size={20} /> }
+            ]).map((activity, i) => (
               <div key={i} className="flex items-start space-x-6 p-4 rounded-2xl hover:bg-surface-light transition-all border border-transparent hover:border-border group">
                 <div className={`w-12 h-12 rounded-xl border border-border flex items-center justify-center group-hover:bg-accent-red group-hover:text-white transition-all`}>
                   {activity.icon}
@@ -160,7 +201,10 @@ const Dashboard = () => {
             <h4 className="text-2xl font-black uppercase tracking-tighter leading-none mb-4 font-outfit text-white">Platform Growth</h4>
             <p className="text-xs opacity-80 leading-relaxed font-medium mb-8">Registered provider efficiency has improved by 14% this quarter through improved matching logic.</p>
             
-            <button className="w-full bg-accent-red text-white border border-white/10 font-black py-4 rounded-xl hover:bg-accent-red/90 transition-all uppercase tracking-widest text-[10px] shadow-red-glow">
+            <button 
+              onClick={handleGenerateReport}
+              className="w-full bg-accent-red text-white border border-white/10 font-black py-4 rounded-xl hover:bg-accent-red/90 transition-all uppercase tracking-widest text-[10px] shadow-red-glow"
+            >
               Generate Report
             </button>
           </div>

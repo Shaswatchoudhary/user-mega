@@ -17,30 +17,116 @@ import {
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../config/firebase';
+
+// Fix for default marker icons in Leaflet + React
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
 const Tracker = () => {
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [mapCenter, setMapCenter] = useState([19.0760, 72.8777]); // Default center (Mumbai)
 
   useEffect(() => {
-    const fetchProviders = async () => {
+    let unsubscribe = () => {};
+
+    const initTracker = async () => {
       try {
+        // 1. Fetch official workers from MongoDB
         const response = await api.get('/workers');
-        const data = response.data.data || [];
-        setProviders(data);
-        if (data.length > 0 && !selectedNode) {
-          setSelectedNode(data[0]);
+        const officialWorkers = response.data.data || [];
+        const workerIds = officialWorkers.map(w => w._id);
+
+        // 2. Initial state from MongoDB
+        setProviders(officialWorkers);
+        if (officialWorkers.length > 0 && !selectedNode) {
+          setSelectedNode(officialWorkers[0]);
         }
+
+        // 3. Subscribe to Firestore for real-time updates for these specific workers
+        unsubscribe = onSnapshot(collection(db, "workers"), (snapshot) => {
+          const firestoreData = snapshot.docs
+            .map(doc => ({ _id: doc.id, ...doc.data() }))
+            .filter(doc => workerIds.includes(doc._id)); // Filter only official workers
+
+          setProviders(prev => prev.map(p => {
+            const update = firestoreData.find(f => f._id === p._id);
+            return update ? { ...p, ...update } : p;
+          }));
+        });
+
       } catch (error) {
-        console.error('Error fetching tracker data:', error);
+        console.error('Error initializing tracker:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchProviders();
-    const interval = setInterval(fetchProviders, 15000);
-    return () => clearInterval(interval);
-  }, [selectedNode]);
+
+    initTracker();
+    return () => unsubscribe();
+  }, []);
+
+  // Component to re-center map when selectedNode changes
+  const ChangeView = ({ center }) => {
+    const map = useMap();
+    useEffect(() => {
+      if (center) {
+        map.setView(center, 13);
+      }
+    }, [center]);
+    return null;
+  };
+
+  // Geocoding effect: Find coordinates if only an address is available
+  useEffect(() => {
+    const geocodeWorker = async (worker) => {
+      if (worker.location?.address && (!worker.location?.latitude || !worker.location?.longitude)) {
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(worker.location.address)}`);
+          const data = await response.json();
+          if (data && data.length > 0) {
+            const { lat, lon } = data[0];
+            const updatedWorker = {
+              ...worker,
+              location: {
+                ...worker.location,
+                latitude: parseFloat(lat),
+                longitude: parseFloat(lon)
+              }
+            };
+            setProviders(prev => prev.map(p => p._id === worker._id ? updatedWorker : p));
+          }
+        } catch (error) {
+          console.error('Geocoding error:', error);
+        }
+      }
+    };
+
+    providers.forEach(p => geocodeWorker(p));
+  }, [providers.length]); // Only run when the list changes
+
+  // Keep selectedNode in sync with real-time updates from the providers list
+  useEffect(() => {
+    if (selectedNode) {
+      const updated = providers.find(p => p._id === selectedNode._id);
+      if (updated && (updated.location?.latitude !== selectedNode.location?.latitude || updated.isOnline !== selectedNode.isOnline)) {
+        setSelectedNode(updated);
+      }
+    }
+  }, [providers, selectedNode]);
 
   if (loading) return (
     <div className="flex items-center justify-center h-full pt-40">
@@ -58,51 +144,67 @@ const Tracker = () => {
             Field <span className="text-accent-red italic">Tracker</span>
           </h1>
           <p className="text-text-secondary text-xs mt-3 max-w-md font-medium leading-relaxed">
-            Real-time visualization of service provider locations, current availability, and active engagement status.
+            Real-time visualization of service provider locations via Leaflet GIS integration.
           </p>
         </div>
         <div className="flex space-x-3">
           <div className="bg-accent-red/5 border border-accent-red/10 px-4 py-2 rounded-xl flex items-center space-x-3 shadow-sm">
             <span className="w-1.5 h-1.5 bg-accent-red rounded-full animate-pulse-red"></span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-accent-red">Active Providers: {providers.filter(p => p.isOnline).length}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-accent-red">Active Providers: {providers.length}</span>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2">
-           <div className="relative bg-reddish-950 border border-white/5 rounded-[3rem] overflow-hidden min-h-[600px] shadow-premium group">
-              {/* Premium Grid Background */}
-              <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#C41E3A 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-              <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(#fff 0.5px, transparent 0.5px), linear-gradient(90deg, #fff 0.5px, transparent 0.5px)', backgroundSize: '100px 100px' }}></div>
+           <div className="relative bg-reddish-950 border border-white/5 rounded-[3rem] overflow-hidden h-[600px] shadow-premium group z-10">
+              <MapContainer 
+                center={mapCenter} 
+                zoom={13} 
+                style={{ height: '100%', width: '100%' }}
+                zoomControl={false}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                
+                {selectedNode?.location?.latitude && (
+                  <ChangeView center={[selectedNode.location.latitude, selectedNode.location.longitude]} />
+                )}
 
-              {/* Provider Markers (Simulated Scatter) */}
-              {providers.map((p, idx) => (
-                <div 
-                  key={p._id}
-                  onClick={() => setSelectedNode(p)}
-                  className={`absolute cursor-pointer transition-all duration-700 hover:scale-125 ${selectedNode?._id === p._id ? 'z-20' : 'z-10'}`}
-                  style={{ 
-                    left: `${20 + (idx * 137) % 65}%`, 
-                    top: `${15 + (idx * 211) % 70}%` 
-                  }}
-                >
-                  <div className={`relative flex flex-col items-center group`}>
-                    <div className={`w-10 h-10 rounded-2xl border-2 p-0.5 transition-all bg-reddish-900 shadow-lg ${p.isOnline ? 'border-accent-red' : 'border-white/10'} ${selectedNode?._id === p._id ? 'scale-110 border-accent-red shadow-red-glow' : ''}`}>
-                       <Avatar src={p.profileImage} initials={p.fullName} size="xs" />
-                    </div>
-                    {selectedNode?._id === p._id && (
-                       <div className="absolute top-14 bg-accent-red text-white px-3 py-1.5 rounded-lg border border-white/10 shadow-premium whitespace-nowrap animate-in slide-in-from-top-2 z-30">
-                          <p className="text-[9px] font-black uppercase tracking-widest">{p.fullName}</p>
-                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                {providers.map((p) => (
+                  p.location?.latitude && (
+                    <Marker 
+                      key={p._id} 
+                      position={[p.location.latitude, p.location.longitude]}
+                      icon={L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="w-10 h-10 bg-reddish-900 border-2 ${p._id === selectedNode?._id ? 'border-accent-red scale-110 shadow-red-glow' : 'border-white/20'} rounded-2xl flex items-center justify-center text-white font-black text-[10px] uppercase overflow-hidden shadow-xl transition-all">
+                                ${p.profileImage ? `<img src="${p.profileImage}" class="w-full h-full object-cover"/>` : p.fullName.charAt(0)}
+                                ${p.isOnline ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-accent-red rounded-full border-2 border-white animate-pulse"></div>' : ''}
+                              </div>`,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 20]
+                      })}
+                      eventHandlers={{
+                        click: () => setSelectedNode(p),
+                      }}
+                    >
+                      <Popup>
+                        <div className="text-center p-1">
+                          <p className="text-xs font-black uppercase mb-1">{p.fullName}</p>
+                          <p className="text-[10px] text-accent-red font-bold">{p.category || 'Professional'}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  )
+                ))}
+              </MapContainer>
 
-              <div className="absolute bottom-8 right-8 flex flex-col space-y-3 relative z-30">
-                 <button className="w-12 h-12 bg-reddish-900 border border-white/10 rounded-2xl flex items-center justify-center text-white/40 hover:text-accent-red shadow-premium transition-all"><Maximize2 size={20}/></button>
-                 <button className="w-12 h-12 bg-reddish-900 border border-white/10 rounded-2xl flex items-center justify-center text-white/40 hover:text-accent-red shadow-premium transition-all"><Globe size={20}/></button>
+              <div className="absolute bottom-8 right-8 flex flex-col space-y-3 z-[1000]">
+                 <button className="w-12 h-12 bg-white border border-border rounded-2xl flex items-center justify-center text-text-muted hover:text-accent-red shadow-premium transition-all"><Maximize2 size={20}/></button>
+                 <button className="w-12 h-12 bg-white border border-border rounded-2xl flex items-center justify-center text-text-muted hover:text-accent-red shadow-premium transition-all"><Globe size={20}/></button>
               </div>
            </div>
         </div>
@@ -123,12 +225,21 @@ const Tracker = () => {
                 </div>
 
                 <div className="space-y-6 mb-10">
-                   <div className="p-5 bg-surface-light rounded-2xl border border-border flex justify-between items-center transition-all hover:border-accent-red/20">
-                      <div>
-                         <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Current Location</p>
-                         <p className="text-xs font-black text-text-primary uppercase">{selectedNode.location?.address || 'Location Not Available'}</p>
+                   <div className="p-6 bg-surface-light rounded-3xl border border-border transition-all hover:border-accent-red/20">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="text-[9px] font-black text-text-muted uppercase tracking-widest">Live Location Registry</p>
+                        <MapPin size={16} className="text-accent-red" />
                       </div>
-                      <MapPin size={18} className="text-accent-red" />
+                      <p className="text-xs font-black text-text-primary uppercase leading-relaxed break-words">
+                        {selectedNode.location?.address || 
+                         (selectedNode.location?.latitude ? `${selectedNode.location.latitude.toFixed(6)}, ${selectedNode.location.longitude.toFixed(6)}` : 'Location Syncing...')}
+                      </p>
+                      {(!selectedNode.location?.latitude && !selectedNode.location?.address) && (
+                        <div className="mt-3 flex items-center space-x-2 bg-accent-red/5 p-2 rounded-lg border border-accent-red/10">
+                          <div className="w-1.5 h-1.5 bg-accent-red rounded-full animate-pulse"></div>
+                          <p className="text-[9px] font-black text-accent-red uppercase">Awaiting GPS Handshake</p>
+                        </div>
+                      )}
                    </div>
                    <div className="p-5 bg-surface-light rounded-2xl border border-border flex justify-between items-center">
                       <div>
@@ -166,7 +277,12 @@ const Tracker = () => {
                  {providers.map(p => (
                    <div 
                     key={p._id} 
-                    onClick={() => setSelectedNode(p)}
+                    onClick={() => {
+                      setSelectedNode(p);
+                      if (p.location?.latitude) {
+                        setMapCenter([p.location.latitude, p.location.longitude]);
+                      }
+                    }}
                     className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${selectedNode?._id === p._id ? 'bg-reddish-900 text-white shadow-premium border-reddish-900' : 'bg-white border-border hover:bg-surface-light'}`}
                    >
                       <div className="flex items-center space-x-3">
@@ -177,7 +293,7 @@ const Tracker = () => {
                    </div>
                  ))}
               </div>
-           </div>
+            </div>
         </div>
       </div>
     </div>

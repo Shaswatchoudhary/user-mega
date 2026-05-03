@@ -41,25 +41,25 @@ const Navbar = () => {
       <div className="max-w-[1600px] mx-auto h-full flex items-center justify-between">
         
         {/* Left: Branding */}
-        <div className="flex items-center space-x-10">
+        <div className="flex items-center space-x-6 lg:space-x-10 shrink-0">
           <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => navigate('/')}>
             <div className="w-10 h-10 bg-accent-red rounded-xl flex items-center justify-center shadow-red-glow group-hover:scale-105 transition-all">
               <span className="text-white font-black text-xl">W</span>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col hidden sm:flex">
               <span className="text-sm font-black tracking-[0.2em] text-white uppercase leading-tight font-outfit">WorkEase</span>
               <span className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase">Admin Hub</span>
             </div>
           </div>
 
           {/* Center: Nav Links */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1">
             {navLinks.map((link) => (
               <NavLink
                 key={link.path}
                 to={link.path}
                 className={({ isActive }) => `
-                  px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center space-x-2
+                  px-3 xl:px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center space-x-2
                   ${isActive 
                     ? 'bg-accent-red text-white shadow-red-glow' 
                     : 'text-white/60 hover:text-white hover:bg-white/10'
@@ -67,46 +67,46 @@ const Navbar = () => {
                 `}
               >
                 <div className="relative">
-                  {link.icon}
+                  {React.cloneElement(link.icon, { size: 16 })}
                   {link.badge && (
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent-red rounded-full border-2 border-reddish-900"></span>
                   )}
                 </div>
-                <span>{link.title}</span>
+                <span className="hidden xl:inline">{link.title}</span>
               </NavLink>
             ))}
           </div>
         </div>
 
         {/* Right: Actions & Profile */}
-        <div className="flex items-center space-x-6">
-          <div className="relative hidden lg:block">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={16} />
+        <div className="flex items-center space-x-2 xl:space-x-6 shrink-0">
+          <div className="relative hidden 2xl:block">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={14} />
             <input 
               type="text" 
-              placeholder="QUICK SEARCH..." 
-              className="bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-6 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-accent-red/50 w-64 transition-all text-white"
+              placeholder="SEARCH..." 
+              className="bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-accent-red/50 w-48 transition-all text-white"
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <button className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all relative">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-accent-red rounded-full border-2 border-reddish-900"></span>
+          <div className="flex items-center space-x-1">
+            <button className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all relative">
+              <Bell size={18} />
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-accent-red rounded-full border-2 border-reddish-900"></span>
             </button>
-            <NavLink to="/settings" className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all">
-              <Settings size={20} />
+            <NavLink to="/settings" className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all">
+              <Settings size={18} />
             </NavLink>
           </div>
 
-          <div className="h-10 w-[1px] bg-white/10 mx-2"></div>
+          <div className="h-8 w-[1px] bg-white/10 mx-1 hidden sm:block"></div>
 
-          <NavLink to="/profile" className="flex items-center space-x-3 group cursor-pointer">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-black text-white uppercase tracking-tight group-hover:text-accent-red transition-colors">Administrator</p>
-              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest leading-none">Global Operations</p>
+          <NavLink to="/profile" className="flex items-center space-x-3 group cursor-pointer shrink-0">
+            <div className="text-right hidden xl:block">
+              <p className="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-accent-red transition-colors">Administrator</p>
+              <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Operations</p>
             </div>
-            <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white/10 group-hover:border-accent-red transition-all shadow-soft">
+            <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-white/10 group-hover:border-accent-red transition-all shadow-soft">
               <img 
                 src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=128&auto=format&fit=crop" 
                 alt="Profile" 
@@ -115,15 +115,15 @@ const Navbar = () => {
             </div>
           </NavLink>
 
-          <div className="h-10 w-[1px] bg-white/10 mx-2"></div>
+          <div className="h-8 w-[1px] bg-white/10 mx-1"></div>
 
           <button 
             onClick={handleLogout}
-            className="p-2.5 text-accent-red hover:bg-accent-red/10 rounded-xl transition-all group flex items-center space-x-2"
+            className="p-2.5 text-accent-red hover:bg-accent-red/10 rounded-xl transition-all group flex items-center space-x-2 shrink-0"
             title="Sign Out"
           >
             <LogOut size={20} className="group-hover:rotate-12 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-widest hidden xl:block">Logout</span>
+            <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Logout</span>
           </button>
         </div>
 

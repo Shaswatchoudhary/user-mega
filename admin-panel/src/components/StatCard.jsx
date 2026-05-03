@@ -28,7 +28,7 @@ const StatCard = ({ title, value, trend, icon, color = 'text-primary', glowColor
       </div>
       
       <div className="mt-6 h-1 w-full bg-surface-light rounded-full overflow-hidden">
-         <div className={`h-full bg-primary/20 rounded-full group-hover:bg-primary transition-all duration-1000 w-[60%] shadow-glow-primary`} style={{ width: `${Math.min(Math.abs(trend) * 5, 100)}%` }}></div>
+         <div className={`h-full bg-accent-red/20 rounded-full group-hover:bg-accent-red transition-all duration-1000 shadow-red-glow`} style={{ width: `${Math.min(Math.abs(trend) * 5, 100)}%` }}></div>
       </div>
     </div>
   );
