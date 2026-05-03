@@ -40,31 +40,46 @@ const Tracker = () => {
   const [selectedNode, setSelectedNode] = useState(null);
   const [mapCenter, setMapCenter] = useState([16.7050, 74.2433]); // Default center (Kolhapur)
 
-  // Helper to inject coordinates if missing (Deterministic based on ID)
+  // Helper to inject coordinates if missing (Deterministic based on ID + Landmark Recognition)
   const injectCoordinates = (list) => {
+    // Local Landmark Cache for high accuracy when GPS is missing
+    const landmarks = [
+      { key: 'TERMINUS', lat: 16.6974, lng: 74.2427 },
+      { key: 'SHAHU', lat: 16.6974, lng: 74.2427 },
+      { key: 'SHIVAJI PARK', lat: 16.7025, lng: 74.2380 },
+      { key: 'TARABAI', lat: 16.7055, lng: 74.2480 },
+      { key: 'LIC COLONY', lat: 16.7110, lng: 74.2580 },
+      { key: 'RUIKAR', lat: 16.7145, lng: 74.2520 },
+      { key: 'KALAMBA', lat: 16.6667, lng: 74.2333 },
+      { key: 'RANKALA', lat: 16.6950, lng: 74.2150 },
+      { key: 'CENTRAL', lat: 16.7050, lng: 74.2433 }
+    ];
+
     return list.map(worker => {
-      // If we already have real GPS coordinates from Firestore, use them exactly
+      // 1. If we have real GPS, use it exactly
       if (worker.location?.latitude && worker.location?.longitude && !worker.location.isFake) {
         return worker;
       }
 
-      // If missing GPS but has a Kolhapur address, generate a FIXED spot based on ID
+      // 2. If missing GPS but has a Kolhapur address, find the best Landmark
       if (worker.location?.address && worker.location.address.toUpperCase().includes('KOLHAPUR')) {
-        const baseLat = 16.7050;
-        const baseLng = 74.2433;
+        const address = worker.location.address.toUpperCase();
         
-        // Use the ID to generate a consistent offset (so they don't jump)
+        // Find if the address contains any known landmarks
+        const landmark = landmarks.find(l => address.includes(l.key)) || landmarks[landmarks.length - 1];
+        
+        // Use the ID to generate a tiny consistent offset around that landmark (so they don't stack)
         const idHash = worker._id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const offsetLat = ((idHash % 100) / 5000) - 0.01; // Fixed offset between -0.01 and 0.01
-        const offsetLon = (((idHash * 13) % 100) / 5000) - 0.01;
+        const offsetLat = ((idHash % 100) / 10000) - 0.005;
+        const offsetLon = (((idHash * 13) % 100) / 10000) - 0.005;
         
         return {
           ...worker,
           location: {
             ...worker.location,
-            latitude: baseLat + offsetLat,
-            longitude: baseLng + offsetLon,
-            isFake: true // Mark as synthetic so we don't overwrite real GPS later
+            latitude: landmark.lat + offsetLat,
+            longitude: landmark.lng + offsetLon,
+            isFake: true 
           }
         };
       }
