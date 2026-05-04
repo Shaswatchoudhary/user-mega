@@ -18,37 +18,10 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
+import { useAdmin } from '../context/AdminContext';
 
 const Profile = () => {
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState({
-    fullName: 'Loading...',
-    email: '...',
-    role: 'System Operations',
-    location: 'Central Headquarters',
-    professionalSummary: '...'
-  });
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await api.get('/profile');
-        if (response.data.data) {
-          setProfile(response.data.data);
-          localStorage.setItem('admin_profile', JSON.stringify(response.data.data));
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        const savedProfile = localStorage.getItem('admin_profile');
-        if (savedProfile) {
-          setProfile(JSON.parse(savedProfile));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
+  const { profile, loading } = useAdmin();
 
   if (loading) return (
     <div className="flex items-center justify-center h-full pt-40">
@@ -83,8 +56,8 @@ const Profile = () => {
             <div className="relative inline-block mt-12 mb-6">
               <div className="relative p-1 bg-white rounded-3xl shadow-xl">
                  <Avatar 
-                   src={profile.avatar} 
-                   initials={profile.fullName?.substring(0, 2) || "AD"} 
+                   src={profile?.avatar} 
+                   initials={profile?.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || "AD"} 
                    size="xl" 
                    online={true} 
                    ringColor="ring-accent-red/20" 
@@ -127,7 +100,7 @@ const Profile = () => {
                 </div>
                 <div className="flex items-center space-x-4 p-4 bg-surface-light rounded-2xl border border-transparent hover:border-accent-red/20 transition-all group">
                    <Calendar size={16} className="text-accent-red" />
-                   <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Active Member since 2024</span>
+                   <span className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Active Member since 2026</span>
                 </div>
              </div>
           </div>

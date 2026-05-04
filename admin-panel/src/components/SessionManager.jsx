@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAdmin } from '../context/AdminContext';
 
 const SessionManager = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout: centralLogout } = useAdmin();
   const timerRef = useRef(null);
 
   // Default to 30 minutes if not set
@@ -22,8 +24,7 @@ const SessionManager = ({ children }) => {
 
   const logout = () => {
     console.log('[Session] Inactivity detected. Logging out...');
-    localStorage.removeItem('admin_auth');
-    localStorage.removeItem('admin_token');
+    centralLogout();
     navigate('/login', { replace: true });
   };
 

@@ -14,17 +14,17 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Avatar from './Avatar';
+import { useAdmin } from '../context/AdminContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { profile, logout: centralLogout } = useAdmin();
   const isAuthenticated = localStorage.getItem('admin_auth') === 'true';
 
   if (!isAuthenticated) return null;
   
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('admin_auth');
+    centralLogout();
     navigate('/login');
   };
 
@@ -105,16 +105,16 @@ const Navbar = () => {
           <NavLink to="/profile" className="flex items-center space-x-3 group cursor-pointer shrink-0">
             <div className="text-right hidden xl:block">
               <p className="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-accent-red transition-colors">
-                {JSON.parse(localStorage.getItem('admin_profile'))?.fullName || 'Administrator'}
+                {profile?.fullName || 'Administrator'}
               </p>
               <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">
-                {JSON.parse(localStorage.getItem('admin_profile'))?.role || 'Operations'}
+                {profile?.role || 'Operations'}
               </p>
             </div>
             <div className="relative group">
               <Avatar 
-                src={JSON.parse(localStorage.getItem('admin_profile'))?.avatar} 
-                initials={JSON.parse(localStorage.getItem('admin_profile'))?.fullName?.substring(0, 2) || 'AD'} 
+                src={profile?.avatar} 
+                initials={profile?.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'AD'} 
                 size="md"
                 online={true}
               />
