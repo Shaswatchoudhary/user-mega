@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Tracker from './pages/Tracker';
 import Issues from './pages/Issues';
+import Notifications from './pages/Notifications';
 import ProtectedRoute from './components/ProtectedRoute';
 import SessionManager from './components/SessionManager';
 import TermsOfService from './pages/TermsOfService';
@@ -37,6 +38,7 @@ function App() {
               <Route path="/system-logs" element={<ProtectedRoute><SystemLogs /></ProtectedRoute>} />
               <Route path="/tracker" element={<ProtectedRoute><Tracker /></ProtectedRoute>} />
               <Route path="/issues" element={<ProtectedRoute><Issues /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             </Routes>

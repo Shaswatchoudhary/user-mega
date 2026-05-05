@@ -91,10 +91,10 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-1">
-            <button className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all relative">
+            <NavLink to="/notifications" className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all relative">
               <Bell size={18} />
               <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-accent-red rounded-full border-2 border-reddish-900"></span>
-            </button>
+            </NavLink>
             <NavLink to="/settings" className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all">
               <Settings size={18} />
             </NavLink>
