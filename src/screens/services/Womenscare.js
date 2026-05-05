@@ -16,7 +16,7 @@ const Womenscare = ({ navigation, route }) => {
 
   useEffect(() => {
     console.log(`[FIRESTORE DEBUG] Initializing Query for ServiceType: "${category}"`);
-    
+
     setLoading(true);
     const unsubscribe = firestore()
       .collection('workers')
@@ -124,7 +124,7 @@ const Womenscare = ({ navigation, route }) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />

@@ -16,7 +16,7 @@ const Menscare = ({ navigation, route }) => {
 
   useEffect(() => {
     console.log(`[FIRESTORE DEBUG] Initializing Query for ServiceType: "${category}"`);
-    
+
     setLoading(true);
     // Use the same logic as WorkerListScreen
     const unsubscribe = firestore()
@@ -28,7 +28,7 @@ const Menscare = ({ navigation, route }) => {
         (querySnapshot) => {
           console.log(`[FIRESTORE DEBUG] Snapshot received!`);
           console.log(`[FIRESTORE DEBUG] Number of documents returned: ${querySnapshot?.size || 0}`);
-          
+
           const workerList = [];
           if (querySnapshot) {
             querySnapshot.forEach((doc) => {
@@ -46,7 +46,7 @@ const Menscare = ({ navigation, route }) => {
               });
             });
           }
-          
+
           setWorkers(workerList);
           setLoading(false);
         },
@@ -125,7 +125,7 @@ const Menscare = ({ navigation, route }) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
