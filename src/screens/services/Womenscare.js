@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Image,
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { API_BASE_URL } from '../../constants/config';
 import LinearGradient from 'react-native-linear-gradient';
+import firestore from '@react-native-firebase/firestore';
 
 const Womenscare = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
@@ -12,45 +12,117 @@ const Womenscare = ({ navigation, route }) => {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const category = "Women's Self Cares";
+  const category = route?.params?.category || "Women's Self Care";
 
   useEffect(() => {
-    fetchWorkers();
-  }, []);
+    console.log(`[FIRESTORE] Fetching workers for category: "${category}"`);
+    
+    setLoading(true);
+    const unsubscribe = firestore()
+      .collection('workers')
+      .where('isVerified', '==', true)
+      .where('isActive', '==', true)
+      .where('serviceType', '==', category)
+      .onSnapshot(
+        (querySnapshot) => {
+          const workerList = [];
+          if (querySnapshot) {
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              workerList.push({
+                id: doc.id,
+                name: data.fullName || "Service Professional",
+                rating: data.rating || 4.5,
+                categoryName: data.category || data.serviceType || category,
+                skills: data.skills || ["Professional Service"],
+                price: data.basePrice || data.rate || 249,
+                image: data.profileImage || data.photo || data.image,
+                ...data
+              });
+            });
+          }
+          console.log(`[FIRESTORE] Found ${workerList.length} workers`);
+          setWorkers(workerList);
+          setLoading(false);
+        },
+        (error) => {
+          console.error(`[FIRESTORE ERROR]:`, error);
+          setLoading(false);
+        }
+      );
 
-  const fetchWorkers = async () => {
+    return () => unsubscribe();
+  }, [category]);
+
+  const fetchWorkers_deprecated = async () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/workers`);
       const json = await response.json();
-      
+
       if (json.success && json.data) {
-        // Filter for women's professionals
+        console.log(`[${category}] RAW API DATA (Total: ${json.data.length} workers)`);
+        
+        const targetCat = category.toLowerCase().replace(/[^a-z]/g, '');
+
         const mappedWorkers = json.data
           .filter(w => {
             if ((w.status || '').toUpperCase() !== 'ACTIVE') return false;
-            const norm = (w.category || '').toLowerCase();
-            return norm.includes('women') || norm.includes('female');
+            
+            // Check both 'category' and 'serviceType' fields
+            const workerCatRaw = w.category || w.serviceType || '';
+            if (!workerCatRaw) return false;
+
+            const normalizedWorkerCat = workerCatRaw.toLowerCase().replace(/[^a-z]/g, '');
+
+            // Debug each potential match
+            const isMen = category.toLowerCase().includes('men');
+            const isWomen = category.toLowerCase().includes('women');
+
+            let isMatch = false;
+            if (isWomen) {
+              isMatch = normalizedWorkerCat.includes('women') ||
+                normalizedWorkerCat.includes('female') ||
+                normalizedWorkerCat.includes('parlor') ||
+                normalizedWorkerCat.includes('beautician') ||
+                normalizedWorkerCat.includes('salon');
+            } else if (isMen && !isWomen) {
+              isMatch = (normalizedWorkerCat.includes('men') && !normalizedWorkerCat.includes('women')) ||
+                normalizedWorkerCat.includes('barber') ||
+                normalizedWorkerCat.includes('grooming') ||
+                normalizedWorkerCat.includes('male');
+            } else {
+              isMatch = normalizedWorkerCat === targetCat || normalizedWorkerCat.includes(targetCat);
+            }
+
+            if (isMatch) {
+              console.log(`[${category}] ✅ MATCH FOUND: ${w.fullName} (Cat: ${workerCatRaw})`);
+            }
+            return isMatch;
           })
           .map(worker => ({
             id: worker._id,
-            name: worker.fullName || "Mish",
-            rating: worker.rating || 4,
-            categoryName: "Women's Self Care",
-            skills: worker.skills || ["Hair Styling", "Facial", "Makeup"],
-            price: worker.basePrice || 249,
-            image: worker.profileImage
+            name: worker.fullName || "Service Professional",
+            rating: worker.rating || 4.5,
+            categoryName: worker.category || worker.serviceType || category,
+            skills: worker.skills || ["Professional Service"],
+            price: worker.basePrice || worker.rate || 249,
+            image: worker.profileImage || worker.image
           }));
+        
+        if (mappedWorkers.length === 0) {
+          console.log(`[${category}] ⚠️ NO WORKERS MATCHED. First 3 workers in API:`, json.data.slice(0, 3).map(w => ({ name: w.fullName, cat: w.category, type: w.serviceType })));
+        }
         setWorkers(mappedWorkers);
       }
     } catch (error) {
-      console.error('Error fetching workers:', error);
+      console.error(`[${category}] FETCH ERROR:`, error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredWorkers = workers.filter(w => 
+  const filteredWorkers = workers.filter(w =>
     w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     w.skills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -95,8 +167,8 @@ const Womenscare = ({ navigation, route }) => {
               <Text style={styles.startingAt}>Starting at</Text>
               <Text style={styles.price}>₹{String(worker.price || '0')}/hr</Text>
             </View>
-            <TouchableOpacity 
-              onPress={() => navigation.navigate('WorkerDetail', { workerId: worker.id })}
+            <TouchableOpacity
+              onPress={() => navigation.navigate('WorkerProfile', { worker: worker })}
             >
               <LinearGradient
                 colors={['#E84545', '#722F37']}
@@ -132,12 +204,12 @@ const Womenscare = ({ navigation, route }) => {
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#9CA3AF" />
-          <TextInput 
-            style={styles.searchInput} 
-            placeholder={`Search ${category}...`} 
-            placeholderTextColor="#9CA3AF" 
-            value={searchQuery} 
-            onChangeText={setSearchQuery} 
+          <TextInput
+            style={styles.searchInput}
+            placeholder={`Search ${category}...`}
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
         </View>
       </View>
@@ -146,8 +218,8 @@ const Womenscare = ({ navigation, route }) => {
       {loading ? (
         <View style={styles.centered}><ActivityIndicator size="large" color="#E84545" /></View>
       ) : filteredWorkers.length > 0 ? (
-        <ScrollView 
-          style={styles.scrollView} 
+        <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={[styles.listContainer, { paddingBottom: insets.bottom + 20 }]}
           showsVerticalScrollIndicator={false}
         >

@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Image,
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { API_BASE_URL } from '../../constants/config';
 import LinearGradient from 'react-native-linear-gradient';
+import firestore from '@react-native-firebase/firestore';
 
 const Menscare = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
@@ -12,43 +12,49 @@ const Menscare = ({ navigation, route }) => {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const category = "Men's Self Cares";
+  const category = route?.params?.category || "Men's Self Care";
 
   useEffect(() => {
-    fetchWorkers();
-  }, []);
+    console.log(`[FIRESTORE] Fetching workers for category: "${category}"`);
+    
+    setLoading(true);
+    // Use the same logic as WorkerListScreen
+    const unsubscribe = firestore()
+      .collection('workers')
+      .where('isVerified', '==', true)
+      .where('isActive', '==', true)
+      .where('serviceType', '==', category)
+      .onSnapshot(
+        (querySnapshot) => {
+          const workerList = [];
+          if (querySnapshot) {
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              workerList.push({
+                id: doc.id,
+                name: data.fullName || "Service Professional",
+                rating: data.rating || 4.5,
+                categoryName: data.category || data.serviceType || category,
+                skills: data.skills || ["Professional Service"],
+                price: data.basePrice || data.rate || 249,
+                image: data.profileImage || data.photo || data.image,
+                ...data
+              });
+            });
+          }
+          
+          console.log(`[FIRESTORE] Found ${workerList.length} workers`);
+          setWorkers(workerList);
+          setLoading(false);
+        },
+        (error) => {
+          console.error(`[FIRESTORE ERROR]:`, error);
+          setLoading(false);
+        }
+      );
 
-  const fetchWorkers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/workers`);
-      const json = await response.json();
-
-      if (json.success && json.data) {
-        // Filter for men's professionals
-        const mappedWorkers = json.data
-          .filter(w => {
-            if ((w.status || '').toUpperCase() !== 'ACTIVE') return false;
-            const norm = (w.category || '').toLowerCase();
-            return norm.includes('men') || norm.includes('male');
-          })
-          .map(worker => ({
-            id: worker._id,
-            name: worker.fullName || "Ashwin",
-            rating: worker.rating || 4,
-            categoryName: "Men's Self Care",
-            skills: worker.skills || ["Haircut", "Shaving", "Facial"],
-            price: worker.basePrice || 249,
-            image: worker.profileImage
-          }));
-        setWorkers(mappedWorkers);
-      }
-    } catch (error) {
-      console.error('Error fetching workers:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => unsubscribe();
+  }, [category]);
 
   const filteredWorkers = workers.filter(w =>
     w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -96,7 +102,7 @@ const Menscare = ({ navigation, route }) => {
               <Text style={styles.price}>₹{String(worker.price || '0')}/hr</Text>
             </View>
             <TouchableOpacity
-              onPress={() => navigation.navigate('WorkerDetail', { workerId: worker.id })}
+              onPress={() => navigation.navigate('WorkerProfile', { worker: worker })}
             >
               <LinearGradient
                 colors={['#E84545', '#722F37']}
