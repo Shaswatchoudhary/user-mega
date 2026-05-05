@@ -1,201 +1,111 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  Modal,
-  Alert,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Image, StatusBar, ActivityIndicator } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_BASE_URL } from '../../constants/config';
-import firestore from '@react-native-firebase/firestore';
-import { useLocation } from '../../context/LocationContext';
-
-const calculateDistance = (workerLat, workerLng, userLat, userLng) => {
-  if (!workerLat || !workerLng || !userLat || !userLng) return 0.5;
-  const R = 6371;
-  const dLat = (workerLat - userLat) * Math.PI / 180;
-  const dLon = (workerLng - userLng) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(userLat * Math.PI / 180) * Math.cos(workerLat * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-  return parseFloat(distance.toFixed(1));
-};
+import LinearGradient from 'react-native-linear-gradient';
 
 const Menscare = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
-  const { selectedLocation } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterVisible, setFilterVisible] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('all');
-
-  // Get category from params, default to 'Self-care (Male)'
-  const category = route?.params?.category || 'Self-care (Male)';
-
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const category = "Men's Self Cares";
+
   useEffect(() => {
     fetchWorkers();
-  }, [category, selectedLocation]);
+  }, []);
 
   const fetchWorkers = async () => {
     try {
       setLoading(true);
-      // Fetch all workers from API for consistent filtering and normalization
       const response = await fetch(`${API_BASE_URL}/workers`);
       const json = await response.json();
-      
+
       if (json.success && json.data) {
-        const targetCat = category.toLowerCase().replace(/\s+/g, '');
-        
+        // Filter for men's professionals
         const mappedWorkers = json.data
           .filter(w => {
             if ((w.status || '').toUpperCase() !== 'ACTIVE') return false;
-            if (!w.category) return false;
-            
-            const normalizedWorkerCat = w.category.toLowerCase().replace(/\s+/g, '');
-            // Match main category or subcategories
-            return normalizedWorkerCat === targetCat || 
-                   normalizedWorkerCat.includes('menscare') || 
-                   normalizedWorkerCat.includes('malecare');
+            const norm = (w.category || '').toLowerCase();
+            return norm.includes('men') || norm.includes('male');
           })
           .map(worker => ({
             id: worker._id,
-            name: worker.fullName || "Service Professional",
-            rating: worker.rating || 4.5,
-            reviewCount: worker.completedOrders || 0,
-            experience: `${worker.experience || 0}+ Years`,
-            rate: worker.basePrice || worker.rate || 299,
-            distance: calculateDistance(
-              worker.location?.latitude || worker.lat,
-              worker.location?.longitude || worker.lng,
-              selectedLocation?.latitude || selectedLocation?.coords?.latitude,
-              selectedLocation?.longitude || selectedLocation?.coords?.longitude
-            ),
-
-            verified: true,
-            specialization: worker.category || category,
-            image: worker.image,
-            ...worker
+            name: worker.fullName || "Ashwin",
+            rating: worker.rating || 4,
+            categoryName: "Men's Self Care",
+            skills: worker.skills || ["Haircut", "Shaving", "Facial"],
+            price: worker.basePrice || 249,
+            image: worker.profileImage
           }));
-          
         setWorkers(mappedWorkers);
       }
     } catch (error) {
-      console.error('FETCH ERROR:', error);
+      console.error('Error fetching workers:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterOptions = [
-    { id: 'all', label: 'All Professionals', icon: 'grid-outline' },
-    { id: 'rating', label: 'Highest Rated', icon: 'star' },
-    { id: 'price_low', label: 'Price: Low to High', icon: 'arrow-up' },
-    { id: 'price_high', label: 'Price: High to Low', icon: 'arrow-down' },
-    { id: 'distance', label: 'Nearest First', icon: 'location' },
-    { id: 'experience', label: 'Most Experienced', icon: 'ribbon' },
-  ];
-
-  const getSortedWorkers = () => {
-    let sorted = workers.filter(w => 
-      w.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      w.specialization.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    switch (selectedFilter) {
-      case 'rating': sorted.sort((a, b) => b.rating - a.rating); break;
-      case 'price_low': sorted.sort((a, b) => a.rate - b.rate); break;
-      case 'price_high': sorted.sort((a, b) => b.rate - a.rate); break;
-      case 'distance': sorted.sort((a, b) => a.distance - b.distance); break;
-      case 'experience':
-        sorted.sort((a, b) => {
-          const expA = parseInt(a.experience) || 0;
-          const expB = parseInt(b.experience) || 0;
-          return expB - expA;
-        });
-        break;
-      default: break;
-    }
-    return sorted;
-  };
-
-  const handleBookNow = (expert) => {
-    navigation.navigate("WorkerProfile", { 
-      worker: expert,
-      preSelectedProduct: route.params?.preSelectedProduct
-    });
-  };
+  const filteredWorkers = workers.filter(w =>
+    w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    w.skills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const renderWorkerCard = (worker) => (
     <View key={worker.id} style={styles.card}>
       <View style={styles.cardContent}>
         <View style={styles.avatarContainer}>
-          <View style={styles.avatarPlaceholder}>
-            <MaterialCommunityIcons name="face-man" size={32} color="#9CA3AF" />
-          </View>
+          {worker.image ? (
+            <Image source={{ uri: worker.image }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder} />
+          )}
         </View>
 
-        <View style={styles.mainContent}>
-          <View style={styles.headerRow}>
+        <View style={{ flex: 1 }}>
+          <View style={styles.nameRow}>
             <View style={styles.nameSection}>
-              <Text style={styles.name}>{worker.name}</Text>
-              {worker.verified && <MaterialCommunityIcons name="shield-check" size={16} color="#10B981" />}
+              <Text style={styles.name}>{String(worker.name || '')}</Text>
+              <MaterialCommunityIcons name="check-decagram" size={16} color="#10B981" />
             </View>
-            <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={12} color="#F59E0B" />
-              <Text style={styles.ratingText}>{worker.rating}</Text>
+            <View style={styles.ratingSection}>
+              <Ionicons name="star" size={14} color="#F59E0B" />
+              <Text style={styles.ratingText}>{String(worker.rating || '0')}</Text>
             </View>
           </View>
 
-          <Text style={styles.specialization}>{worker.specialization}</Text>
+          <Text style={styles.categoryLabel}>{String(worker.categoryName || '')}</Text>
 
-          <View style={styles.infoGrid}>
-            <View style={styles.infoItem}>
-              <Ionicons name="briefcase-outline" size={14} color="#6B7280" />
-              <Text style={styles.infoText}>{worker.experience}</Text>
-            </View>
-            <View style={styles.infoDivider} />
-            <View style={styles.infoItem}>
-              <Ionicons name="location-outline" size={14} color="#6B7280" />
-              <Text style={styles.infoText}>{worker.distance} km</Text>
-            </View>
-            <View style={styles.infoDivider} />
-            <View style={styles.infoItem}>
-              <Ionicons name="chatbox-outline" size={14} color="#6B7280" />
-              <Text style={styles.infoText}>{worker.reviewCount}</Text>
-            </View>
+          <View style={styles.skillsRow}>
+            {(worker.skills || []).slice(0, 3).map((skill, index) => (
+              <View key={index} style={styles.skillChip}>
+                <Text style={styles.skillText}>{String(skill || '')}</Text>
+              </View>
+            ))}
           </View>
+
+          <View style={styles.divider} />
 
           <View style={styles.bottomRow}>
-            <View style={styles.priceSection}>
-              <Text style={styles.priceLabel}>Starting at</Text>
-              <Text style={styles.price}>₹{worker.rate}/session</Text>
+            <View style={styles.priceContainer}>
+              <Text style={styles.startingAt}>Starting at</Text>
+              <Text style={styles.price}>₹{String(worker.price || '0')}/hr</Text>
             </View>
-
             <TouchableOpacity
-              style={styles.bookButton}
-              onPress={() => handleBookNow(worker)}
-              activeOpacity={0.8}
+              onPress={() => navigation.navigate('WorkerDetail', { workerId: worker.id })}
             >
               <LinearGradient
-                colors={['#E84545', '#1A1A1A']}
+                colors={['#E84545', '#722F37']}
                 start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.bookButtonGradient}
+                end={{ x: 1, y: 0 }}
+                style={styles.bookButton}
               >
                 <Text style={styles.bookButtonText}>Book Now</Text>
-                <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                <Ionicons name="arrow-forward" size={16} color="#FFF" />
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -206,335 +116,124 @@ const Menscare = ({ navigation, route }) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Men's Self-Care</Text>
-          <Text style={styles.headerSubtitle}>{getSortedWorkers().length} professionals nearby</Text>
+          <Text style={styles.headerTitle}>{String(category || '')}</Text>
+          <Text style={styles.headerSubtitle}>{String(filteredWorkers.length || '0')} professionals active</Text>
         </View>
-
-        <TouchableOpacity style={styles.filterButton} onPress={() => setFilterVisible(true)}>
-          <Ionicons name="options-outline" size={24} color="#000" />
-          {selectedFilter !== 'all' && <View style={styles.filterDot} />}
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
       </View>
 
-      <TouchableOpacity
-        style={styles.locationDisplayRow}
-        onPress={() => navigation.navigate('LocationSelection')}
-      >
-        <Ionicons name="location" size={16} color="#E84545" />
-        <Text style={styles.locationDisplayText} numberOfLines={1}>
-          {selectedLocation?.addressText || selectedLocation?.address || 'Select your location'}
-        </Text>
-        <Ionicons name="chevron-forward" size={14} color="#6B7280" />
-      </TouchableOpacity>
-
-      {route.params?.preSelectedProduct && (
-        <View style={styles.productBanner}>
-          <MaterialCommunityIcons name="shopping-outline" size={18} color="#FFF" />
-          <Text style={styles.productBannerText}>
-             Booking for: <Text style={{ fontWeight: 'bold' }}>{route.params.preSelectedProduct}</Text>
-          </Text>
-          <TouchableOpacity onPress={() => navigation.setParams({ preSelectedProduct: null })}>
-            <Ionicons name="close-circle" size={18} color="#FFF" />
-          </TouchableOpacity>
-        </View>
-      )}
-
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by name or specialization"
+            placeholder={`Search ${category}...`}
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 
-      {selectedFilter !== 'all' && (
-        <View style={styles.activeFilterContainer}>
-          <View style={styles.filterChip}>
-            <Ionicons name={filterOptions.find(f => f.id === selectedFilter)?.icon} size={14} color="#E84545" />
-            <Text style={styles.filterChipText}>{filterOptions.find(f => f.id === selectedFilter)?.label}</Text>
-            <TouchableOpacity onPress={() => setSelectedFilter('all')}>
-              <Ionicons name="close" size={16} color="#E84545" />
-            </TouchableOpacity>
-          </View>
+      {/* Content */}
+      {loading ? (
+        <View style={styles.centered}><ActivityIndicator size="large" color="#E84545" /></View>
+      ) : filteredWorkers.length > 0 ? (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.listContainer, { paddingBottom: insets.bottom + 20 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          {filteredWorkers.map(renderWorkerCard)}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyStateContainer}>
+          <MaterialCommunityIcons name="account-search-outline" size={100} color="#E2E8F0" />
+          <Text style={styles.emptyStateTitle}>No Professionals Found</Text>
+          <Text style={styles.emptyStateSubtitle}>We couldn't find any active {String(category || '')}. Check back soon!</Text>
         </View>
       )}
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.listContainer, { paddingBottom: insets.bottom + 20 }]}
-        showsVerticalScrollIndicator={false}
-      >
-        {getSortedWorkers().map((worker) => renderWorkerCard(worker))}
-      </ScrollView>
-
-      <Modal
-        visible={filterVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setFilterVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setFilterVisible(false)} />
-          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Sort & Filter</Text>
-              <TouchableOpacity onPress={() => setFilterVisible(false)}>
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.filterOptions}>
-              {filterOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.id}
-                  style={[
-                    styles.filterOption,
-                    selectedFilter === option.id && styles.filterOptionSelected
-                  ]}
-                  onPress={() => {
-                    setSelectedFilter(option.id);
-                    setFilterVisible(false);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.filterOptionLeft}>
-                    <View style={[
-                      styles.filterIconContainer,
-                      selectedFilter === option.id && styles.filterIconContainerSelected
-                    ]}>
-                      <Ionicons
-                        name={option.icon}
-                        size={20}
-                        color={selectedFilter === option.id ? '#E84545' : '#6B7280'}
-                      />
-                    </View>
-                    <Text style={[
-                      styles.filterOptionText,
-                      selectedFilter === option.id && styles.filterOptionTextSelected
-                    ]}>
-                      {option.label}
-                    </Text>
-                  </View>
-                  {selectedFilter === option.id && (
-                    <Ionicons name="checkmark-circle" size={24} color="#E84545" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#FFF' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
   },
   backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
-  headerSubtitle: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  filterButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  filterDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#E84545',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
-  locationDisplayRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  locationDisplayText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#374151',
-    fontWeight: '500',
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937' },
+  headerSubtitle: { fontSize: 13, color: '#9CA3AF', marginTop: 2 },
+  searchContainer: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F3F4F6',
     borderRadius: 12,
-    height: 44,
-    paddingHorizontal: 14,
-    gap: 10,
+    height: 50,
+    paddingHorizontal: 16,
   },
-  searchInput: { flex: 1, fontSize: 15, color: '#000' },
-  activeFilterContainer: { paddingHorizontal: 16, paddingVertical: 12 },
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#FEF2F2',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  filterChipText: { fontSize: 13, fontWeight: '600', color: '#E84545' },
+  searchInput: { flex: 1, fontSize: 15, color: '#1F2937' },
   scrollView: { flex: 1 },
   listContainer: { padding: 16 },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: '#FFF',
+    borderRadius: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#F3F4F6',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  cardContent: { flexDirection: 'row', padding: 16 },
-  avatarContainer: { marginRight: 14 },
-  avatarPlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-  },
-  mainContent: { flex: 1 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
-  nameSection: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
-  name: { fontSize: 16, fontWeight: '600', color: '#000' },
-  ratingBadge: {
+  cardContent: { padding: 16, flexDirection: 'row' },
+  avatarContainer: { marginRight: 16 },
+  avatarPlaceholder: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#F3F4F6' },
+  avatar: { width: 64, height: 64, borderRadius: 32 },
+  nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  nameSection: { flexDirection: 'row', alignItems: 'center' },
+  name: { fontSize: 17, fontWeight: '700', color: '#1F2937' },
+  ratingSection: { flexDirection: 'row', alignItems: 'center' },
+  ratingText: { fontSize: 14, fontWeight: '600', color: '#1F2937' },
+  categoryLabel: { fontSize: 14, color: '#E84545', fontWeight: '500', marginBottom: 12 },
+  skillsRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 16 },
+  skillChip: { backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, marginRight: 8 },
+  skillText: { fontSize: 12, color: '#4B5563', fontWeight: '500' },
+  divider: { height: 1, backgroundColor: '#F3F4F6', marginBottom: 12 },
+  bottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  priceContainer: { gap: 2 },
+  startingAt: { fontSize: 11, color: '#9CA3AF' },
+  price: { fontSize: 16, fontWeight: '700', color: '#1F2937' },
+  bookButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF7ED',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    gap: 4,
-  },
-  ratingText: { fontSize: 13, fontWeight: '600', color: '#000' },
-  specialization: { fontSize: 13, color: '#6B7280', marginBottom: 12 },
-  infoGrid: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 12 },
-  infoItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  infoText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
-  infoDivider: { width: 1, height: 12, backgroundColor: '#E5E7EB' },
-  bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  priceSection: { gap: 2 },
-  priceLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
-  price: { fontSize: 16, fontWeight: '700', color: '#000' },
-  bookButton: { borderRadius: 10, overflow: 'hidden' },
-  bookButtonGradient: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, gap: 6 },
-  bookButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '80%' },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  modalTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
-  filterOptions: { paddingVertical: 8 },
-  filterOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14 },
-  filterOptionSelected: { backgroundColor: '#FEF2F2' },
-  filterOptionLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  filterIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F9FAFB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterIconContainerSelected: { backgroundColor: '#FEE2E2' },
-  filterOptionText: { fontSize: 15, color: '#374151', fontWeight: '500' },
-  filterOptionTextSelected: { fontWeight: '600', color: '#E84545' },
-  productBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#334155',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    gap: 10,
+    borderRadius: 12,
+    gap: 8,
   },
-  productBannerText: {
-    flex: 1,
-    color: '#FFF',
-    fontSize: 13,
-    fontFamily: 'Poppins-Medium',
-  },
+  bookButtonText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
+  emptyStateContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40, marginTop: -40 },
+  emptyStateTitle: { fontSize: 20, fontWeight: '700', color: '#1F2937', marginTop: 16 },
+  emptyStateSubtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', marginTop: 8, lineHeight: 22 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' }
 });
 
 export default Menscare;

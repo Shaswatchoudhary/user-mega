@@ -20,7 +20,7 @@ const popularServices = [
   { id: 1, name: 'Electrician', icon: 'lightning-bolt', color: '#F39C12', screen: 'WorkerList' },
   { id: 2, name: 'Plumber', icon: 'pipe-wrench', color: '#3498DB', screen: 'WorkerList' },
   { id: 3, name: 'Carpenter', icon: 'hammer-screwdriver', color: '#E67E22', screen: 'WorkerList' },
-  { id: 4, name: 'Self-Care', icon: 'face-woman-shimmer', color: '#FF6B9D', screen: 'SelfCare', hasSubcategories: true },
+  { id: 4, name: 'Self-Care', icon: 'face-woman-shimmer', color: '#FF6B9D', screen: 'WorkerList', hasSubcategories: true },
   { id: 5, name: 'AC Repair', icon: 'air-conditioner', color: '#1ABC9C', screen: 'WorkerList' },
   { id: 6, name: 'Appliance', icon: 'washing-machine', color: '#9B59B6', screen: 'WorkerList' },
 ];
@@ -325,24 +325,8 @@ export default function HomeScreen({ navigation }) {
   }, [user?.uid]);
 
   const handleServicePress = (service) => {
-    console.log('Navigating to screen:', service.screen, 'with params:', { category: service.name });
     if (service.hasSubcategories) {
-      setModalConfig({
-        visible: true,
-        type: 'info',
-        title: 'Choose Category',
-        message: 'Please select which service you are looking for.',
-        primaryLabel: "Men's Care",
-        secondaryLabel: "Women's Care",
-        onPrimary: () => {
-          setModalConfig(prev => ({ ...prev, visible: false }));
-          navigation.navigate('WorkerList', { category: "Men's Self Care" });
-        },
-        onSecondary: () => {
-          setModalConfig(prev => ({ ...prev, visible: false }));
-          navigation.navigate('WorkerList', { category: "Women's Self Care" });
-        }
-      });
+      setShowSelfCareModal(true);
     } else {
       navigation.navigate(service.screen, { category: service.name });
     }
@@ -362,27 +346,15 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleBannerPress = (banner) => {
-    if (banner.screen === 'SelfCare') {
-      setShowSelfCareModal(true);
-    } else {
-      navigation.navigate(banner.screen, { category: banner.category });
-    }
+    navigation.navigate(banner.screen, { category: banner.category });
   };
 
   const handlePromoPress = (promo) => {
-    if (promo.screen === 'SelfCare') {
-      setShowSelfCareModal(true);
-    } else {
-      navigation.navigate(promo.screen, { category: promo.category });
-    }
+    navigation.navigate(promo.screen, { category: promo.category });
   };
 
   const handleSeeAllPress = (category) => {
-    if (category === 'SelfCare') {
-      setShowSelfCareModal(true);
-    } else {
-      navigation.navigate('WorkerList', { category: category });
-    }
+    navigation.navigate('WorkerList', { category: category });
   };
 
   return (
@@ -413,9 +385,7 @@ export default function HomeScreen({ navigation }) {
           >
             <Ionicons name="notifications-outline" size={24} color="#333" />
             {unreadCount > 0 && (
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-              </View>
+              <View style={styles.badgeContainer} />
             )}
           </TouchableOpacity>
         </View>
@@ -742,6 +712,64 @@ export default function HomeScreen({ navigation }) {
           />
         </View>
 
+        {/* Self-Care Selection Modal (Screenshot Match) */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showSelfCareModal}
+          onRequestClose={() => setShowSelfCareModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Category</Text>
+              <Text style={styles.modalSubtitle}>Choose self-care workers</Text>
+
+              {/* Men's Option */}
+              <TouchableOpacity 
+                style={styles.subcategoryButton}
+                onPress={() => {
+                  setShowSelfCareModal(false);
+                  navigation.navigate('Menscare');
+                }}
+              >
+                <View style={[styles.subIconContainer, { backgroundColor: '#FFF5F5' }]}>
+                  <MaterialCommunityIcons name="face-man" size={28} color="#E84545" />
+                </View>
+                <View style={styles.subcategoryTextContainer}>
+                  <Text style={styles.subcategoryTitle}>Men's Self-Care</Text>
+                  <Text style={styles.subcategorySubtext}>Barbers, stylists & grooming experts</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+              </TouchableOpacity>
+
+              {/* Women's Option */}
+              <TouchableOpacity 
+                style={styles.subcategoryButton}
+                onPress={() => {
+                  setShowSelfCareModal(false);
+                  navigation.navigate('Womenscare');
+                }}
+              >
+                <View style={[styles.subIconContainer, { backgroundColor: '#FFF5F7' }]}>
+                  <MaterialCommunityIcons name="face-woman" size={28} color="#FF6B9D" />
+                </View>
+                <View style={styles.subcategoryTextContainer}>
+                  <Text style={styles.subcategoryTitle}>Women's Self-Care</Text>
+                  <Text style={styles.subcategorySubtext}>Stylists, beauticians & spa workers</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.modalCloseButton}
+                onPress={() => setShowSelfCareModal(false)}
+              >
+                <Text style={styles.modalCloseText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         {/* Professional Services */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Professional workers</Text>
@@ -1040,64 +1068,85 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 6,
   },
-  // Modal Styles
+  // Modal Styles (Compact Screenshot Match)
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 24,
-    width: '85%',
-    maxWidth: 400,
+    borderRadius: 24,
+    padding: 20,
+    width: '82%', // More compact
+    maxWidth: 340,
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
   },
   modalTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1E293B',
     marginBottom: 4,
+    fontFamily: 'Poppins-Bold',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#64748B',
     marginBottom: 24,
+    fontFamily: 'Poppins-Regular',
   },
   subcategoryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 12,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  subIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  subIcon: {
+    width: 22,
+    height: 22,
   },
   subcategoryTextContainer: {
     flex: 1,
     marginLeft: 12,
   },
   subcategoryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 2,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 1,
+    fontFamily: 'Poppins-SemiBold',
   },
   subcategorySubtext: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 11,
+    color: '#64748B',
+    fontFamily: 'Poppins-Regular',
   },
   modalCloseButton: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 16,
+    marginTop: 8,
+    paddingVertical: 10,
     alignItems: 'center',
-    marginTop: 12,
   },
   modalCloseText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: '#64748B',
+    fontFamily: 'Poppins-SemiBold',
   },
   trackingStatusBar: {
     backgroundColor: '#E84545',
@@ -1145,16 +1194,13 @@ const styles = StyleSheet.create({
   },
   badgeContainer: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: 2,
+    right: 4,
     backgroundColor: '#E84545',
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    borderWidth: 2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
     borderColor: '#FFF',
   },
   badgeText: {

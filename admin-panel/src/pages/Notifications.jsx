@@ -17,6 +17,8 @@ import StatusBadge from '../components/StatusBadge';
 import EmptyState from '../components/EmptyState';
 import api from '../utils/api';
 
+import toast, { Toaster } from 'react-hot-toast';
+
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,17 +65,38 @@ const Notifications = () => {
 
   const handleSendBroadcast = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.message) return;
+    if (!formData.title || !formData.message) {
+      toast.error('Please fill in all fields', {
+        style: { borderRadius: '12px', fontSize: '12px', fontWeight: '900' }
+      });
+      return;
+    }
 
     setIsSending(true);
     try {
       // ━━━━━━━━━━━━━━━━━━━━━
       // REAL LIVE API CALL
       // ━━━━━━━━━━━━━━━━━━━━━
-      const response = await api.post('/admin/broadcast', formData);
+      const response = await api.post('/broadcast', formData);
       
       if (response.data.success) {
-        alert(response.data.message); // Shows how many devices received it
+        toast.success(response.data.message, {
+          duration: 4000,
+          position: 'top-right',
+          style: {
+            borderRadius: '16px',
+            background: '#ffffff',
+            color: '#1e293b',
+            fontSize: '13px',
+            fontWeight: '900',
+            border: '1px solid #f1f5f9',
+            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+          },
+          iconTheme: {
+            primary: '#e11d48',
+            secondary: '#ffffff',
+          },
+        });
         
         const newNotif = {
           id: Date.now(),
@@ -88,7 +111,9 @@ const Notifications = () => {
       }
     } catch (error) {
       console.error('Broadcast Error:', error);
-      alert(error.response?.data?.message || 'Failed to send broadcast. Make sure the backend is running.');
+      toast.error(error.response?.data?.message || 'Failed to send broadcast', {
+        style: { borderRadius: '12px', fontSize: '12px', fontWeight: '900' }
+      });
     } finally {
       setIsSending(false);
     }
@@ -101,6 +126,7 @@ const Notifications = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
+      <Toaster />
       <SectionHeader 
         title="Notifications Center" 
         subtitle="Broadcast messages and manage system-wide alerts"
