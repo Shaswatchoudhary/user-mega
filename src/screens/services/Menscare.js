@@ -15,7 +15,7 @@ const Menscare = ({ navigation, route }) => {
   const category = route?.params?.category || "Men's Self Care";
 
   useEffect(() => {
-    console.log(`[FIRESTORE] Fetching workers for category: "${category}"`);
+    console.log(`[FIRESTORE DEBUG] Initializing Query for ServiceType: "${category}"`);
     
     setLoading(true);
     // Use the same logic as WorkerListScreen
@@ -26,13 +26,17 @@ const Menscare = ({ navigation, route }) => {
       .where('serviceType', '==', category)
       .onSnapshot(
         (querySnapshot) => {
+          console.log(`[FIRESTORE DEBUG] Snapshot received!`);
+          console.log(`[FIRESTORE DEBUG] Number of documents returned: ${querySnapshot?.size || 0}`);
+          
           const workerList = [];
           if (querySnapshot) {
             querySnapshot.forEach((doc) => {
               const data = doc.data();
+              console.log(`[FIRESTORE DEBUG] Found Worker: ${data.fullName || data.name} (${doc.id})`);
               workerList.push({
                 id: doc.id,
-                name: data.fullName || "Service Professional",
+                name: data.fullName || data.name || "Service Professional",
                 rating: data.rating || 4.5,
                 categoryName: data.category || data.serviceType || category,
                 skills: data.skills || ["Professional Service"],
@@ -43,7 +47,6 @@ const Menscare = ({ navigation, route }) => {
             });
           }
           
-          console.log(`[FIRESTORE] Found ${workerList.length} workers`);
           setWorkers(workerList);
           setLoading(false);
         },

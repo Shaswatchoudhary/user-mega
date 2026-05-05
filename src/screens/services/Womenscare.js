@@ -15,7 +15,7 @@ const Womenscare = ({ navigation, route }) => {
   const category = route?.params?.category || "Women's Self Care";
 
   useEffect(() => {
-    console.log(`[FIRESTORE] Fetching workers for category: "${category}"`);
+    console.log(`[FIRESTORE DEBUG] Initializing Query for ServiceType: "${category}"`);
     
     setLoading(true);
     const unsubscribe = firestore()
@@ -25,13 +25,17 @@ const Womenscare = ({ navigation, route }) => {
       .where('serviceType', '==', category)
       .onSnapshot(
         (querySnapshot) => {
+          console.log(`[FIRESTORE DEBUG] Snapshot received!`);
+          console.log(`[FIRESTORE DEBUG] Number of documents returned: ${querySnapshot?.size || 0}`);
+
           const workerList = [];
           if (querySnapshot) {
             querySnapshot.forEach((doc) => {
               const data = doc.data();
+              console.log(`[FIRESTORE DEBUG] Found Worker: ${data.fullName || data.name} (${doc.id})`);
               workerList.push({
                 id: doc.id,
-                name: data.fullName || "Service Professional",
+                name: data.fullName || data.name || "Service Professional",
                 rating: data.rating || 4.5,
                 categoryName: data.category || data.serviceType || category,
                 skills: data.skills || ["Professional Service"],
@@ -41,7 +45,6 @@ const Womenscare = ({ navigation, route }) => {
               });
             });
           }
-          console.log(`[FIRESTORE] Found ${workerList.length} workers`);
           setWorkers(workerList);
           setLoading(false);
         },
@@ -54,73 +57,6 @@ const Womenscare = ({ navigation, route }) => {
     return () => unsubscribe();
   }, [category]);
 
-  const fetchWorkers_deprecated = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/workers`);
-      const json = await response.json();
-
-      if (json.success && json.data) {
-        console.log(`[${category}] RAW API DATA (Total: ${json.data.length} workers)`);
-        
-        const targetCat = category.toLowerCase().replace(/[^a-z]/g, '');
-
-        const mappedWorkers = json.data
-          .filter(w => {
-            if ((w.status || '').toUpperCase() !== 'ACTIVE') return false;
-            
-            // Check both 'category' and 'serviceType' fields
-            const workerCatRaw = w.category || w.serviceType || '';
-            if (!workerCatRaw) return false;
-
-            const normalizedWorkerCat = workerCatRaw.toLowerCase().replace(/[^a-z]/g, '');
-
-            // Debug each potential match
-            const isMen = category.toLowerCase().includes('men');
-            const isWomen = category.toLowerCase().includes('women');
-
-            let isMatch = false;
-            if (isWomen) {
-              isMatch = normalizedWorkerCat.includes('women') ||
-                normalizedWorkerCat.includes('female') ||
-                normalizedWorkerCat.includes('parlor') ||
-                normalizedWorkerCat.includes('beautician') ||
-                normalizedWorkerCat.includes('salon');
-            } else if (isMen && !isWomen) {
-              isMatch = (normalizedWorkerCat.includes('men') && !normalizedWorkerCat.includes('women')) ||
-                normalizedWorkerCat.includes('barber') ||
-                normalizedWorkerCat.includes('grooming') ||
-                normalizedWorkerCat.includes('male');
-            } else {
-              isMatch = normalizedWorkerCat === targetCat || normalizedWorkerCat.includes(targetCat);
-            }
-
-            if (isMatch) {
-              console.log(`[${category}] ✅ MATCH FOUND: ${w.fullName} (Cat: ${workerCatRaw})`);
-            }
-            return isMatch;
-          })
-          .map(worker => ({
-            id: worker._id,
-            name: worker.fullName || "Service Professional",
-            rating: worker.rating || 4.5,
-            categoryName: worker.category || worker.serviceType || category,
-            skills: worker.skills || ["Professional Service"],
-            price: worker.basePrice || worker.rate || 249,
-            image: worker.profileImage || worker.image
-          }));
-        
-        if (mappedWorkers.length === 0) {
-          console.log(`[${category}] ⚠️ NO WORKERS MATCHED. First 3 workers in API:`, json.data.slice(0, 3).map(w => ({ name: w.fullName, cat: w.category, type: w.serviceType })));
-        }
-        setWorkers(mappedWorkers);
-      }
-    } catch (error) {
-      console.error(`[${category}] FETCH ERROR:`, error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredWorkers = workers.filter(w =>
     w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
