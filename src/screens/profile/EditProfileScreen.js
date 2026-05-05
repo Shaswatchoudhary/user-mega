@@ -19,6 +19,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../constants/config';
 import { useAuth } from '../../context/AuthContext';
 import { colors, typography, spacing, borderRadius } from '../../theme';
+import CustomModal from '../../components/CustomModal';
 
 const EditProfileScreen = ({ navigation }) => {
   const { user, login } = useAuth();
@@ -27,6 +28,13 @@ const EditProfileScreen = ({ navigation }) => {
   const [phone, setPhone] = useState(user?.phoneNumber || user?.phone || '');
   const [mongoId, setMongoId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    type: 'success',
+    title: '',
+    message: '',
+    onPrimary: () => {},
+  });
 
   useEffect(() => {
     const loadFromStorage = async () => {
@@ -71,20 +79,37 @@ const EditProfileScreen = ({ navigation }) => {
 
       if (response.data.success) {
         const updatedUser = response.data.user;
-        // Update local storage
         await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-        // Update Auth Context
         login(updatedUser);
         
-        Alert.alert('Success', 'Profile updated successfully', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+        setModalConfig({
+          visible: true,
+          type: 'success',
+          title: 'Success',
+          message: 'Profile updated successfully',
+          onPrimary: () => {
+            setModalConfig(prev => ({ ...prev, visible: false }));
+            navigation.goBack();
+          }
+        });
       } else {
-        Alert.alert('Error', response.data.message || 'Failed to update profile');
+        setModalConfig({
+          visible: true,
+          type: 'error',
+          title: 'Update Failed',
+          message: response.data.message || 'Failed to update profile',
+          onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+        });
       }
     } catch (error) {
       console.error('[EditProfile] Error:', error);
-      Alert.alert('Error', 'Failed to connect to the server');
+      setModalConfig({
+        visible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to connect to the server. Please check your connection.',
+        onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      });
     } finally {
       setIsLoading(false);
     }
@@ -184,6 +209,14 @@ const EditProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <CustomModal
+        visible={modalConfig.visible}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onPrimary={modalConfig.onPrimary}
+      />
     </SafeAreaView>
   );
 };

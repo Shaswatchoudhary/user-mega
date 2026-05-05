@@ -1,3 +1,4 @@
+import { PermissionsAndroid, Platform } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import firestore from '@react-native-firebase/firestore';
@@ -91,6 +92,21 @@ class NotificationService {
 
   async requestPermission() {
     try {
+      // 1. Android 13+ explicit permission request
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          {
+            title: 'Notification Permission',
+            message: 'WorkEase needs your permission to send you updates about your bookings.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+      }
+
+      // 2. Firebase Messaging request
       const authStatus = await messaging().requestPermission();
       const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||

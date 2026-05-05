@@ -24,6 +24,22 @@ class PermissionService {
    */
   async requestNotificationPermission() {
     try {
+      // 1. Android 13+ explicit permission request
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          {
+            title: 'Notification Permission',
+            message: 'Workies needs your permission to send you updates about your bookings.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        console.log('[PermissionService] Android POST_NOTIFICATIONS status:', granted);
+      }
+
+      // 2. Firebase Messaging request (handles iOS and general FCM status)
       const messaging = getMessaging();
       const authStatus = await requestPermission(messaging);
       const enabled =

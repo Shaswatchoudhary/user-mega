@@ -46,10 +46,12 @@ export default function PaymentScreen({ navigation, route }) {
   const [isCountdownActive, setIsCountdownActive] = useState(false);
   const [confirmMode, setConfirmMode] = useState(false);
 
-  const promoCodes = [
+  // Fallback promo codes (to be removed once Firestore is populated)
+  const hardcodedPromoCodes = [
     { code: 'FIRST50', discount: 50, type: 'fixed' },
     { code: 'SAVE10', discount: 10, type: 'percentage' },
   ];
+
 
   // Listen for Payment Unlock status if tracking a ticket
   useEffect(() => {
@@ -104,16 +106,55 @@ export default function PaymentScreen({ navigation, route }) {
   const discount = calculateDiscount();
   const finalAmount = initialAmount - discount;
 
-  const handleApplyPromo = () => {
+  const handleApplyPromo = async () => {
+    if (!promoCode || promoCode.trim() === '') return;
+    
     setPromoError('');
-    const found = promoCodes.find(p => p.code === promoCode.toUpperCase());
-    if (found) {
-      setPromoApplied(found);
-    } else {
-      setPromoError('Invalid promo code');
-      setPromoApplied(null);
+    setIsLoading(true);
+
+    try {
+      // 1. Try to fetch from Firestore coupons collection
+      const couponDoc = await firestore()
+        .collection('coupons')
+        .where('code', '==', promoCode.trim().toUpperCase())
+        .where('isActive', '==', true)
+        .limit(1)
+        .get();
+      
+      if (!couponDoc.empty) {
+        const coupon = couponDoc.docs[0].data();
+        
+        // Check expiry if exists
+        if (coupon.expiresAt && coupon.expiresAt.toDate() < new Date()) {
+          setPromoError('Code has expired');
+          setPromoApplied(null);
+          return;
+        }
+        
+        setPromoApplied({
+          code: coupon.code,
+          discount: coupon.discountPercent || coupon.discountAmount,
+          type: coupon.type === 'percent' ? 'percentage' : 'fixed'
+        });
+        return;
+      }
+      
+      // 2. Fallback to hardcoded if Firestore has nothing
+      const found = hardcodedPromoCodes.find(p => p.code === promoCode.toUpperCase());
+      if (found) {
+        setPromoApplied(found);
+      } else {
+        setPromoError('Invalid promo code');
+        setPromoApplied(null);
+      }
+    } catch (error) {
+      console.error('Promo validation error:', error);
+      setPromoError('Could not validate code');
+    } finally {
+      setIsLoading(false);
     }
   };
+
 
   const handleConfirmBooking = async () => {
     setIsLoading(true);

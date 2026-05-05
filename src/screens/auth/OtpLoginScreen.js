@@ -11,7 +11,9 @@ import {
   Keyboard,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,6 +21,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../constants/config';
 import { requestOTP, verifyOTP } from '../../utils/firebaseAuth';
 import { useAuth } from '../../context/AuthContext';
+import CustomModal from '../../components/CustomModal';
 
 
 const OtpLoginScreen = ({ navigation }) => {
@@ -32,6 +35,13 @@ const OtpLoginScreen = ({ navigation }) => {
   const [phoneError, setPhoneError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+    onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false })),
+  });
   const phoneInputRef = useRef(null);
 
   const otpInputs = useRef([]);
@@ -99,7 +109,13 @@ const OtpLoginScreen = ({ navigation }) => {
         setPhoneError(result.error || 'Failed to send OTP');
         setIsLoading(false);
         const errorCode = result.code ? ` (${result.code})` : '';
-        Alert.alert('Error', (result.error || 'Failed to send OTP') + errorCode);
+        setModalConfig({
+          visible: true,
+          type: 'error',
+          title: 'Error',
+          message: (result.error || 'Failed to send OTP') + errorCode,
+          onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+        });
       }
     } catch (error) {
       setIsLoading(false);
@@ -121,14 +137,32 @@ const OtpLoginScreen = ({ navigation }) => {
           setOtp(['', '', '', '', '', '']);
           setIsLoading(false);
           setTimeout(() => otpInputs.current[0]?.focus(), 100);
-          Alert.alert('OTP Resent', 'A new code has been sent.');
+          setModalConfig({
+            visible: true,
+            type: 'success',
+            title: 'OTP Resent',
+            message: 'A new code has been sent.',
+            onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+          });
         } else {
           setIsLoading(false);
-          Alert.alert('Error', result.error || 'Failed to resend OTP');
+          setModalConfig({
+            visible: true,
+            type: 'error',
+            title: 'Error',
+            message: result.error || 'Failed to resend OTP',
+            onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+          });
         }
       } catch (error) {
         setIsLoading(false);
-        Alert.alert('Error', 'Failed to resend OTP');
+        setModalConfig({
+          visible: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to resend OTP',
+          onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+        });
       }
     }
   };
@@ -145,6 +179,14 @@ const OtpLoginScreen = ({ navigation }) => {
     setTimeout(() => {
       phoneInputRef.current?.focus();
     }, 100);
+  };
+
+  const openTerms = () => {
+    Linking.openURL('https://6x2p72rx.insforge.site/terms').catch(err => console.error("Couldn't load page", err));
+  };
+
+  const openPrivacy = () => {
+    Linking.openURL('https://6x2p72rx.insforge.site/privacy').catch(err => console.error("Couldn't load page", err));
   };
 
   const handleOtpChange = (text, index) => {
@@ -181,7 +223,13 @@ const OtpLoginScreen = ({ navigation }) => {
     const otpToVerify = enteredOtp || otp.join('');
 
     if (otpToVerify.length !== 6) {
-      Alert.alert('Invalid OTP', 'Please enter all 6 digits');
+      setModalConfig({
+        visible: true,
+        type: 'warning',
+        title: 'Invalid OTP',
+        message: 'Please enter all 6 digits',
+        onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      });
       return;
     }
 
@@ -209,21 +257,45 @@ const OtpLoginScreen = ({ navigation }) => {
             });
           } else {
             setIsLoading(false);
-            Alert.alert('Sync Error', 'Failed to sync with backend.');
+            setModalConfig({
+              visible: true,
+              type: 'error',
+              title: 'Sync Error',
+              message: 'Failed to sync with backend.',
+              onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+            });
           }
         } catch (syncError) {
           console.error('[Auth] Backend Sync Error:', syncError);
           setIsLoading(false);
-          Alert.alert('Backend Error', 'Could not connect to the server.');
+          setModalConfig({
+            visible: true,
+            type: 'error',
+            title: 'Backend Error',
+            message: 'Could not connect to the server.',
+            onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+          });
         }
       } else {
         setIsLoading(false);
         const errorCode = result.code ? ` (${result.code})` : '';
-        Alert.alert('Invalid OTP', (result.error || 'Incorrect OTP') + errorCode);
+        setModalConfig({
+          visible: true,
+          type: 'error',
+          title: 'Invalid OTP',
+          message: (result.error || 'Incorrect OTP') + errorCode,
+          onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+        });
       }
     } catch (error) {
       setIsLoading(false);
-      Alert.alert('Error', 'An unexpected error occurred.');
+      setModalConfig({
+        visible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'An unexpected error occurred.',
+        onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false }))
+      });
     }
   };
 
@@ -382,12 +454,31 @@ const OtpLoginScreen = ({ navigation }) => {
 
             <Text style={styles.termsText}>
               By continuing, you agree to our{' '}
-              <Text style={styles.termsLink}>Terms of Service</Text> &{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>.
+              <Text 
+                style={styles.termsLink}
+                onPress={openTerms}
+              >
+                Terms of Service
+              </Text> &{' '}
+              <Text 
+                style={styles.termsLink}
+                onPress={openPrivacy}
+              >
+                Privacy Policy
+              </Text>.
             </Text>
+
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <CustomModal
+        visible={modalConfig.visible}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onPrimary={modalConfig.onPrimary}
+      />
     </SafeAreaView>
   );
 };

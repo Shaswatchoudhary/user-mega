@@ -12,10 +12,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import CustomModal from '../../components/CustomModal';
 
 const ProfileScreen = ({ navigation }) => {
   const [userPhone, setUserPhone] = React.useState('Loading...');
   const [userName, setUserName] = React.useState('User');
+  const [modalVisible, setModalVisible] = React.useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -55,7 +57,12 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleLogout = async () => {
+    setModalVisible(true);
+  };
+
+  const confirmLogout = async () => {
     try {
+      setModalVisible(false);
       await AsyncStorage.clear();
       navigation.reset({
         index: 0,
@@ -118,6 +125,17 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.versionText}>WorkEase v1.0.0</Text>
         </ScrollView>
       </SafeAreaView>
+
+      <CustomModal
+        visible={modalVisible}
+        type="warning"
+        title="Logout"
+        message="Are you sure you want to logout? You will need to verify your phone number again."
+        primaryLabel="Logout"
+        secondaryLabel="Cancel"
+        onPrimary={confirmLogout}
+        onSecondary={() => setModalVisible(false)}
+      />
     </View>
   );
 };

@@ -23,25 +23,34 @@ try {
 }
 
 /**
- * 3. Firebase App Check (Modular/Standard)
+ * 3. Firebase App Check Initialization
  */
-try {
-  const provider = new ReactNativeFirebaseAppCheckProvider();
-  provider.configure({
-    android: {
-      provider: 'debug',
-      debugToken: 'DF33FC9B-52F9-4515-B19E-E7492108FF15',
-    },
-  });
+const initAppCheck = async () => {
+  try {
+    const rnfbProvider = appCheck().newReactNativeFirebaseAppCheckProvider();
+    
+    rnfbProvider.configure({
+      android: {
+        provider: __DEV__ ? 'debug' : 'playIntegrity',
+        debugToken: 'DF33FC9B-52F9-4515-B19E-E7492108FF15',
+      },
+      apple: {
+        provider: __DEV__ ? 'debug' : 'appAttest',
+        debugToken: 'DF33FC9B-52F9-4515-B19E-E7492108FF15',
+      },
+    });
 
-  appCheck().initializeAppCheck({
-    provider,
-    isTokenAutoRefreshEnabled: true,
-  });
-  console.log('[AppCheck] Initialized successfully');
-} catch (error) {
-  console.warn('[AppCheck] Initialization failed:', error.message);
-}
+    await appCheck().initializeAppCheck({
+      provider: rnfbProvider,
+      isTokenAutoRefreshEnabled: true,
+    });
 
-// 4. Register Component (Critical - must always run)
+    console.log('✅ App Check initialized');
+  } catch (error) {
+    console.warn('⚠️ App Check init failed:', error.message);
+  }
+};
+
+// Initialize App Check then register
+initAppCheck();
 AppRegistry.registerComponent(appName, () => App);

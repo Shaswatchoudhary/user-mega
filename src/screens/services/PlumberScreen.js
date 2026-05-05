@@ -17,7 +17,21 @@ import LinearGradient from 'react-native-linear-gradient';
 import { API_BASE_URL } from '../../constants/config';
 import { useLocation } from '../../context/LocationContext';
 
+const calculateDistance = (workerLat, workerLng, userLat, userLng) => {
+  if (!workerLat || !workerLng || !userLat || !userLng) return 0.5;
+  const R = 6371;
+  const dLat = (workerLat - userLat) * Math.PI / 180;
+  const dLon = (workerLng - userLng) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(userLat * Math.PI / 180) * Math.cos(workerLat * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+  return parseFloat(distance.toFixed(1));
+};
+
 const PlumberScreen = ({ navigation, route }) => {
+
   const insets = useSafeAreaInsets();
   const { selectedLocation } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,7 +74,13 @@ const PlumberScreen = ({ navigation, route }) => {
             reviewCount: worker.completedOrders || 0,
             experience: `${worker.experience || 0}+ Years`,
             rate: worker.basePrice || worker.rate || 299,
-            distance: 0.5,
+            distance: calculateDistance(
+              worker.location?.latitude || worker.lat,
+              worker.location?.longitude || worker.lng,
+              selectedLocation?.latitude || selectedLocation?.coords?.latitude,
+              selectedLocation?.longitude || selectedLocation?.coords?.longitude
+            ),
+
             verified: true,
             specialization: worker.category || category,
             image: worker.image,

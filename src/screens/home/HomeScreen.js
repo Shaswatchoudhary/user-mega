@@ -179,6 +179,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getUserLocation, reverseGeocode } from '../../utils/locationHelper';
 import permissionService from '../../services/permissionService';
 import firestore from '@react-native-firebase/firestore';
+import CustomModal from '../../components/CustomModal';
 
 export default function HomeScreen({ navigation }) {
   const [placeholder, setPlaceholder] = useState(searchPlaceholders[0]);
@@ -194,6 +195,16 @@ export default function HomeScreen({ navigation }) {
   } = useLocation();
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+    primaryLabel: 'Got it',
+    secondaryLabel: null,
+    onPrimary: () => setModalConfig(prev => ({ ...prev, visible: false })),
+    onSecondary: null,
+  });
 
   const mostBookedRef = useRef(null);
   const electricianRef = useRef(null);
@@ -212,8 +223,6 @@ export default function HomeScreen({ navigation }) {
     appliance: 0,
     selfCare: 0
   });
-
-  const scrollIntervalRef = useRef(null);
 
   useEffect(() => {
     const initLocation = async () => {
@@ -249,63 +258,9 @@ export default function HomeScreen({ navigation }) {
     };
     initLocation();
     fetchMostBookedWorkers();
-    startAutoScroll();
-    return () => stopAutoScroll();
+    return () => {};
   }, [user?.lastUsedAddress, selectedLocation?.latitude, mostBookedWorkers.length]);
 
-  const startAutoScroll = () => {
-    if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
-
-    scrollIntervalRef.current = setInterval(() => {
-      // 1. Most Booked
-      if (mostBookedWorkers.length > 0) {
-        scrollIndices.current.mostBooked = (scrollIndices.current.mostBooked + 1) % mostBookedWorkers.length;
-        mostBookedRef.current?.scrollToIndex({ index: scrollIndices.current.mostBooked, animated: true, viewPosition: 0 });
-      }
-
-      // 2. Electrician
-      if (electricianServices.length > 0) {
-        scrollIndices.current.electrician = (scrollIndices.current.electrician + 1) % electricianServices.length;
-        electricianRef.current?.scrollToIndex({ index: scrollIndices.current.electrician, animated: true, viewPosition: 0 });
-      }
-
-      // 3. Plumber
-      if (plumberServices.length > 0) {
-        scrollIndices.current.plumber = (scrollIndices.current.plumber + 1) % plumberServices.length;
-        plumberRef.current?.scrollToIndex({ index: scrollIndices.current.plumber, animated: true, viewPosition: 0 });
-      }
-
-      // 4. Carpenter
-      if (carpenterServices.length > 0) {
-        scrollIndices.current.carpenter = (scrollIndices.current.carpenter + 1) % carpenterServices.length;
-        carpenterRef.current?.scrollToIndex({ index: scrollIndices.current.carpenter, animated: true, viewPosition: 0 });
-      }
-
-      // 5. AC
-      if (acRepairServices.length > 0) {
-        scrollIndices.current.ac = (scrollIndices.current.ac + 1) % acRepairServices.length;
-        acRef.current?.scrollToIndex({ index: scrollIndices.current.ac, animated: true, viewPosition: 0 });
-      }
-
-      // 6. Appliance
-      if (applianceServices.length > 0) {
-        scrollIndices.current.appliance = (scrollIndices.current.appliance + 1) % applianceServices.length;
-        applianceRef.current?.scrollToIndex({ index: scrollIndices.current.appliance, animated: true, viewPosition: 0 });
-      }
-
-      // 7. Self-Care
-      if (selfCareServices.length > 0) {
-        scrollIndices.current.selfCare = (scrollIndices.current.selfCare + 1) % selfCareServices.length;
-        selfCareRef.current?.scrollToIndex({ index: scrollIndices.current.selfCare, animated: true, viewPosition: 0 });
-      }
-    }, 4000); // 4 seconds for a smoother feel across many carousels
-  };
-
-  const stopAutoScroll = () => {
-    if (scrollIntervalRef.current) {
-      clearInterval(scrollIntervalRef.current);
-    }
-  };
 
   const locationName = selectedLocation?.shortAddress || selectedLocation?.name || 'Select Location';
   const locationSubtitle = selectedLocation?.displayAddress || selectedLocation?.addressText || selectedLocation?.address || 'Tap to choose address';
@@ -353,11 +308,11 @@ export default function HomeScreen({ navigation }) {
   }, [placeholderIndex]);
 
   useEffect(() => {
-    if (!user?._id) return;
+    if (!user?.uid) return;
 
     const unsubscribe = firestore()
       .collection('users')
-      .doc(user._id)
+      .doc(user.uid)
       .collection('notifications')
       .where('isRead', '==', false)
       .onSnapshot(querySnapshot => {
@@ -367,12 +322,27 @@ export default function HomeScreen({ navigation }) {
       });
 
     return () => unsubscribe();
-  }, [user?._id]);
+  }, [user?.uid]);
 
   const handleServicePress = (service) => {
     console.log('Navigating to screen:', service.screen, 'with params:', { category: service.name });
     if (service.hasSubcategories) {
-      setShowSelfCareModal(true);
+      setModalConfig({
+        visible: true,
+        type: 'info',
+        title: 'Choose Category',
+        message: 'Please select which service you are looking for.',
+        primaryLabel: "Men's Care",
+        secondaryLabel: "Women's Care",
+        onPrimary: () => {
+          setModalConfig(prev => ({ ...prev, visible: false }));
+          navigation.navigate('WorkerList', { category: "Men's Self Care" });
+        },
+        onSecondary: () => {
+          setModalConfig(prev => ({ ...prev, visible: false }));
+          navigation.navigate('WorkerList', { category: "Women's Self Care" });
+        }
+      });
     } else {
       navigation.navigate(service.screen, { category: service.name });
     }
@@ -674,6 +644,8 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id.toString()}
+            snapToInterval={192} // width (180) + gap (12)
+            decelerationRate="fast"
           />
         </View>
 
@@ -703,6 +675,8 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id.toString()}
+            snapToInterval={192} // width (180) + gap (12)
+            decelerationRate="fast"
           />
         </View>
 
@@ -732,6 +706,8 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id.toString()}
+            snapToInterval={192} // width (180) + gap (12)
+            decelerationRate="fast"
           />
         </View>
 
@@ -761,6 +737,8 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id.toString()}
+            snapToInterval={192} // width (180) + gap (12)
+            decelerationRate="fast"
           />
         </View>
 
@@ -777,58 +755,20 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         {/* Footer Spacing */}
+        {/* Footer Spacing */}
         <View style={styles.footer} />
       </ScrollView>
 
-      {/* Self-Care Subcategory Modal */}
-      <Modal
-        visible={showSelfCareModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowSelfCareModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowSelfCareModal(false)}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Category</Text>
-            <Text style={styles.modalSubtitle}>Choose self-care workers</Text>
-
-            <TouchableOpacity
-              style={styles.subcategoryButton}
-              onPress={() => handleSelfCareSubcategoryPress('men')}
-            >
-              <MaterialCommunityIcons name="face-man" size={32} color="#E84545" />
-              <View style={styles.subcategoryTextContainer}>
-                <Text style={styles.subcategoryTitle}>Men's Self-Care</Text>
-                <Text style={styles.subcategorySubtext}>Barbers, stylists & grooming experts</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="#999" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.subcategoryButton}
-              onPress={() => handleSelfCareSubcategoryPress('women')}
-            >
-              <MaterialCommunityIcons name="face-woman" size={32} color="#FF6B9D" />
-              <View style={styles.subcategoryTextContainer}>
-                <Text style={styles.subcategoryTitle}>Women's Self-Care</Text>
-                <Text style={styles.subcategorySubtext}>Stylists, beauticians & spa workers</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="#999" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setShowSelfCareModal(false)}
-            >
-              <Text style={styles.modalCloseText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <CustomModal
+        visible={modalConfig.visible}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        primaryLabel={modalConfig.primaryLabel}
+        secondaryLabel={modalConfig.secondaryLabel}
+        onPrimary={modalConfig.onPrimary}
+        onSecondary={modalConfig.onSecondary}
+      />
     </SafeAreaView>
   );
 }
