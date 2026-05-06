@@ -29,7 +29,7 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { title: 'Dashboard', path: '/', icon: <LayoutDashboard size={18} /> },
+    { title: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
     { title: 'Users', path: '/users', icon: <UsersIcon size={18} /> },
     { title: 'Workers', path: '/workers', icon: <ShieldCheck size={18} /> },
     { title: 'Logs', path: '/system-logs', icon: <ClipboardList size={18} /> },
@@ -43,7 +43,7 @@ const Navbar = () => {
         
         {/* Left: Branding */}
         <div className="flex items-center space-x-6 lg:space-x-10 shrink-0">
-          <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => navigate('/dashboard')}>
             <div className="w-10 h-10 bg-accent-red rounded-xl flex items-center justify-center shadow-red-glow group-hover:scale-105 transition-all">
               <span className="text-white font-black text-xl">W</span>
             </div>

@@ -19,6 +19,14 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import { AdminProvider } from './context/AdminContext';
 
+import LandingPage from './pages/LandingPage';
+
+const AdminLayout = ({ children }) => (
+  <main className="flex-1 w-full max-w-[1600px] mx-auto pt-28 pb-10 px-8">
+    {children}
+  </main>
+);
+
 function App() {
   return (
     <Router>
@@ -26,23 +34,26 @@ function App() {
         <SessionManager>
           <div className="flex flex-col bg-background min-h-screen text-text-primary">
           <Navbar />
-          <main className="flex-1 w-full max-w-[1600px] mx-auto pt-28 pb-10 px-8">
+          <div className="flex-1 w-full mx-auto">
             <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/workers" element={<ProtectedRoute><Workers /></ProtectedRoute>} />
-              <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-              <Route path="/system-logs" element={<ProtectedRoute><SystemLogs /></ProtectedRoute>} />
-              <Route path="/tracker" element={<ProtectedRoute><Tracker /></ProtectedRoute>} />
-              <Route path="/issues" element={<ProtectedRoute><Issues /></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              {/* Protected Admin Routes */}
+              <Route path="/dashboard" element={<ProtectedRoute><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
+              <Route path="/workers" element={<ProtectedRoute><AdminLayout><Workers /></AdminLayout></ProtectedRoute>} />
+              <Route path="/users" element={<ProtectedRoute><AdminLayout><Users /></AdminLayout></ProtectedRoute>} />
+              <Route path="/system-logs" element={<ProtectedRoute><AdminLayout><SystemLogs /></AdminLayout></ProtectedRoute>} />
+              <Route path="/tracker" element={<ProtectedRoute><AdminLayout><Tracker /></AdminLayout></ProtectedRoute>} />
+              <Route path="/issues" element={<ProtectedRoute><AdminLayout><Issues /></AdminLayout></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><AdminLayout><Notifications /></AdminLayout></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><AdminLayout><Settings /></AdminLayout></ProtectedRoute>} />
             </Routes>
-          </main>
+          </div>
           </div>
         </SessionManager>
       </AdminProvider>
