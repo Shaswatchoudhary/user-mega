@@ -1,9 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const PrivacyScreen = ({ navigation }) => {
+  const handleOpenPrivacy = () => {
+    Linking.openURL('https://workease.insforge.site/privacy');
+  };
+
+  const handleOpenTerms = () => {
+    Linking.openURL('https://workease.insforge.site/terms');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -33,14 +41,21 @@ const PrivacyScreen = ({ navigation }) => {
           <Text style={styles.text}>We use your GPS data solely to find the nearest service requests and provide accurate arrival times to your customers. Your location is only shared during active jobs.</Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.subHeading}>Payment Security</Text>
-          <Text style={styles.text}>WorkEase does not store sensitive financial details. Our current "Cash on Service" model ensures your payment information stays private.</Text>
+        <View style={styles.linkContainer}>
+          <TouchableOpacity style={styles.linkButton} onPress={handleOpenPrivacy}>
+            <Text style={styles.linkText}>View Full Privacy Policy</Text>
+            <MaterialCommunityIcons name="open-in-new" size={18} color="#E84545" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.linkButton} onPress={handleOpenTerms}>
+            <Text style={styles.linkText}>View Terms & Conditions</Text>
+            <MaterialCommunityIcons name="open-in-new" size={18} color="#E84545" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.noteSection}>
           <Text style={styles.noteText}>
-            WorkEase was designed with a focus on professional excellence, scalable architecture, and strong user data privacy.
+            WorkEase was designed with a focus on professional excellence, powered by InsForge scalable architecture.
           </Text>
         </View>
       </ScrollView>
@@ -91,8 +106,27 @@ const styles = StyleSheet.create({
   },
   subHeading: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 8 },
   text: { fontSize: 14, color: '#4B5563', lineHeight: 20 },
+  linkContainer: {
+    gap: 12,
+    marginBottom: 32,
+  },
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  linkText: {
+    fontSize: 15,
+    color: '#111827',
+    fontWeight: '600',
+  },
   noteSection: { marginTop: 32, paddingVertical: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
-  noteText: { fontSize: 13, color: '#9CA3AF', fontStyle: 'italic', textAlign: 'center' },
+  noteText: { fontSize: 12, color: '#9CA3AF', fontStyle: 'italic', textAlign: 'center' },
 });
 
 export default PrivacyScreen;

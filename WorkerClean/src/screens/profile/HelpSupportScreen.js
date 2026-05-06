@@ -13,7 +13,11 @@ const HelpSupportScreen = ({ navigation }) => {
   ];
 
   const handleContactSupport = () => {
-    Linking.openURL('mailto:support@workease.app');
+    Linking.openURL('https://workease.insforge.site/contact');
+  };
+
+  const handleVisitWebsite = () => {
+    Linking.openURL('https://workease.insforge.site');
   };
 
   return (
@@ -33,9 +37,15 @@ const HelpSupportScreen = ({ navigation }) => {
             <Text style={styles.supportSubtitle}>Our team is available 24/7 for you.</Text>
           </View>
           <TouchableOpacity style={styles.contactButton} onPress={handleContactSupport}>
-            <Text style={styles.contactText}>Email Us</Text>
+            <Text style={styles.contactText}>Contact Us</Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.websiteLink} onPress={handleVisitWebsite}>
+          <MaterialCommunityIcons name="web" size={20} color="#E84545" />
+          <Text style={styles.websiteText}>Visit our official website</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
 
         <Text style={styles.faqHeading}>Frequently Asked Questions</Text>
         
@@ -48,7 +58,7 @@ const HelpSupportScreen = ({ navigation }) => {
 
         <View style={styles.footer}>
           <Text style={styles.footerNote}>
-            WorkEase was designed and developed with a focus on professional excellence, providing a seamless experience for our skilled partners.
+            WorkEase powered by InsForge. Designed and developed with a focus on professional excellence.
           </Text>
         </View>
       </ScrollView>
@@ -81,7 +91,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 20,
     shadowColor: '#E84545',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
@@ -112,6 +122,23 @@ const styles = StyleSheet.create({
     color: '#E84545',
     fontSize: 14,
     fontWeight: '700',
+  },
+  websiteLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  websiteText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#111827',
+    fontWeight: '600',
+    marginLeft: 12,
   },
   faqHeading: {
     fontSize: 20,

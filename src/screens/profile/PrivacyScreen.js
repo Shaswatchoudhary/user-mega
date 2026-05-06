@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { colors, typography, spacing, borderRadius } from '../../theme';
@@ -27,6 +27,14 @@ const PrivacyScreen = ({ navigation }) => {
       icon: 'share-social-outline'
     }
   ];
+
+  const handleOpenPrivacy = () => {
+    Linking.openURL('https://workease.insforge.site/privacy');
+  };
+
+  const handleOpenTerms = () => {
+    Linking.openURL('https://workease.insforge.site/terms');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,10 +72,22 @@ const PrivacyScreen = ({ navigation }) => {
           ))}
         </View>
 
+        <View style={styles.linksContainer}>
+          <TouchableOpacity style={styles.linkButton} onPress={handleOpenPrivacy}>
+            <Text style={styles.linkText}>View Full Privacy Policy</Text>
+            <Ionicons name="open-outline" size={18} color={colors.accent} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.linkButton} onPress={handleOpenTerms}>
+            <Text style={styles.linkText}>View Terms & Conditions</Text>
+            <Ionicons name="open-outline" size={18} color={colors.accent} />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.footerInfo}>
           <Ionicons name="information-circle" size={20} color="#94A3B8" />
           <Text style={styles.footerText}>
-            For more details or requests regarding your data, please contact our privacy officer at privacy@workies.com
+            For more details or requests regarding your data, please visit our website or contact us directly.
           </Text>
         </View>
       </ScrollView>
@@ -132,6 +152,7 @@ const styles = StyleSheet.create({
   },
   sectionsContainer: {
     gap: 16,
+    marginBottom: 32,
   },
   sectionCard: {
     backgroundColor: colors.white,
@@ -164,9 +185,27 @@ const styles = StyleSheet.create({
     color: '#64748B',
     lineHeight: 22,
   },
+  linksContainer: {
+    gap: 12,
+    marginBottom: 40,
+  },
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  linkText: {
+    fontSize: 15,
+    color: '#1E293B',
+    fontWeight: '600',
+  },
   footerInfo: {
     flexDirection: 'row',
-    marginTop: 40,
     padding: 20,
     backgroundColor: '#F1F5F9',
     borderRadius: 16,

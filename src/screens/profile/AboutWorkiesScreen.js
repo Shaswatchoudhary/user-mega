@@ -6,7 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Dimensions
+  Dimensions,
+  Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -15,6 +16,10 @@ import { colors, typography, spacing, borderRadius } from '../../theme';
 const { width } = Dimensions.get('window');
 
 const AboutWorkiesScreen = ({ navigation }) => {
+  const handleVisitWebsite = () => {
+    Linking.openURL('https://workease.insforge.site');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -76,6 +81,11 @@ const AboutWorkiesScreen = ({ navigation }) => {
           </View>
         </View>
 
+        <TouchableOpacity style={styles.websiteButton} onPress={handleVisitWebsite}>
+          <Ionicons name="globe-outline" size={20} color={colors.white} />
+          <Text style={styles.websiteButtonText}>Visit Official Website</Text>
+        </TouchableOpacity>
+
         <View style={styles.visionCard}>
           <Text style={styles.visionTitle}>Our Vision</Text>
           <Text style={styles.visionText}>
@@ -84,7 +94,9 @@ const AboutWorkiesScreen = ({ navigation }) => {
           </Text>
         </View>
 
-        <Text style={styles.copyright}>© 2026 WorkEase Technologies Pvt. Ltd.{"\n"}Made with ❤️ in Kolhapur</Text>
+        <Text style={styles.copyright}>
+          © 2026 WorkEase Technologies Pvt. Ltd.{"\n"}Powered by InsForge{"\n"}Made with ❤️ in Kolhapur
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -164,7 +176,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   section: {
-    padding: 32,
+    paddingHorizontal: 32,
+    paddingTop: 32,
+    paddingBottom: 16,
   },
   sectionTitle: {
     ...typography.h2,
@@ -181,6 +195,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: 20,
     gap: 16,
+    marginTop: 16,
   },
   featureItem: {
     width: (width - 56) / 2,
@@ -208,6 +223,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748B',
     lineHeight: 18,
+  },
+  websiteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E293B',
+    marginHorizontal: 32,
+    marginTop: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 12,
+  },
+  websiteButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '700',
   },
   visionCard: {
     margin: 32,
@@ -239,7 +270,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 13,
     color: '#94A3B8',
-    marginTop: 20,
+    marginTop: 0,
+    marginBottom: 20,
     lineHeight: 20,
   },
 });

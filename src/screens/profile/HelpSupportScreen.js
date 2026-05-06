@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { colors, typography, spacing, borderRadius } from '../../theme';
@@ -55,6 +55,14 @@ const HelpSupportScreen = ({ navigation }) => {
     },
   ];
 
+  const handleContactSupport = () => {
+    Linking.openURL('https://workease.insforge.site/contact');
+  };
+
+  const handleVisitWebsite = () => {
+    Linking.openURL('https://workease.insforge.site');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -71,6 +79,12 @@ const HelpSupportScreen = ({ navigation }) => {
           <Text style={styles.heroSubtitle}>Find quick answers to your common queries below.</Text>
         </View>
 
+        <TouchableOpacity style={styles.websiteLink} onPress={handleVisitWebsite}>
+          <Ionicons name="globe-outline" size={20} color={colors.accent} />
+          <Text style={styles.websiteText}>Visit our official website</Text>
+          <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+        </TouchableOpacity>
+
         <View style={styles.faqList}>
           {faqs.map((faq, index) => (
             <FAQItem key={index} question={faq.q} answer={faq.a} />
@@ -79,7 +93,7 @@ const HelpSupportScreen = ({ navigation }) => {
 
         <TouchableOpacity 
           style={styles.contactCard}
-          onPress={() => navigation.navigate('MySupport')}
+          onPress={handleContactSupport}
         >
           <View style={styles.contactIcon}>
             <Ionicons name="chatbubbles-outline" size={24} color={colors.white} />
@@ -124,7 +138,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   heroSection: {
-    marginBottom: 32,
+    marginBottom: 20,
   },
   heroTitle: {
     ...typography.h2,
@@ -134,6 +148,23 @@ const styles = StyleSheet.create({
   heroSubtitle: {
     ...typography.body,
     color: '#64748B',
+  },
+  websiteLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  websiteText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1E293B',
+    fontWeight: '600',
+    marginLeft: 12,
   },
   faqList: {
     gap: 12,
