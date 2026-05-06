@@ -74,7 +74,7 @@ const ProfileScreen = ({ navigation }) => {
   ];
 
   const mainMenuItems = [
-    { id: 3, icon: 'headset-mic', label: 'Help & support', screen: 'HelpSupport' },
+    { id: 3, icon: 'headset-mic', label: 'Help & support', url: 'https://workease.insforge.site/contact' },
     { id: 4, icon: 'location-on', label: 'Manage addresses', screen: 'Location' },
     { id: 5, icon: 'credit-card', label: 'Manage payment methods' },
     { id: 6, icon: 'privacy-tip', label: 'Privacy', screen: 'Privacy' },

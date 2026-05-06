@@ -10,34 +10,18 @@ import {
   ArrowRight,
   Star,
   MapPin,
-  Zap
+  Zap,
+  
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import PublicNavbar from '../components/PublicNavbar.jsx';
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="bg-white min-h-screen font-outfit text-text-primary overflow-x-hidden">
-      {/* 0. PUBLIC HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-reddish-900/5 px-8 h-20">
-        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-accent-red rounded-xl flex items-center justify-center shadow-red-glow">
-              <span className="text-white font-black text-xl">W</span>
-            </div>
-            <span className="text-sm font-black tracking-[0.2em] text-reddish-900 uppercase">WorkEase</span>
-          </div>
-          <div className="hidden md:flex items-center space-x-8">
-            {['Services', 'Workers', 'About', 'Contact'].map(item => (
-              <a key={item} href={`#${item.toLowerCase()}`} className="text-[10px] font-black uppercase tracking-widest text-text-muted hover:text-accent-red transition-colors">
-                {item}
-              </a>
-            ))}
-            <button className="bg-accent-red text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-red-glow hover:bg-reddish-800 transition-all">
-              App Store
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="bg-white min-h-screen font-outfit text-text-primary overflow-x-hidden selection:bg-accent-red selection:text-white">
+      <PublicNavbar />
 
       {/* 1. HERO SECTION */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 bg-[#FAFAFA] overflow-hidden">
@@ -60,7 +44,10 @@ const LandingPage = () => {
                   Get the App
                   <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="w-full sm:w-auto bg-white border-2 border-reddish-900/10 text-reddish-900 px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-surface transition-all">
+                <button 
+                  onClick={() => navigate('/workers')}
+                  className="w-full sm:w-auto bg-white border-2 border-reddish-900/10 text-reddish-900 px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-surface transition-all"
+                >
                   Join as a Pro
                 </button>
               </div>
@@ -68,9 +55,9 @@ const LandingPage = () => {
             <div className="flex-1 relative">
               <div className="relative z-10 rounded-[3rem] overflow-hidden shadow-premium transform rotate-3 hover:rotate-0 transition-all duration-700">
                 <img 
-                  src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop" 
+                  src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=1000" 
                   alt="Service Professional" 
-                  className="w-full h-auto grayscale-[20%] hover:grayscale-0 transition-all"
+                  className="w-full h-auto grayscale-[40%] group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-100"
                 />
               </div>
               {/* Floating Cards */}
@@ -160,7 +147,10 @@ const LandingPage = () => {
                   </li>
                 ))}
               </ul>
-              <button className="bg-white text-reddish-900 px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-accent-red hover:text-white transition-all shadow-premium">
+              <button 
+                onClick={() => navigate('/workers')}
+                className="bg-white text-reddish-900 px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-accent-red hover:text-white transition-all shadow-premium"
+              >
                 Become a Partner
               </button>
             </div>

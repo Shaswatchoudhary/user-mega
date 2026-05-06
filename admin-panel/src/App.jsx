@@ -20,6 +20,10 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import { AdminProvider } from './context/AdminContext';
 
 import LandingPage from './pages/LandingPage';
+import ServicesPage from './pages/ServicesPage';
+import WorkersPage from './pages/WorkersPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
 
 const AdminLayout = ({ children }) => (
   <main className="flex-1 w-full max-w-[1600px] mx-auto pt-28 pb-10 px-8">
@@ -38,6 +42,11 @@ function App() {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/workers" element={<WorkersPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              
               <Route path="/login" element={<Login />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
