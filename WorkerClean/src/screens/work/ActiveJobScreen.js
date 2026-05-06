@@ -5,6 +5,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Geolocation from '@react-native-community/geolocation';
+import CustomModal from '../../components/CustomModal';
+
 
 const ActiveJobScreen = ({ route, navigation }) => {
   const { bookingId, bookingData: initialData } = route.params || {};
@@ -13,6 +15,8 @@ const ActiveJobScreen = ({ route, navigation }) => {
   const [workerLocation, setWorkerLocation] = useState(null);
   const [workerAddress, setWorkerAddress] = useState('Detecting current address...');
   const trackingInterval = useRef(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -144,10 +148,10 @@ const ActiveJobScreen = ({ route, navigation }) => {
             currentBookingId: null
           });
         }
-        Alert.alert('Job Completed', 'Job marked as done. Waiting for customer confirmation.');
-        navigation.navigate('MainTabs');
+        setShowSuccessModal(true);
       }
     } catch (error) {
+
       console.error(error);
       Alert.alert('Error', 'Failed to update status');
     } finally {
@@ -358,7 +362,19 @@ const ActiveJobScreen = ({ route, navigation }) => {
       <View style={styles.footer}>
          {loading ? <ActivityIndicator size="large" color="#E84545" /> : renderActionButton()}
       </View>
+
+      <CustomModal
+        visible={showSuccessModal}
+        type="success"
+        title="Job Completed"
+        message="Job marked as done. Waiting for customer confirmation."
+        onPrimary={() => {
+          setShowSuccessModal(false);
+          navigation.navigate('MainTabs');
+        }}
+      />
     </SafeAreaView>
+
   );
 };
 

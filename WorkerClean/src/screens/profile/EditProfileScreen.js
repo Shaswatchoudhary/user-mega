@@ -21,22 +21,34 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import storage from '@react-native-firebase/storage';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
+import CustomModal from '../../components/CustomModal';
+
 
 const EditProfileScreen = ({ navigation }) => {
-  const { workerUser, user, workerProfile, login, refreshProfile } = useAuth();
-  const [name, setName] = useState(workerProfile?.name || workerProfile?.fullName || workerUser?.displayName || '');
-  const [email, setEmail] = useState(workerUser?.email || workerProfile?.email || '');
-  const [phone, setPhone] = useState(workerProfile?.phone || workerUser?.phone || workerUser?.phoneNumber || '');
+  const { workerUser, workerProfile, refreshProfile } = useAuth();
+  
+  // Pre-fill from existing profile
+  const [name, setName] = useState(workerProfile?.fullName || workerProfile?.name || '');
+  const [email, setEmail] = useState(workerProfile?.email || workerUser?.email || '');
+  const [phone, setPhone] = useState(workerProfile?.phone || workerProfile?.phoneNumber || workerUser?.phoneNumber || '');
   const [isLoading, setIsLoading] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(workerProfile?.photo || workerProfile?.profilePhoto || null);
   const [uploading, setUploading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState({ title: '', message: '', type: 'success' });
 
+
+
+  // IMPORTANT: Ensure form loads even if workerProfile was null at first render
   useEffect(() => {
-    setName(workerProfile?.name || workerProfile?.fullName || workerUser?.displayName || '');
-    setEmail(workerUser?.email || workerProfile?.email || '');
-    setPhone(workerProfile?.phone || workerUser?.phone || workerUser?.phoneNumber || '');
-    setProfilePhoto(workerProfile?.photo || workerProfile?.profilePhoto || null);
-  }, [workerUser, workerProfile]);
+    if (workerProfile) {
+      setName(workerProfile.fullName || workerProfile.name || '');
+      setEmail(workerProfile.email || workerUser?.email || '');
+      setPhone(workerProfile.phone || workerProfile.phoneNumber || workerUser?.phoneNumber || '');
+      setProfilePhoto(workerProfile.photo || workerProfile.profilePhoto || null);
+    }
+  }, [workerProfile]);
+
 
   const handlePickPhoto = () => {
     launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, async (response) => {
@@ -75,40 +87,57 @@ const EditProfileScreen = ({ navigation }) => {
       return;
     }
 
+    const docId = auth().currentUser?.uid 
+      || workerProfile?.id 
+      || workerProfile?.uid 
+      || workerUser?.uid;
+    
+    if (!docId) {
+      Alert.alert('Error', 'Session expired. Please log in again.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await axios.patch(`${config.WORKER_API_BASE_URL}/profile/${workerProfile?.id || workerProfile?._id}`, {
+      // Only include fields that are actually in the form to avoid wiping others
+      const updateData = {
         fullName: name.trim(),
+        name: name.trim(), // Keep both for compatibility
         email: email.trim(),
-      });
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      };
 
-      if (response.data.success) {
-        // Update Auth Context with new worker data
-        if (login) {
-          login(user, response.data.data);
-        }
+      // USE UPDATE NOT SET - This preserves other fields like experience, rating, etc.
+      await firestore()
+        .collection('workers')
+        .doc(docId)
+        .update(updateData);
 
-        // Re-fetch from Firestore to ensure photo and other fields are updated in context
-        if (refreshProfile) {
-          await refreshProfile();
-        }
-        
-        setIsLoading(false);
-        Alert.alert('Success', 'Profile updated successfully', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
-      } else {
-        setIsLoading(false);
-        Alert.alert('Error', response.data.message || 'Failed to update profile');
+      if (refreshProfile) {
+        await refreshProfile();
       }
-    } catch (error) {
-      console.error('[EditProfile] Error:', error);
+      
       setIsLoading(false);
-      const errorMessage = error.response?.data?.message || 'Failed to connect to the server.';
-      Alert.alert('Error', errorMessage);
+      setModalConfig({
+        title: 'Success',
+        message: 'Profile updated successfully',
+        type: 'success'
+      });
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('[EditProfile] Save error:', error);
+      setIsLoading(false);
+      
+      if (error.code === 'firestore/not-found') {
+        Alert.alert('Error', 'Profile document not found in Firestore. Please contact support.');
+      } else {
+        Alert.alert('Error', 'Failed to save profile. Please try again.');
+      }
+      setIsLoading(false);
     }
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -213,7 +242,19 @@ const EditProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <CustomModal
+        visible={showSuccessModal}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onPrimary={() => {
+          setShowSuccessModal(false);
+          navigation.goBack();
+        }}
+      />
     </SafeAreaView>
+
   );
 };
 

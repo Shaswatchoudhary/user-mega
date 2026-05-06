@@ -17,11 +17,15 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import axios from 'axios';
 import config from '../../constants/config';
+import CustomModal from '../../components/CustomModal';
+
 
 const ProfileScreen = ({ navigation }) => {
   const { workerUser, workerProfile, logout, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [stats, setStats] = useState({
+
     completed: 0,
     monthEarnings: 0
   });
@@ -82,22 +86,9 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            navigation.replace('Otp');
-          }
-        }
-      ]
-    );
+    setShowLogoutModal(true);
   };
+
 
   if (isLoading || loading) {
     return (
@@ -223,7 +214,23 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.versionText}>v2.1.5</Text>
         </ScrollView>
       </SafeAreaView>
+
+      <CustomModal
+        visible={showLogoutModal}
+        type="logout"
+        title="Logout"
+        message="Are you sure you want to logout?"
+        primaryLabel="Logout"
+        secondaryLabel="Cancel"
+        onPrimary={async () => {
+          setShowLogoutModal(false);
+          await logout();
+          navigation.replace('Otp');
+        }}
+        onSecondary={() => setShowLogoutModal(false)}
+      />
     </View>
+
   );
 };
 

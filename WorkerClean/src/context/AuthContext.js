@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
@@ -8,117 +8,165 @@ export const AuthProvider = ({ children }) => {
   const [workerUser, setWorkerUser] = useState(null);
   const [workerProfile, setWorkerProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const listenerRef = useRef(null);
 
-  const fetchWorkerProfile = async (uid) => {
-    try {
-      // METHOD 1: Direct UID lookup
-      const doc = await firestore().collection('workers').doc(uid).get();
-      if (doc.exists) {
-        const data = { id: doc.id, uid, ...doc.data() };
-        setWorkerProfile(data);
-        console.log('[Auth] Profile found by UID:', data.fullName);
-        return;
-      }
+  const fetchAndListenProfile = (uid) => {
+    if (listenerRef.current) {
+      listenerRef.current();
+      listenerRef.current = null;
+    }
 
-      // METHOD 2: Search by phone number
-      const phone = auth().currentUser?.phoneNumber;
-      if (phone) {
-        // Normalize phone: remove all non-digits and take last 10
-        const normalizedPhone = phone.replace(/\D/g, '').slice(-10);
-        console.log('[Auth] Attempting phone lookup for:', normalizedPhone);
-        
-        let snap = await firestore()
-          .collection('workers')
-          .where('phone', '==', normalizedPhone)
-          .limit(1)
-          .get();
-        
-        if (snap.empty) {
-          // Try with full string just in case
-          snap = await firestore()
-            .collection('workers')
-            .where('phone', '==', phone)
-            .limit(1)
-            .get();
-        }
-
-        if (!snap.empty) {
-          const d = snap.docs[0];
-          const data = { id: d.id, uid, ...d.data() };
-          setWorkerProfile(data);
-          console.log('[Auth] Profile found by phone:', data.fullName || data.name);
+    // Try direct UID first
+    const unsubscribe = firestore()
+      .collection('workers')
+      .doc(uid)
+      .onSnapshot(async (doc) => {
+        if (doc.exists) {
+          const docData = doc.data();
           
-          // Fix: update Firestore document to use correct UID as ID
-          try {
-            await firestore().collection('workers').doc(uid).set(d.data(), { merge: true });
-          } catch (e) {}
-          return;
+          // CHECK IF PROFILE IS INCOMPLETE (Missing serviceType/category or stats)
+          // If it's incomplete, we might need to search for the original "rich" profile
+          const isIncomplete = !docData.category && !docData.serviceType;
+          
+          if (isIncomplete) {
+            console.log('⚠️ Found UID doc but it is incomplete. Searching for rich profile fallback...');
+            await findAndMergeRichProfile(uid, docData);
+          } else {
+            // Profile is complete, load it
+            const data = { uid, id: docData.id || doc.id, ...docData };
+            setWorkerProfile(data);
+            console.log('✅ Profile loaded from UID path:', data.fullName || data.name);
+            setLoading(false);
+          }
+        } else {
+          console.warn('⚠️ No doc at workers/', uid, '— trying fallbacks');
+          await findAndMergeRichProfile(uid, null);
         }
-      }
+      }, (error) => {
+        console.error('Profile listener error:', error);
+        setLoading(false);
+      });
 
-      // METHOD 3: Search by firebaseUid field
-      const snap2 = await firestore()
-        .collection('workers')
-        .where('firebaseUid', '==', uid)
-        .limit(1)
-        .get();
-      
-      if (!snap2.empty) {
-        const d = snap2.docs[0];
-        const data = { id: d.id, uid, ...d.data() };
-        setWorkerProfile(data);
-        console.log('[Auth] Profile found by firebaseUid:', data.fullName || data.name);
+    listenerRef.current = unsubscribe;
+  };
+
+  // Improved Fallback & Merger
+  const findAndMergeRichProfile = async (uid, existingData) => {
+    try {
+      const phone = auth().currentUser?.phoneNumber;
+      if (!phone) {
+        if (existingData) {
+          setWorkerProfile({ uid, id: uid, ...existingData });
+        }
+        setLoading(false);
         return;
       }
 
-      console.log('[Auth] No worker profile found for uid:', uid);
+      const cleanPhone = phone.replace('+91', '').trim();
+      console.log('[Auth] Fallback search for phone:', cleanPhone);
+
+      // Search for any doc with this phone that HAS a category/serviceType
+      let snap = await firestore()
+        .collection('workers')
+        .where('phone', '==', cleanPhone)
+        .get();
+
+      if (snap.empty) {
+        snap = await firestore()
+          .collection('workers')
+          .where('phone', '==', '+91' + cleanPhone)
+          .get();
+      }
+
+      // Find the document that actually has the data (the "Rich" profile)
+      const richDoc = snap.docs.find(d => d.id !== uid && (d.data().category || d.data().serviceType));
+
+      if (richDoc) {
+        const richData = richDoc.data();
+        console.log('✅ Found rich profile at:', richDoc.id, 'Merging...');
+
+        // MERGE: UID Doc = Rich Data + UID + Original ID
+        const mergedData = { 
+          ...richData, 
+          uid, 
+          firebaseUid: uid, 
+          id: richDoc.id // Keep original ObjectID for bookings/stats
+        };
+
+        await firestore()
+          .collection('workers')
+          .doc(uid)
+          .set(mergedData, { merge: true });
+
+        setWorkerProfile(mergedData);
+        console.log('✅ Profile successfully migrated/merged to UID path');
+      } else if (existingData) {
+        // No rich profile found, just use the existing one
+        setWorkerProfile({ uid, id: uid, ...existingData });
+      } else {
+        console.warn('❌ No profile found anywhere for this user');
+        setWorkerProfile(null);
+      }
+      setLoading(false);
     } catch (e) {
-      console.error('[Auth] fetchWorkerProfile error:', e);
+      console.error('findAndMergeRichProfile error:', e);
+      if (existingData) setWorkerProfile({ uid, id: uid, ...existingData });
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged(async (user) => {
-      if (user) {
-        setWorkerUser(user);
-        await fetchWorkerProfile(user.uid);
-      } else {
-        setWorkerUser(null);
-        setWorkerProfile(null);
+    const unsubscribeAuth = auth().onAuthStateChanged(
+      async (firebaseUser) => {
+        if (firebaseUser) {
+          console.log('Auth: User logged in', firebaseUser.uid);
+          setWorkerUser(firebaseUser);
+          fetchAndListenProfile(firebaseUser.uid);
+        } else {
+          console.log('Auth: No user logged in');
+          setWorkerUser(null);
+          setWorkerProfile(null);
+          if (listenerRef.current) {
+            listenerRef.current();
+            listenerRef.current = null;
+          }
+          setLoading(false);
+        }
       }
-      setLoading(false);
-    });
-    return unsubscribe;
+    );
+
+    return () => {
+      unsubscribeAuth();
+      if (listenerRef.current) {
+        listenerRef.current();
+      }
+    };
   }, []);
 
   const login = async (userData, profileData = null) => {
     setWorkerUser(userData);
     if (profileData) {
       setWorkerProfile({ ...profileData, uid: userData.uid });
-    } else {
-      await fetchWorkerProfile(userData.uid);
     }
-  };
-
-  const logout = async () => {
-    try {
-      await auth().signOut();
-      setWorkerUser(null);
-      setWorkerProfile(null);
-    } catch (e) {
-      console.error('Logout error:', e);
+    if (userData?.uid) {
+      fetchAndListenProfile(userData.uid);
     }
   };
 
   const refreshProfile = async () => {
-    if (!auth().currentUser?.uid) return;
-    const doc = await firestore()
-      .collection('workers')
-      .doc(auth().currentUser.uid)
-      .get();
-    if (doc.exists) {
-      setWorkerProfile({ id: doc.id, uid: auth().currentUser.uid, ...doc.data() });
+    if (workerUser?.uid) {
+      fetchAndListenProfile(workerUser.uid);
     }
+  };
+
+  const signOut = async () => {
+    if (listenerRef.current) {
+      listenerRef.current();
+      listenerRef.current = null;
+    }
+    setWorkerProfile(null);
+    setWorkerUser(null);
+    await auth().signOut();
   };
 
   return (
@@ -129,9 +177,10 @@ export const AuthProvider = ({ children }) => {
       workerProfile,
       loading,
       login,
-      logout,
-      signOut: logout,
       refreshProfile,
+      signOut,
+      logout: signOut,
+      isLoggedIn: !!workerUser,
     }}>
       {children}
     </AuthContext.Provider>

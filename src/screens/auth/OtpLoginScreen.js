@@ -182,11 +182,11 @@ const OtpLoginScreen = ({ navigation }) => {
   };
 
   const openTerms = () => {
-    Linking.openURL('https://6x2p72rx.insforge.site/terms').catch(err => console.error("Couldn't load page", err));
+    Linking.openURL('https://workease.insforge.site/terms').catch(err => console.error("Couldn't load page", err));
   };
 
   const openPrivacy = () => {
-    Linking.openURL('https://6x2p72rx.insforge.site/privacy').catch(err => console.error("Couldn't load page", err));
+    Linking.openURL('https://workease.insforge.site/privacy').catch(err => console.error("Couldn't load page", err));
   };
 
   const handleOtpChange = (text, index) => {
@@ -454,13 +454,13 @@ const OtpLoginScreen = ({ navigation }) => {
 
             <Text style={styles.termsText}>
               By continuing, you agree to our{' '}
-              <Text 
+              <Text
                 style={styles.termsLink}
                 onPress={openTerms}
               >
                 Terms of Service
               </Text> &{' '}
-              <Text 
+              <Text
                 style={styles.termsLink}
                 onPress={openPrivacy}
               >
