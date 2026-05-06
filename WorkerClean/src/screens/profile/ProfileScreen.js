@@ -47,7 +47,7 @@ const ProfileScreen = ({ navigation }) => {
         if (!snap) return;
         const all = snap.docs.map(d => d.data());
         const completed = all.filter(b => b.status === 'completed' || b.status === 'work_completed');
-        
+
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
