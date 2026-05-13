@@ -11,6 +11,13 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    document.title = "WorkEase Admin Access";
+    return () => {
+      document.title = "WorkEase | Premium Home Services";
+    };
+  }, []);
+
   // THE SECRET ADMIN CODE (You can change this or fetch it from a config)
   const ADMIN_SECRET_CODE = '858585'; 
 
@@ -36,7 +43,7 @@ const Login = () => {
       const token = await auth.currentUser.getIdToken();
       localStorage.setItem('admin_token', token);
       localStorage.setItem('admin_auth', 'true');
-      navigate('/');
+      navigate('/dashboard');
     } else {
       setError('Invalid security code. Access denied.');
       setSecurityCode('');

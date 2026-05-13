@@ -36,7 +36,7 @@ const MySupportScreen = ({ navigation }) => {
       subtitle: 'Send us your queries',
       icon: 'mail-outline',
       color: '#E84545',
-      onPress: () => Linking.openURL('mailto:support@workies.com'),
+      onPress: () => Linking.openURL('mailto:support@workease.com'),
     },
   ];
 
@@ -84,8 +84,8 @@ const MySupportScreen = ({ navigation }) => {
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>Office Address</Text>
           <Text style={styles.infoText}>
-            123 Workies Plaza, Near Rankala Lake,{"\n"}
-            Kolhapur, Maharashtra - 416012
+            WorkEase, 560, E Ward, Ruikar Colony Kawala Naka,{"\n"}
+            Kolhapur, Maharashtra - 416005
           </Text>
         </View>
       </ScrollView>

@@ -25,11 +25,23 @@ import WorkersPage from './pages/WorkersPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 
-const AdminLayout = ({ children }) => (
-  <main className="flex-1 w-full max-w-[1600px] mx-auto pt-28 pb-10 px-8">
-    {children}
-  </main>
-);
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
+const AdminLayout = ({ children }) => {
+  useEffect(() => {
+    document.title = "WorkEase Admin Panel";
+    return () => {
+      document.title = "WorkEase | Premium Home Services";
+    };
+  }, []);
+
+  return (
+    <main className="flex-1 w-full max-w-[1600px] mx-auto pt-28 pb-10 px-8">
+      {children}
+    </main>
+  );
+};
 
 function App() {
   return (
@@ -53,7 +65,7 @@ function App() {
               
               {/* Protected Admin Routes */}
               <Route path="/dashboard" element={<ProtectedRoute><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
-              <Route path="/workers" element={<ProtectedRoute><AdminLayout><Workers /></AdminLayout></ProtectedRoute>} />
+              <Route path="/manage-workers" element={<ProtectedRoute><AdminLayout><Workers /></AdminLayout></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute><AdminLayout><Users /></AdminLayout></ProtectedRoute>} />
               <Route path="/system-logs" element={<ProtectedRoute><AdminLayout><SystemLogs /></AdminLayout></ProtectedRoute>} />
               <Route path="/tracker" element={<ProtectedRoute><AdminLayout><Tracker /></AdminLayout></ProtectedRoute>} />

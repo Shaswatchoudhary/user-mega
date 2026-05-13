@@ -209,7 +209,7 @@ const OtpScreen = ({ navigation }) => {
             const mongoWorker = syncResponse.data.worker;
             login(mongoUser, mongoWorker);
             setIsLoading(false);
-            
+
             // Navigate to WorkForm if they don't have a worker profile yet
             // This ensures every worker registration process is properly managed
             if (!syncResponse.data.isWorker || !syncResponse.data.worker?.fullName) {
@@ -261,7 +261,7 @@ const OtpScreen = ({ navigation }) => {
 
           {step === 1 && (
             <View style={styles.stepContainer}>
-              <Text style={styles.title}>Welcome to Workies</Text>
+              <Text style={styles.title}>Welcome to WorkEase</Text>
               <Text style={styles.subtitle}>Enter your mobile number to continue</Text>
 
               <View style={styles.inputContainer}>

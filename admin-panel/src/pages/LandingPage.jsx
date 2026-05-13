@@ -169,7 +169,7 @@ const LandingPage = () => {
                 Join thousands of satisfied customers and professionals today. Experience the future of home services.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
-                <a href="mailto:support@workies.in" className="flex items-center gap-4 text-white hover:text-accent-red transition-colors group">
+                <a href="mailto:support@workease.in" className="flex items-center gap-4 text-white hover:text-accent-red transition-colors group">
                   <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-accent-red/20">
                     <MessageCircle size={24} />
                   </div>

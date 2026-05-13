@@ -36,7 +36,7 @@ export async function sendLocalNotification(otp) {
 
   // Display a notification
   await notifee.displayNotification({
-    title: 'Workies Verification Code',
+    title: 'WorkEase Verification Code',
     body: `Your verification code is ${otp}`,
     android: {
       channelId,

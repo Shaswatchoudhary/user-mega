@@ -7,12 +7,12 @@ class PermissionService {
    */
   async requestInitialPermissions() {
     console.log('[PermissionService] Requesting initial permissions...');
-    
+
     // 1. Notification Permission
     const notificationGranted = await this.requestNotificationPermission();
     // 2. Location Permission
     const locationGranted = await this.requestLocationPermission();
-    
+
     return {
       notifications: notificationGranted,
       location: locationGranted,
@@ -30,7 +30,7 @@ class PermissionService {
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
           {
             title: 'Notification Permission',
-            message: 'Workies needs your permission to send you updates about your bookings.',
+            message: 'WorkEase needs your permission to send you updates about your bookings.',
             buttonNeutral: 'Ask Me Later',
             buttonNegative: 'Cancel',
             buttonPositive: 'OK',
@@ -45,7 +45,7 @@ class PermissionService {
       const enabled =
         authStatus === AuthorizationStatus.AUTHORIZED ||
         authStatus === AuthorizationStatus.PROVISIONAL;
-      
+
       console.log('[PermissionService] Notification auth status:', authStatus);
       return enabled;
     } catch (error) {
@@ -61,7 +61,7 @@ class PermissionService {
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
             title: 'Location Permission',
-            message: 'Workies needs access to your location to help you find local workers.',
+            message: 'WorkEase needs access to your location to help you find local workers.',
             buttonNeutral: 'Ask Me Later',
             buttonNegative: 'Cancel',
             buttonPositive: 'OK',

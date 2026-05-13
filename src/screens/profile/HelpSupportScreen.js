@@ -20,10 +20,10 @@ const FAQItem = ({ question, answer }) => {
     <TouchableOpacity style={styles.faqCard} onPress={toggle} activeOpacity={0.7}>
       <View style={styles.faqHeader}>
         <Text style={styles.question}>{question}</Text>
-        <Ionicons 
-          name={expanded ? "chevron-up" : "chevron-down"} 
-          size={20} 
-          color={expanded ? colors.accent : "#94A3B8"} 
+        <Ionicons
+          name={expanded ? "chevron-up" : "chevron-down"}
+          size={20}
+          color={expanded ? colors.accent : "#94A3B8"}
         />
       </View>
       {expanded && <Text style={styles.answer}>{answer}</Text>}
@@ -33,25 +33,25 @@ const FAQItem = ({ question, answer }) => {
 
 const HelpSupportScreen = ({ navigation }) => {
   const faqs = [
-    { 
-      q: "How to book a service?", 
-      a: "Simply select a category from the home screen, find a professional near you, and tap 'Book Now'. Follow the steps on the booking summary to confirm your request." 
+    {
+      q: "How to book a service?",
+      a: "Simply select a category from the home screen, find a professional near you, and tap 'Book Now'. Follow the steps on the booking summary to confirm your request."
     },
-    { 
-      q: "How do payments work?", 
-      a: "Currently, we support 'Cash on Service'. You pay the professional directly after the job is completed to your satisfaction. Digital payments are coming soon!" 
+    {
+      q: "How do payments work?",
+      a: "Currently, we support 'Cash on Service'. You pay the professional directly after the job is completed to your satisfaction. Digital payments are coming soon!"
     },
-    { 
-      q: "Are the workers verified?", 
-      a: "Yes, every professional on Workies goes through a strict multi-step verification process including identity checks and background verification." 
+    {
+      q: "Are the workers verified?",
+      a: "Yes, every professional on WorkEase goes through a strict multi-step verification process including identity checks and background verification."
     },
-    { 
-      q: "What if I am not satisfied?", 
-      a: "Your satisfaction is our priority. If you are unhappy with the service, you can raise an issue through the 'Feedback' screen or contact our support team immediately." 
+    {
+      q: "What if I am not satisfied?",
+      a: "Your satisfaction is our priority. If you are unhappy with the service, you can raise an issue through the 'Feedback' screen or contact our support team immediately."
     },
-    { 
-      q: "How to cancel a booking?", 
-      a: "You can cancel a booking from the 'My Bookings' tab before the worker starts traveling to your location without any penalty." 
+    {
+      q: "How to cancel a booking?",
+      a: "You can cancel a booking from the 'My Bookings' tab before the worker starts traveling to your location without any penalty."
     },
   ];
 
@@ -91,7 +91,7 @@ const HelpSupportScreen = ({ navigation }) => {
           ))}
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.contactCard}
           onPress={handleContactSupport}
         >

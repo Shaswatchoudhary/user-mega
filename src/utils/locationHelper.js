@@ -10,7 +10,7 @@ export const requestLocationPermission = async () => {
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         {
           title: 'Location Permission',
-          message: 'Workies needs access to your location to help you find local workers.',
+          message: 'WorkEase needs access to your location to help you find local workers.',
           buttonNeutral: 'Ask Me Later',
           buttonNegative: 'Cancel',
           buttonPositive: 'OK',
@@ -28,7 +28,7 @@ export const requestLocationPermission = async () => {
       return false;
     }
   }
-  return true; 
+  return true;
 };
 
 // Get current location using real Geolocation
@@ -61,11 +61,11 @@ export const reverseGeocode = async (latitude, longitude) => {
     const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`;
     const response = await fetch(googleUrl);
     const data = await response.json();
-    
+
     if (data.status === 'OK' && data.results.length > 0) {
       const result = data.results[0];
       const addressComponents = result.address_components;
-      
+
       let city = '';
       let pincode = '';
       let area = '';
@@ -86,14 +86,14 @@ export const reverseGeocode = async (latitude, longitude) => {
         longitude
       };
     }
-    
+
     console.warn('[Geocode] Google API failed (Check Key Restrictions):', data.status, data.error_message);
-    
+
     // 2. Fallback to OpenStreetMap (Nominatim) - Free and no key required
     console.log('[Geocode] Falling back to OpenStreetMap...');
     const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
     const osmResponse = await fetch(osmUrl, {
-        headers: { 'User-Agent': 'WorkiesApp' }
+      headers: { 'User-Agent': 'WorkiesApp' }
     });
     const osmData = await osmResponse.json();
 
@@ -101,7 +101,7 @@ export const reverseGeocode = async (latitude, longitude) => {
       const addr = osmData.address;
       const city = addr.city || addr.town || addr.village || addr.suburb || '';
       const area = addr.suburb || addr.neighbourhood || addr.road || '';
-      
+
       return {
         addressText: osmData.display_name,
         name: area || city || 'Detected Location',

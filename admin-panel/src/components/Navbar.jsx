@@ -31,7 +31,7 @@ const Navbar = () => {
   const navLinks = [
     { title: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
     { title: 'Users', path: '/users', icon: <UsersIcon size={18} /> },
-    { title: 'Workers', path: '/workers', icon: <ShieldCheck size={18} /> },
+    { title: 'Workers', path: '/manage-workers', icon: <ShieldCheck size={18} /> },
     { title: 'Logs', path: '/system-logs', icon: <ClipboardList size={18} /> },
     { title: 'Tracker', path: '/tracker', icon: <MapPin size={18} /> },
     { title: 'Issues', path: '/issues', icon: <AlertCircle size={18} />, badge: true },

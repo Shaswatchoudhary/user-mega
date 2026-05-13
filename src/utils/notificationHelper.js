@@ -33,11 +33,11 @@ export async function registerForPushNotificationsAsync() {
  */
 export async function sendLocalNotification(otp) {
   console.log('[Notification] Sending local OTP notification:', otp);
-  
+
   try {
     // Display a notification
     await notifee.displayNotification({
-      title: 'Workies OTP',
+      title: 'WorkEase OTP',
       body: `Your verification code is ${otp}`,
       android: {
         channelId: 'default',

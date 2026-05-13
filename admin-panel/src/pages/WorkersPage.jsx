@@ -58,7 +58,7 @@ const WorkersPage = () => {
               { 
                 icon: <Smartphone />, 
                 title: "Smart Booking", 
-                desc: "Get real-time job notifications based on your location and expertise. Manage everything via the Workies app." 
+                desc: "Get real-time job notifications based on your location and expertise. Manage everything via the WorkEase app." 
               },
               { 
                 icon: <Clock />, 
@@ -91,7 +91,7 @@ const WorkersPage = () => {
               <h2 className="text-sm font-black text-accent-red uppercase tracking-[0.4em] mb-8">Onboarding Process</h2>
               <div className="space-y-12">
                 {[
-                  { step: "01", title: "Registration", desc: "Download the Workies app and create your professional profile." },
+                  { step: "01", title: "Registration", desc: "Download the WorkEase app and create your professional profile." },
                   { step: "02", title: "Verification", desc: "Our team will verify your skills and perform a background check." },
                   { step: "03", title: "Onboarding", desc: "Get trained on our quality standards and app usage." },
                   { step: "04", title: "Start Earning", desc: "Go live on the platform and start receiving service requests." }
