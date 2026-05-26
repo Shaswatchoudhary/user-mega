@@ -144,11 +144,23 @@ class NotificationService {
   async onForegroundMessage(remoteMessage) {
     const { notification, data } = remoteMessage;
     
+    // Choose dynamic color accents based on the type of notification
+    let notificationColor = '#E84545'; // default WorkEase brand red
+    const type = data?.type || 'general';
+    if (type === 'booking') {
+      notificationColor = '#F59E0B'; // orange/amber for new booking requests to stand out
+    } else if (type === 'job_closed') {
+      notificationColor = '#22C55E'; // success green for completed/closed jobs
+    } else if (type === 'message' || type === 'chat') {
+      notificationColor = '#3B82F6'; // info blue for chat messages
+    }
+    
     await notifee.displayNotification({
       title: notification?.title || data?.title || 'Notice',
       body: notification?.body || data?.body || '',
       android: {
         channelId: 'default',
+        color: notificationColor,
         pressAction: {
           id: 'default',
         },

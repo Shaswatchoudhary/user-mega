@@ -41,6 +41,7 @@ export async function sendLocalNotification(otp) {
       body: `Your verification code is ${otp}`,
       android: {
         channelId: 'default',
+        color: '#E84545',
         // smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'
         pressAction: {
           id: 'default',
