@@ -35,6 +35,35 @@ India has **50+ million skilled workers** — electricians, plumbers, carpenters
 We are not just an app. We are a digital infrastructure for the informal skilled services economy — giving workers digital identities, consistent income, and professional visibility, while giving customers instant access to verified, rated, GPS-tracked professionals at their doorstep.
 
 ---
+<br/>
+
+<div align="center">
+  <table style="border: none; background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); border-radius: 20px; padding: 24px 32px; margin: 20px 0;">
+    <tr>
+      <td align="center">
+        <img src="https://img.shields.io/badge/🔐-PROPRIETARY%20CODE-E53935?style=for-the-badge&labelColor=1a1a1a" alt="Proprietary Code"/>
+        <br/><br/>
+        <h3 style="color: #ffffff; margin: 0; font-weight: 600;">⚠️ Intellectual Property & Usage Terms</h3>
+        <p style="color: #b0b0b0; margin: 12px 0 8px 0; font-size: 15px; line-height: 1.5;">
+          WorkEase is a <strong>research-backed, production-grade platform</strong> published in IJSREM (April 2026).<br/>
+          This repository is shared <strong>strictly for academic review and portfolio demonstration</strong>.
+        </p>
+        <p style="color: #e0e0e0; margin: 8px 0; font-size: 14px;">
+          ❌ No copying · ❌ No forking · ❌ No deployment · ❌ No commercial use
+        </p>
+        <p style="color: #b0b0b0; margin: 12px 0 8px 0; font-size: 14px;">
+          📧 <strong>Request license or collaboration:</strong>  
+          <a href="mailto:kaushikchoudhary33@gmail.com" style="color: #E53935; text-decoration: none;">kaushikchoudhary33@gmail.com</a> · 
+          <a href="https://www.linkedin.com/in/shaswat-choudhary-6a36b824b/" style="color: #E53935; text-decoration: none;">LinkedIn</a>
+        </p>
+        <hr style="width: 60px; border-color: #333; margin: 16px 0 8px 0;"/>
+        <p style="color: #808080; margin: 0; font-size: 12px;">© 2026 WorkEase Team · All Rights Reserved</p>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<br/>
 
 ## 🚀 Three Platforms. One Ecosystem.
 
@@ -382,67 +411,6 @@ WorkEase/
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js >= 18
-- JDK 17 (Android builds)
-- Android Studio with SDK 35
-- Firebase project with Firestore, Auth, FCM enabled
-- Google Maps API key (Directions + Geocoding + Maps SDK)
-
-### User App Setup
-```bash
-git clone https://github.com/Shaswatchoudhary/user-mega.git
-cd user-mega
-npm install
-
-# Configure Firebase
-# Add google-services.json to android/app/
-
-# Configure Google Maps
-# Add API key to android/app/src/main/AndroidManifest.xml
-
-# Run
-npx react-native run-android
-```
-
-### Worker App Setup
-```bash
-cd WorkerClean
-npm install
-
-# Configure Firebase (same project, different app)
-# Add google-services.json to android/app/
-
-npx react-native run-android
-```
-
-### Admin Dashboard Setup
-```bash
-cd admin-dashboard
-npm install
-
-# Add Firebase config to src/config/firebase.js
-# Add backend URL to src/utils/api.js
-
-npm run dev
-```
-
-### Backend Setup
-```bash
-cd backend
-npm install
-
-# Configure .env:
-# MONGODB_URI=your_atlas_connection_string
-# FIREBASE_SERVICE_ACCOUNT=path_to_serviceAccountKey.json
-
-npm start
-```
-
----
-
 ## 📖 Research Publication
 
 WorkEase has been peer-reviewed and published in an international journal:
@@ -487,11 +455,47 @@ Built as a final-year mega project at **Kolhapur, Maharashtra, India**.
 
 ---
 
-## 📄 License
+<br/>
 
-This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
+<div align="center">
+  <table style="border: none; background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); border-radius: 20px; padding: 24px 32px; margin: 20px 0;">
+    <tr>
+      <td align="center">
+        <img src="https://img.shields.io/badge/📄-LICENSE%20TERMS-E53935?style=for-the-badge&labelColor=1a1a1a" alt="License Terms"/>
+        <br/><br/>
+        <h3 style="color: #ffffff; margin: 0; font-weight: 600;">Proprietary License – Not Open Source</h3>
+        <p style="color: #b0b0b0; margin: 12px 0 8px 0; font-size: 14px; line-height: 1.5;">
+          While this repository is publicly accessible, the code is shared <strong>exclusively for academic review and portfolio demonstration</strong> as part of a published research paper (IJSREM, April 2026).
+        </p>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin: 16px 0;">
+          <div style="text-align: left;">
+            <p style="color: #E53935; margin: 4px 0;">❌ <strong style="color: #ffffff;">NOT Permitted</strong></p>
+            <p style="color: #b0b0b0; margin: 2px 0; font-size: 13px;">Commercial use or deployment</p>
+            <p style="color: #b0b0b0; margin: 2px 0; font-size: 13px;">Personal or production hosting</p>
+            <p style="color: #b0b0b0; margin: 2px 0; font-size: 13px;">Forking or derivative apps</p>
+            <p style="color: #b0b0b0; margin: 2px 0; font-size: 13px;">Copying/cloning without permission</p>
+          </div>
+          <div style="text-align: left;">
+            <p style="color: #34A853; margin: 4px 0;">✅ <strong style="color: #ffffff;">Permitted</strong></p>
+            <p style="color: #b0b0b0; margin: 2px 0; font-size: 13px;">Educational review & reading</p>
+            <p style="color: #b0b0b0; margin: 2px 0; font-size: 13px;">Research citations & references</p>
+            <p style="color: #b0b0b0; margin: 2px 0; font-size: 13px;">Portfolio showcase (view only)</p>
+            <p style="color: #b0b0b0; margin: 2px 0; font-size: 13px;">Contact for licensing options</p>
+          </div>
+        </div>
+        <hr style="width: 60px; border-color: #333; margin: 16px 0 8px 0;"/>
+        <p style="color: #808080; margin: 8px 0 4px 0; font-size: 13px;">
+          📧 <strong>Inquiries & collaborations:</strong>  
+          <a href="mailto:kaushikchoudhary33@gmail.com" style="color: #E53935; text-decoration: none;">kaushikchoudhary33@gmail.com</a> · 
+          <a href="https://www.linkedin.com/in/shaswat-choudhary-6a36b824b/" style="color: #E53935; text-decoration: none;">LinkedIn</a>
+        </p>
+        <p style="color: #808080; margin: 12px 0 0 0; font-size: 12px;">© 2026 WorkEase Team · All Rights Reserved</p>
+      </td>
+    </table>
+  </table>
+</div>
 
----
+<br/>
 
 <div align="center">
 
