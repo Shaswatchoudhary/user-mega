@@ -12,7 +12,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com/)
 [![Google Maps](https://img.shields.io/badge/Google_Maps-Live_Tracking-4285F4?style=flat-square&logo=googlemaps&logoColor=white)](https://developers.google.com/maps)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Research Paper](https://img.shields.io/badge/Published-IJSREM_2026-8A2BE2?style=flat-square)](https://ijsrem.com/)
+[![Research Paper](https://img.shields.io/badge/Published-IJSREM_2026-8A2BE2?style=flat-square)](https://ijsrem.com/download/workease-an-on-demand-skilled-service-platform)
 
 <br/>
 
