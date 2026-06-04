@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 
-const uri = "mongodb+srv://workease:workease@cluster0.xzyutq7.mongodb.net/workerBooking?retryWrites=true&w=majority";
+const uri = "";
 
 async function clearMongo() {
   const client = new MongoClient(uri);
